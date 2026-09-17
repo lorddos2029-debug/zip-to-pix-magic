@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { DonationIdentityDialog } from "@/components/DonationIdentityDialog";
 import { Button } from "@/components/ui/button";
+import logoJuntos from "@/assets/logo-juntos.png.asset.json";
 import { formatBRL } from "@/lib/pix";
 import { checkUrusStatus, createUrusCharge, type UrusChargeResult } from "@/lib/urus.functions";
 
@@ -264,7 +265,7 @@ function PixPage() {
       <>
         <style>{pixCss}</style>
         <div className="container">
-          <img src="/pix/logo.jpeg" className="logo" alt="Solidarize para o bem" />
+          <img src={logoJuntos.url} className="logo" alt="Juntos por vidas — Doações" />
           <div className="pago-check" aria-hidden="true">
             <svg viewBox="0 0 52 52" width="72" height="72">
               <circle className="pago-circle" cx="26" cy="26" r="25" fill="none" stroke="#27ae60" strokeWidth="2" />
@@ -285,7 +286,7 @@ function PixPage() {
       <>
         <style>{pixCss}</style>
         <div className="container">
-          <img src="/pix/logo.jpeg" className="logo" alt="Solidarize para o bem" />
+          <img src={logoJuntos.url} className="logo" alt="Juntos por vidas — Doações" />
           <h1>Ajuda por uma vida..</h1>
           <p className="pix-sub">Pague com Pix para concluir sua doação 💚</p>
 
@@ -326,7 +327,7 @@ function PixPage() {
     <>
       <style>{pixCss}</style>
       <div className="container">
-        <img src="/pix/logo.jpeg" className="logo" alt="Solidarize para o bem" />
+        <img src={logoJuntos.url} className="logo" alt="Juntos por vidas — Doações" />
         <h1>Ajuda por uma vida..</h1>
         <p style={{ fontSize: 14, color: "#666", textAlign: "center" }}>Qual valor você deseja doar?</p>
 
