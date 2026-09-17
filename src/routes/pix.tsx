@@ -23,7 +23,17 @@ export const Route = createFileRoute("/pix")({
   component: PixPage,
 });
 
-const VALORES = [30, 50, 70, 100, 150, 200, 500, 700, 1000];
+const VALORES = [
+  { label: "R$ 30", valor: 29.7 },
+  { label: "R$ 50", valor: 49.7 },
+  { label: "R$ 70", valor: 69.7 },
+  { label: "R$ 100", valor: 99.7 },
+  { label: "R$ 150", valor: 149.7 },
+  { label: "R$ 200", valor: 199.7 },
+  { label: "R$ 500", valor: 499.7 },
+  { label: "R$ 700", valor: 699.7 },
+  { label: "R$ 1000", valor: 999.7 },
+];
 const BUMPS = [
   { id: 60, nome: "Cesta Básica", preco: 65.0, img: "/pix/cesta.png" },
   { id: 61, nome: "Auxílio Gás", preco: 29.9, img: "/pix/gas.png" },
@@ -323,12 +333,12 @@ function PixPage() {
         <div className="grid-valores">
           {VALORES.map((v) => (
             <button
-              key={v}
+              key={v.valor}
               type="button"
-              className={`btn-valor${selecionado === v ? " ativo" : ""}`}
-              onClick={() => pickValor(v)}
+              className={`btn-valor${selecionado === v.valor ? " ativo" : ""}`}
+              onClick={() => pickValor(v.valor)}
             >
-              R$ {v}
+              {v.label}
             </button>
           ))}
         </div>
@@ -407,7 +417,7 @@ body { font-family: "Montserrat", sans-serif; background: #f4f4f4; margin: 0; pa
 h1 { font-size: 22px; color: #333; margin-bottom: 5px; line-height: 1.2; text-align: center; }
 .grid-valores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 20px 0; }
 .btn-valor { background: #fff; border: 1.5px solid #ddd; padding: 12px; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.3s; font-family: Montserrat, sans-serif; }
-.btn-valor.ativo { background: #27ae60; color: #fff; border-color: #27ae60; }
+.btn-valor.ativo { background: #e8f9e9; color: #27ae60; border-color: #27ae60; }
 .turbine-container { background: #e8f9e9; border-radius: 15px; padding: 15px; margin: 20px 0; text-align: left; border: 1px solid #d4edda; }
 .turbine-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .turbine-label { background: #1abc9c; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; }
@@ -417,8 +427,8 @@ h1 { font-size: 22px; color: #333; margin-bottom: 5px; line-height: 1.2; text-al
 .bump-card img { width: 35px; height: 35px; margin-bottom: 6px; border-radius: 50%; object-fit: cover; }
 .bump-card h4 { font-size: 10px; margin: 0; color: #333; text-align: center; line-height: 1.2; min-height: 24px; text-transform: uppercase; }
 .bump-card span { font-size: 10px; color: #1abc6c; font-weight: bold; margin-top: 5px; }
-.box-input-area { background: #e0e0e0; padding: 20px; border-radius: 20px; margin-top: 15px; }
-.js-doar-value { width: 85%; padding: 12px; border: none; border-radius: 10px; text-align: center; font-size: 20px; margin-bottom: 15px; font-weight: bold; outline: none; font-family: Montserrat, sans-serif; }
+.box-input-area { background: #fff; border: 1px solid #eee; padding: 20px; border-radius: 20px; margin-top: 15px; }
+.js-doar-value { width: 85%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 10px; text-align: center; font-size: 20px; margin-bottom: 15px; font-weight: bold; outline: none; font-family: Montserrat, sans-serif; box-shadow: 0 1px 4px rgba(0,0,0,0.06); background: #fff; }
 .dados-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
 .dados-form input { width: 100%; padding: 12px; border: 1.5px solid #d0d0d0; border-radius: 10px; font-size: 15px; outline: none; font-family: Montserrat, sans-serif; background: #fff; }
 .dados-form input:focus { border-color: #27ae60; }
