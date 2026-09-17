@@ -1,5 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
+
+function getClientIp(): string | undefined {
+  try {
+    const req = getRequest();
+    return (
+      req.headers.get("cf-connecting-ip") ??
+      req.headers.get("x-real-ip") ??
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      undefined
+    );
+  } catch {
+    return undefined;
+  }
+}
 
 const URUS_BASE = "https://urusbot.online/api/v1";
 
@@ -56,7 +71,7 @@ export const createUrusCharge = createServerFn({ method: "POST" })
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, ip: data.ip ?? getClientIp() }),
     });
 
     const body = (await res.json().catch(() => null)) as Record<string, unknown> | null;
