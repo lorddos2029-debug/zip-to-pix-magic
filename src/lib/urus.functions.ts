@@ -71,7 +71,7 @@ export const createUrusCharge = createServerFn({ method: "POST" })
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ ...data, ip: data.ip ?? getClientIp() }),
     });
 
     const body = (await res.json().catch(() => null)) as Record<string, unknown> | null;
