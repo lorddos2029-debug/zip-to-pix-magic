@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
+import { DonationIdentityDialog } from "@/components/DonationIdentityDialog";
+import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/pix";
 import { checkUrusStatus, createUrusCharge, type UrusChargeResult } from "@/lib/urus.functions";
 
@@ -12,6 +14,7 @@ export const Route = createFileRoute("/pix")({
       { property: "og:title", content: "Ajuda por uma vida.. | UrusPay" },
       { property: "og:description", content: "Escolha um valor e faça sua doação via Pix." },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" },
@@ -101,6 +104,8 @@ function PixPage() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [identificacaoAberta, setIdentificacaoAberta] = useState(false);
 
   const [etapa, setEtapa] = useState<"form" | "pix" | "pago">("form");
   const [erro, setErro] = useState<string | null>(null);
@@ -154,7 +159,17 @@ function PixPage() {
     return () => window.clearInterval(timer);
   }, [etapa, cobranca, checkStatus]);
 
+  const abrirIdentificacao = () => {
+    if (!Number.isFinite(valor) || valor < MIN_VALOR) {
+      setErro(`O valor mínimo é R$ ${MIN_VALOR},00.`);
+      return;
+    }
+    setErro(null);
+    setIdentificacaoAberta(true);
+  };
+
   const contribuir = async () => {
+    if (gerando) return;
     if (!Number.isFinite(valor) || valor < MIN_VALOR) {
       setErro(`O valor mínimo é R$ ${MIN_VALOR},00.`);
       return;
@@ -172,6 +187,10 @@ function PixPage() {
       return;
     }
 
+    if (telefone && !/^\d{10,11}$/.test(telefone)) {
+      setErro("Informe um celular válido com DDD.");
+      return;
+    }
     setErro(null);
     setGerando(true);
 
@@ -180,9 +199,10 @@ function PixPage() {
 
     const itens = [
       { id: "doacao", nome: "Doação — Ajuda por uma vida", quantidade: 1, preco_unitario: Number(valor.toFixed(2)) },
-      ...bumps.map((id) => {
-        const b = BUMPS.find((x) => x.id === id)!;
-        return { id: `bump-${b.id}`, nome: b.nome, quantidade: 1, preco_unitario: b.preco };
+      ...bumps.flatMap((id) => {
+        const b = BUMPS.find((x) => x.id === id);
+        if (!b) return [];
+        return [{ id: `bump-${b.id}`, nome: b.nome, quantidade: 1, preco_unitario: b.preco }];
       }),
     ];
 
@@ -193,6 +213,7 @@ function PixPage() {
           nome: nome.trim(),
           email: email.trim(),
           cpf: cpf.replace(/\D/g, ""),
+          telefone: telefone || undefined,
           descricao: "Doação — Ajuda por uma vida",
           itens,
           ...getQueryParams(),
@@ -206,6 +227,7 @@ function PixPage() {
         setErro("Não foi possível gerar o Pix. Tente novamente.");
         return;
       }
+      setIdentificacaoAberta(false);
       setCobranca(r);
       setEtapa("pix");
     } catch (e) {
@@ -350,35 +372,7 @@ function PixPage() {
             aria-label="Valor da doação em reais"
           />
 
-          <div className="dados-form">
-            <input
-              type="text"
-              placeholder="Nome completo"
-              value={nome}
-              onChange={(e) => setNome(e.target.value)}
-              autoComplete="name"
-              aria-label="Nome completo"
-            />
-            <input
-              type="email"
-              placeholder="Seu melhor e-mail"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              aria-label="E-mail"
-            />
-            <input
-              type="text"
-              inputMode="numeric"
-              placeholder="CPF (000.000.000-00)"
-              value={cpf}
-              onChange={(e) => setCpf(mascaraCpf(e.target.value))}
-              autoComplete="off"
-              aria-label="CPF"
-            />
-          </div>
-
-          {erro ? (
+          {erro && !identificacaoAberta ? (
             <p className="valor-erro">{erro}</p>
           ) : (
             <p style={{ margin: "4px 0 0", fontSize: 12, color: "#94a3b8", textAlign: "center" }}>
@@ -390,11 +384,17 @@ function PixPage() {
               Doação: {formatBRL(valor || 0)} + Turbinadas: {formatBRL(totalBumps)} = <strong>{formatBRL(total)}</strong>
             </p>
           )}
-          <button type="button" className="btn-gerar" onClick={contribuir} disabled={gerando}>
-            {gerando ? "GERANDO PIX…" : `CONTRIBUIR ${formatBRL(total)}`}
-          </button>
+          <Button type="button" className="btn-gerar h-auto" onClick={abrirIdentificacao} disabled={gerando}>
+            {`CONTRIBUIR ${formatBRL(total)}`}
+          </Button>
         </div>
       </div>
+      <DonationIdentityDialog
+        open={identificacaoAberta} onOpenChange={(open) => { setIdentificacaoAberta(open); setErro(null); }}
+        nome={nome} email={email} cpf={cpf} telefone={telefone}
+        onNomeChange={setNome} onEmailChange={setEmail} onCpfChange={(value) => setCpf(mascaraCpf(value))} onTelefoneChange={setTelefone}
+        total={total} busy={gerando} error={erro} onSubmit={contribuir}
+      />
     </>
   );
 }
