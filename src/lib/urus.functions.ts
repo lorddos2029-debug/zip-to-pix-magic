@@ -38,10 +38,10 @@ export interface UrusChargeResult {
   venda_id: number;
   pix_code: string;
   qr_code_url: string;
-  expira_em?: string;
+  expira_em?: string | undefined;
   valor: number;
   status: string;
-  check_status_url?: string;
+  check_status_url?: string | undefined;
 }
 
 export const createUrusCharge = createServerFn({ method: "POST" })
@@ -60,20 +60,21 @@ export const createUrusCharge = createServerFn({ method: "POST" })
     });
 
     const body = (await res.json().catch(() => null)) as Record<string, unknown> | null;
-    if (!res.ok || !body || body.ok !== true) {
-      const msg = typeof body?.message === "string" ? body.message : "Não foi possível gerar o Pix. Tente novamente.";
+    if (!res.ok || !body || body["ok"] !== true) {
+      const msg = typeof body?.["message"] === "string" ? (body["message"] as string) : "Não foi possível gerar o Pix. Tente novamente.";
       throw new Error(msg);
     }
 
-    return {
-      venda_id: Number(body.venda_id),
-      pix_code: String(body.pix_code ?? ""),
-      qr_code_url: String(body.qr_code_url ?? ""),
-      expira_em: typeof body.expira_em === "string" ? body.expira_em : undefined,
-      valor: Number(body.valor ?? data.valor),
-      status: String(body.status ?? "pending"),
-      check_status_url: typeof body.check_status_url === "string" ? body.check_status_url : undefined,
+    const result: UrusChargeResult = {
+      venda_id: Number(body["venda_id"]),
+      pix_code: String(body["pix_code"] ?? ""),
+      qr_code_url: String(body["qr_code_url"] ?? ""),
+      valor: Number(body["valor"] ?? data.valor),
+      status: String(body["status"] ?? "pending"),
     };
+    if (typeof body["expira_em"] === "string") result.expira_em = body["expira_em"];
+    if (typeof body["check_status_url"] === "string") result.check_status_url = body["check_status_url"];
+    return result;
   });
 
 export interface UrusStatusResult {
@@ -96,6 +97,6 @@ export const checkUrusStatus = createServerFn({ method: "POST" })
     const body = (await res.json().catch(() => null)) as Record<string, unknown> | null;
     if (!res.ok || !body) return { pago: false, status: "pending" };
 
-    const status = String(body.status ?? "pending");
-    return { pago: body.pago === true || status === "paid", status };
+    const status = String(body["status"] ?? "pending");
+    return { pago: body["pago"] === true || status === "paid", status };
   });
