@@ -48,7 +48,7 @@ export const createUrusCharge = createServerFn({ method: "POST" })
   .inputValidator((data: UrusChargeInput) => chargeSchema.parse(data))
   .handler(async ({ data }): Promise<UrusChargeResult> => {
     const apiKey = process.env["URUS_API_KEY"];
-    if (!apiKey) throw new Error("Pagamento indisponível no momento.");
+    if (!apiKey) throw new Error("Pagamento indisponível: a chave URUS_API_KEY não está configurada neste servidor.");
 
     const res = await fetch(`${URUS_BASE}/charge`, {
       method: "POST",
@@ -88,7 +88,7 @@ export const checkUrusStatus = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }): Promise<UrusStatusResult> => {
     const apiKey = process.env["URUS_API_KEY"];
-    if (!apiKey) throw new Error("Pagamento indisponível no momento.");
+    if (!apiKey) throw new Error("Pagamento indisponível: a chave URUS_API_KEY não está configurada neste servidor.");
 
     const res = await fetch(`${URUS_BASE}/status/${data.venda_id}`, {
       headers: { Authorization: `Bearer ${apiKey}` },
