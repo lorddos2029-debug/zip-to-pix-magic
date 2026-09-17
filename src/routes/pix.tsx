@@ -250,6 +250,32 @@ function PixPage() {
       setIdentificacaoAberta(false);
       setCobranca(r);
       setEtapa("pix");
+
+      // Rastreamento: InitiateCheckout (Pixel + CAPI) e pedido pendente na UTMify
+      const base = {
+        order_id: String(r.venda_id),
+        valor: Number(r.valor || total),
+        nome: nome.trim(),
+        email: email.trim(),
+        cpf: cpf.replace(/\D/g, ""),
+        telefone: telefone || undefined,
+        fbp: getCookie("_fbp") || undefined,
+        fbc: getFbc() || undefined,
+        user_agent: navigator.userAgent,
+        source_url: window.location.href,
+        created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+        itens,
+        utm: getQueryParams(),
+      };
+      trackDataRef.current = base;
+      window.fbq?.("track", "InitiateCheckout", {
+        value: base.valor,
+        currency: "BRL",
+        eventID: `${eventoId}_ic`,
+      });
+      void track({
+        data: { ...base, stage: "checkout", evento_id: `${eventoId}_ic` },
+      } as Parameters<typeof track>[0]).catch(() => undefined);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar o Pix. Tente novamente.");
     } finally {
