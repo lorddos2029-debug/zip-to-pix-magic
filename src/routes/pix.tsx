@@ -23,7 +23,17 @@ export const Route = createFileRoute("/pix")({
   component: PixPage,
 });
 
-const VALORES = [30, 50, 70, 100, 150, 200, 500, 700, 1000];
+const VALORES = [
+  { label: "R$ 30", valor: 29.7 },
+  { label: "R$ 50", valor: 49.7 },
+  { label: "R$ 70", valor: 69.7 },
+  { label: "R$ 100", valor: 99.7 },
+  { label: "R$ 150", valor: 149.7 },
+  { label: "R$ 200", valor: 199.7 },
+  { label: "R$ 500", valor: 499.7 },
+  { label: "R$ 700", valor: 699.7 },
+  { label: "R$ 1000", valor: 999.7 },
+];
 const BUMPS = [
   { id: 60, nome: "Cesta Básica", preco: 65.0, img: "/pix/cesta.png" },
   { id: 61, nome: "Auxílio Gás", preco: 29.9, img: "/pix/gas.png" },
