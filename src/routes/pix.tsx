@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import logoJuntos from "@/assets/logo-juntos.png.asset.json";
 import { formatBRL } from "@/lib/pix";
 import { checkUrusStatus, createUrusCharge, type UrusChargeResult } from "@/lib/urus.functions";
+import { trackDonation } from "@/lib/tracking.functions";
 
 export const Route = createFileRoute("/pix")({
   head: () => ({
@@ -127,6 +128,8 @@ function PixPage() {
 
   const createCharge = useServerFn(createUrusCharge);
   const checkStatus = useServerFn(checkUrusStatus);
+  const track = useServerFn(trackDonation);
+  const trackDataRef = useRef<Record<string, unknown> | null>(null);
 
   const totalBumps = bumps.reduce((s, id) => s + (BUMPS.find((b) => b.id === id)?.preco || 0), 0);
   const total = (Number.isFinite(valor) ? valor : 0) + totalBumps;
