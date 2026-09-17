@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import logoJuntos from "@/assets/logo-juntos.png.asset.json";
 import { formatBRL } from "@/lib/pix";
 import { checkUrusStatus, createUrusCharge, type UrusChargeResult } from "@/lib/urus.functions";
+import { trackDonation } from "@/lib/tracking.functions";
 
 export const Route = createFileRoute("/pix")({
   head: () => ({
@@ -127,6 +128,8 @@ function PixPage() {
 
   const createCharge = useServerFn(createUrusCharge);
   const checkStatus = useServerFn(checkUrusStatus);
+  const track = useServerFn(trackDonation);
+  const trackDataRef = useRef<Record<string, unknown> | null>(null);
 
   const totalBumps = bumps.reduce((s, id) => s + (BUMPS.find((b) => b.id === id)?.preco || 0), 0);
   const total = (Number.isFinite(valor) ? valor : 0) + totalBumps;
@@ -161,6 +164,12 @@ function PixPage() {
             currency: "BRL",
             eventID: eventoIdRef.current,
           });
+          const base = trackDataRef.current;
+          if (base) {
+            void track({
+              data: { ...base, stage: "paid", evento_id: eventoIdRef.current },
+            } as Parameters<typeof track>[0]).catch(() => undefined);
+          }
           setEtapa("pago");
         }
       } catch {
@@ -241,6 +250,32 @@ function PixPage() {
       setIdentificacaoAberta(false);
       setCobranca(r);
       setEtapa("pix");
+
+      // Rastreamento: InitiateCheckout (Pixel + CAPI) e pedido pendente na UTMify
+      const base = {
+        order_id: String(r.venda_id),
+        valor: Number(r.valor || total),
+        nome: nome.trim(),
+        email: email.trim(),
+        cpf: cpf.replace(/\D/g, ""),
+        telefone: telefone || undefined,
+        fbp: getCookie("_fbp") || undefined,
+        fbc: getFbc() || undefined,
+        user_agent: navigator.userAgent,
+        source_url: window.location.href,
+        created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+        itens,
+        utm: getQueryParams(),
+      };
+      trackDataRef.current = base;
+      window.fbq?.("track", "InitiateCheckout", {
+        value: base.valor,
+        currency: "BRL",
+        eventID: `${eventoId}_ic`,
+      });
+      void track({
+        data: { ...base, stage: "checkout", evento_id: `${eventoId}_ic` },
+      } as Parameters<typeof track>[0]).catch(() => undefined);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar o Pix. Tente novamente.");
     } finally {
