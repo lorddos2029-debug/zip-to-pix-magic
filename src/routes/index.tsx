@@ -4,10 +4,10 @@ import { useState } from "react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ajude o Robson a cuidar da pequena Ester durante o tratamento contra a leucemia" },
-      { name: "description", content: "Ajude o Robson a cuidar da pequena Ester durante o tratamento contra a leucemia." },
-      { property: "og:title", content: "Ajude a pequena Ester no tratamento contra a leucemia" },
-      { property: "og:description", content: "Toda contribuição faz diferença. Ajude o Robson e a pequena Ester." },
+      { title: "O Pedro precisa de oxigênio para viver | Juntos Pela Vida" },
+      { name: "description", content: "O pequeno Pedro contraiu uma infecção grave e precisa de oxigênio em casa para continuar vivendo. Ajude com o que puder." },
+      { property: "og:title", content: "O Pedro precisa de oxigênio para viver" },
+      { property: "og:description", content: "Pulmões comprometidos, oxigênio em casa. Cada real vai direto para o tratamento do Pedro." },
       { property: "og:type", content: "website" },
     ],
     links: [
@@ -40,13 +40,7 @@ function Campaign() {
   const [liked, setLiked] = useState(false);
   const [tab, setTab] = useState<TabId>("sobre");
   const [expanded, setExpanded] = useState(false);
-  const [copied, setCopied] = useState(false);
 
-  const copyPix = () => {
-    navigator.clipboard?.writeText("doacao@solidarizaesperanca.org").catch(() => undefined);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <>
@@ -68,7 +62,7 @@ function Campaign() {
       <div className="spacer" />
       <div className="container">
         <div className="campaign-image">
-          <img src="/campaign/original.jpg" alt="Pequena Ester" />
+          <img src="/campaign/pedro.webp" alt="Pedro no colo da mãe, com cateter de oxigênio no rosto" />
           <button className="heart-btn" onClick={() => setLiked((v) => !v)} aria-label="Curtir">
             <svg viewBox="0 0 40 40">
               <circle cx="20" cy="20" r="20" fill="#fff" />
@@ -85,12 +79,12 @@ function Campaign() {
           </span>
         </div>
 
-        <h1 className="campaign-title">Ajude o Robson a cuidar da pequena Ester durante o tratamento contra a leucemia❤️</h1>
+        <h1 className="campaign-title">O Pedro precisa de oxigênio para viver💚</h1>
         <p className="campaign-id">ID: 53057933</p>
 
         <div className="mobile-stats-panel">
           <div className="progress-bar"><div className="progress-fill" /></div>
-          <div className="collected-value">R$ 11.750,00 <span className="collected-goal">de R$ 147.000,00</span></div>
+          <div className="collected-value">R$ 15.300,00 <span className="collected-goal">de R$ 45.000,00</span></div>
           <div className="stats-box">
             <div className="stat-row">
               <span className="stat-label">
@@ -103,18 +97,18 @@ function Campaign() {
             </div>
             <div className="stat-row">
               <span className="stat-label">Apoiadores</span>
-              <span className="stat-value">421</span>
+              <span className="stat-value">187</span>
             </div>
           </div>
         </div>
 
         <div className="short-desc">
-          Olá, meu nome é Robson e sou pai da pequena Ester. É com o coração apertado e muita esperança que venho pedir a ajuda de vocês. Minha filha Ester está enfrentando uma batalha muito difícil: ela está passando por um tratamento contra a leucemia.
+          💚 "Meu filho está lutando para respirar. A gente já não tem mais como bancar o tratamento sozinho." O pequeno Pedro contraiu uma infecção grave e hoje está com os pulmões comprometidos. Ele precisa de oxigênio em casa para continuar vivendo.
           {!expanded && <span onClick={() => setExpanded(true)}>ver tudo</span>}
         </div>
         {expanded && (
           <div className="full-desc">
-            Olá, meu nome é Robson e sou pai da pequena Ester. Diariamente me desloco de Barcarena até Belém para acompanhar minha filha durante o tratamento contra a leucemia. Qualquer contribuição, independentemente do valor, será muito importante para nós. E se você não puder contribuir financeiramente, compartilhar esta vakinha já será uma enorme ajuda. 💚
+            Pedro no colo da mãe, com o cateter de oxigênio no rosto. É assim, dia e noite — com a família ao lado o tempo inteiro. 🫁 Pulmões comprometidos. Oxigênio em casa. Cada dia é uma luta. Qualquer valor ajuda a manter o oxigênio ligado e os remédios em dia. 💚
           </div>
         )}
 
@@ -185,7 +179,7 @@ function Campaign() {
             className="btn-share"
             onClick={() => {
               if (navigator.share) {
-                navigator.share({ title: "Ajude a pequena Ester", url: window.location.href }).catch(() => undefined);
+                navigator.share({ title: "O Pedro precisa de oxigênio para viver", url: window.location.href }).catch(() => undefined);
               } else {
                 navigator.clipboard?.writeText(window.location.href).catch(() => undefined);
               }
