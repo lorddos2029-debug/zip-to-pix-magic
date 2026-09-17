@@ -4,10 +4,10 @@ import { useState } from "react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Ajude o Robson a cuidar da pequena Ester durante o tratamento contra a leucemia" },
-      { name: "description", content: "Ajude o Robson a cuidar da pequena Ester durante o tratamento contra a leucemia." },
-      { property: "og:title", content: "Ajude a pequena Ester no tratamento contra a leucemia" },
-      { property: "og:description", content: "Toda contribuição faz diferença. Ajude o Robson e a pequena Ester." },
+      { title: "O Pedro precisa de oxigênio para viver | Juntos Pela Vida" },
+      { name: "description", content: "O pequeno Pedro contraiu uma infecção grave e precisa de oxigênio em casa para continuar vivendo. Ajude com o que puder." },
+      { property: "og:title", content: "O Pedro precisa de oxigênio para viver" },
+      { property: "og:description", content: "Pulmões comprometidos, oxigênio em casa. Cada real vai direto para o tratamento do Pedro." },
       { property: "og:type", content: "website" },
     ],
     links: [
@@ -40,13 +40,7 @@ function Campaign() {
   const [liked, setLiked] = useState(false);
   const [tab, setTab] = useState<TabId>("sobre");
   const [expanded, setExpanded] = useState(false);
-  const [copied, setCopied] = useState(false);
 
-  const copyPix = () => {
-    navigator.clipboard?.writeText("doacao@solidarizaesperanca.org").catch(() => undefined);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <>
@@ -68,7 +62,7 @@ function Campaign() {
       <div className="spacer" />
       <div className="container">
         <div className="campaign-image">
-          <img src="/campaign/original.jpg" alt="Pequena Ester" />
+          <img src="/campaign/pedro.webp" alt="Pedro no colo da mãe, com cateter de oxigênio no rosto" />
           <button className="heart-btn" onClick={() => setLiked((v) => !v)} aria-label="Curtir">
             <svg viewBox="0 0 40 40">
               <circle cx="20" cy="20" r="20" fill="#fff" />
@@ -85,12 +79,12 @@ function Campaign() {
           </span>
         </div>
 
-        <h1 className="campaign-title">Ajude o Robson a cuidar da pequena Ester durante o tratamento contra a leucemia❤️</h1>
+        <h1 className="campaign-title">O Pedro precisa de oxigênio para viver💚</h1>
         <p className="campaign-id">ID: 53057933</p>
 
         <div className="mobile-stats-panel">
           <div className="progress-bar"><div className="progress-fill" /></div>
-          <div className="collected-value">R$ 11.750,00 <span className="collected-goal">de R$ 147.000,00</span></div>
+          <div className="collected-value">R$ 15.300,00 <span className="collected-goal">de R$ 45.000,00</span></div>
           <div className="stats-box">
             <div className="stat-row">
               <span className="stat-label">
@@ -103,18 +97,18 @@ function Campaign() {
             </div>
             <div className="stat-row">
               <span className="stat-label">Apoiadores</span>
-              <span className="stat-value">421</span>
+              <span className="stat-value">187</span>
             </div>
           </div>
         </div>
 
         <div className="short-desc">
-          Olá, meu nome é Robson e sou pai da pequena Ester. É com o coração apertado e muita esperança que venho pedir a ajuda de vocês. Minha filha Ester está enfrentando uma batalha muito difícil: ela está passando por um tratamento contra a leucemia.
+          💚 "Meu filho está lutando para respirar. A gente já não tem mais como bancar o tratamento sozinho." O pequeno Pedro contraiu uma infecção grave e hoje está com os pulmões comprometidos. Ele precisa de oxigênio em casa para continuar vivendo.
           {!expanded && <span onClick={() => setExpanded(true)}>ver tudo</span>}
         </div>
         {expanded && (
           <div className="full-desc">
-            Olá, meu nome é Robson e sou pai da pequena Ester. Diariamente me desloco de Barcarena até Belém para acompanhar minha filha durante o tratamento contra a leucemia. Qualquer contribuição, independentemente do valor, será muito importante para nós. E se você não puder contribuir financeiramente, compartilhar esta vakinha já será uma enorme ajuda. 💚
+            Pedro no colo da mãe, com o cateter de oxigênio no rosto. É assim, dia e noite — com a família ao lado o tempo inteiro. 🫁 Pulmões comprometidos. Oxigênio em casa. Cada dia é uma luta. Qualquer valor ajuda a manter o oxigênio ligado e os remédios em dia. 💚
           </div>
         )}
 
@@ -132,33 +126,25 @@ function Campaign() {
 
         {tab === "sobre" ? (
           <div>
-            <div className="pix-row">Você pode ajudar via Pix usando a chave:</div>
-            <div className="pix-key" onClick={copyPix}>
-              <span>{copied ? "Copiado!" : "doacao@solidarizaesperanca.org"}</span>
-              <svg viewBox="350 0 766 758"><path d="M806.32,188.44H597.7a34.87,34.87,0,0,0-34.84,34.73V466.71H597.7V223.17H806.32Z" /><path d="M858.56,258v0H667.25a35,35,0,0,0-34.84,34.83V536.28a35,35,0,0,0,34.84,34.83H858.56a34.9,34.9,0,0,0,34.72-34.83V292.8A34.9,34.9,0,0,0,858.56,258Zm0,278.29H667.25V292.8H858.56Z" /></svg>
-            </div>
-
             <div className="divider" />
             <p className="created-date"><strong>Vaquinha criada em:</strong> 17/08/2026</p>
 
             <div className="description">
-              <p><strong>💚 Ajude o Robson a cuidar da pequena Ester durante o tratamento contra a leucemia</strong></p>
-              <p>Olá, meu nome é Robson e sou pai da pequena Ester.</p>
-              <p>É com o coração apertado e muita esperança que venho pedir a ajuda de vocês. Minha filha Ester está enfrentando uma batalha muito difícil: ela está passando por um tratamento contra a leucemia.</p>
-              <p>Ester é uma menina meiga, doce e cheia de vida. Como pai, tudo o que mais desejo neste momento é poder estar ao lado dela, dando todo o amor, apoio e força que ela precisa para enfrentar essa fase tão delicada.</p>
-              <p>Nós moramos em Barcarena, no Pará, e diariamente preciso me deslocar até Belém para acompanhar minha filha durante o tratamento. São viagens, alimentação, transporte e outras despesas que acabam pesando muito no orçamento da nossa família.</p>
-              <p>Infelizmente, essa não é a primeira vez que o câncer entra na nossa família. Minha esposa, mãe da Ester, também enfrentou essa doença e, infelizmente, acabou falecendo por causa dela. Desde então, tenho seguido em frente tentando ser forte pela minha filha e fazer tudo o que estiver ao meu alcance para protegê-la.</p>
-              <p>Hoje, estou aqui deixando de lado qualquer orgulho e pedindo ajuda. Não estou fazendo isso por mim, mas pela minha pequena Ester. Quero poder continuar acompanhando seu tratamento e proporcionar a ela tudo o que estiver ao meu alcance durante essa caminhada.</p>
-              <p>Qualquer contribuição, independentemente do valor, será muito importante para nós. E se você não puder contribuir financeiramente, compartilhar esta vakinha com outras pessoas já será uma enorme ajuda.</p>
-              <p>Peço, de coração, que você inclua a Ester em suas orações e torça pela recuperação dela. Espero que minhas palavras possam tocar o seu coração e que você possa nos ajudar a enfrentar essa jornada.</p>
-              <p>Por favor, nos ajude a dar à pequena Ester a chance de continuar lutando e, um dia, poder voltar a viver sua infância com toda a alegria que ela merece.</p>
-              <p>Que Deus abençoe cada pessoa que puder nos ajudar, seja com uma contribuição, uma oração ou simplesmente compartilhando nossa história.</p>
-              <p><strong>O que sua ajuda pode proporcionar:</strong></p>
-              <p>💊 Fisioterapia e acompanhamento</p>
-              <p>🧪 Exames e consultas</p>
-              <p>🚗 Transporte para atendimentos</p>
-              <p>🏠 Adaptações necessárias para os cuidados da Ester</p>
-              <p>Ester tem apenas 6 anos. Se você puder ajudar, sua contribuição pode fazer parte dessa rede de apoio. E, se não puder doar, compartilhar a história também ajuda.</p>
+              <p><strong>🫁 O Pedro precisa de oxigênio para viver</strong></p>
+              <p>O Pedro contraiu uma infecção grave que comprometeu seus pulmões. Desde então, ele depende de oxigênio contínuo para respirar — em casa, com a família ao redor, tentando manter tudo funcionando.</p>
+              <p>Além do oxigênio, ele precisa de medicação diária sem interrupção. Sem esses recursos, ele não consegue respirar. Não é metáfora: é literalmente a diferença entre viver e não viver.</p>
+              <p>⚠️ Cada real arrecadado vai direto para pagar o oxigênio, os medicamentos e os insumos que mantêm o Pedro vivo.</p>
+              <p><strong>👨‍👩‍👦 Uma família que já não consegue mais sozinha.</strong></p>
+              <p>Os pais do Pedro chegaram num ponto em que os recursos acabaram. O custo do tratamento é contínuo e crescente — e eles não têm mais condições de arcar com tudo sozinhos.</p>
+              <p>Qualquer valor ajuda a manter o oxigênio ligado e os remédios em dia. Não existe contribuição pequena quando uma vida está em jogo.</p>
+              <p>💚 <strong>Apelo da família:</strong> "O Pedro é a nossa vida. Não conseguimos mais bancar tudo sozinhos. Qualquer valor ajuda a manter o oxigênio ligado e os remédios em dia. Que Deus abençoe cada pessoa que ajudar o nosso menino. 🙏" — <strong>Família do Pedro</strong></p>
+              <p><strong>Quanto vale um dia respirando?</strong></p>
+              <p>Com sua contribuição, o Pedro consegue manter o oxigênio e os remédios em dia. Escolha um valor e faça parte dessa história.</p>
+              <p>🫁 Oxigênio contínuo em casa</p>
+              <p>💊 Medicação diária sem interrupção</p>
+              <p>🩺 Cuidados e insumos para o tratamento</p>
+              <p>Se essa página chegou até você, não deixe esse momento passar. Compartilhe a história do Pedro com amigos, familiares e grupos. Cada compartilhamento pode alcançar a pessoa que vai fazer a diferença para esse menino continuar respirando. 💚🙏</p>
+              <p>Que Deus abençoe você e sua família.</p>
             </div>
 
             <p className="aviso">AVISO LEGAL: O texto e as imagens incluídos nessa página são de única e exclusiva responsabilidade do criador da vaquinha e não representam a opinião ou endosso da plataforma Vakinha.</p>
@@ -185,7 +171,7 @@ function Campaign() {
             className="btn-share"
             onClick={() => {
               if (navigator.share) {
-                navigator.share({ title: "Ajude a pequena Ester", url: window.location.href }).catch(() => undefined);
+                navigator.share({ title: "O Pedro precisa de oxigênio para viver", url: window.location.href }).catch(() => undefined);
               } else {
                 navigator.clipboard?.writeText(window.location.href).catch(() => undefined);
               }
