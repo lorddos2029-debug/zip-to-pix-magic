@@ -164,6 +164,12 @@ function PixPage() {
             currency: "BRL",
             eventID: eventoIdRef.current,
           });
+          const base = trackDataRef.current;
+          if (base) {
+            void track({
+              data: { ...base, stage: "paid", evento_id: eventoIdRef.current },
+            } as Parameters<typeof track>[0]).catch(() => undefined);
+          }
           setEtapa("pago");
         }
       } catch {
