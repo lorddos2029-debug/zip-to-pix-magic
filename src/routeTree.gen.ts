@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MiguelRouteImport } from './routes/miguel'
 import { Route as PedroRouteImport } from './routes/pedro'
 import { Route as PixRouteImport } from './routes/pix'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MiguelRoute = MiguelRouteImport.update({
+  id: '/miguel',
+  path: '/miguel',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PedroRoute = PedroRouteImport.update({
@@ -31,30 +37,34 @@ const PixRoute = PixRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
   '/pix': typeof PixRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
   '/pix': typeof PixRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
   '/pix': typeof PixRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/pedro' | '/pix'
+  fullPaths: '/' | '/miguel' | '/pedro' | '/pix'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/pedro' | '/pix'
-  id: '__root__' | '/' | '/pedro' | '/pix'
+  to: '/' | '/miguel' | '/pedro' | '/pix'
+  id: '__root__' | '/' | '/miguel' | '/pedro' | '/pix'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MiguelRoute: typeof MiguelRoute
   PedroRoute: typeof PedroRoute
   PixRoute: typeof PixRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/miguel': {
+      id: '/miguel'
+      path: '/miguel'
+      fullPath: '/miguel'
+      preLoaderRoute: typeof MiguelRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pedro': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MiguelRoute: MiguelRoute,
   PedroRoute: PedroRoute,
   PixRoute: PixRoute,
 }
