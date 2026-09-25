@@ -3,6 +3,7 @@ import { Heart, MapPin, Menu, Search, Share2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import miguelCover from "@/assets/miguel-1.jpeg.asset.json";
 import miguelStory from "@/assets/miguel-2.jpeg.asset.json";
+import vakinhaLogo from "@/assets/vakinha-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import "@/miguel.css";
 
@@ -51,7 +52,7 @@ const FAQS = [
 ];
 
 function CampaignHeader({ onShare }: { onShare: () => void }) {
-  return <header className="miguel-header"><div className="mx-auto flex h-14 max-w-[38rem] items-center justify-between px-4"><Link to="/miguel" className="flex items-center gap-2 font-black text-[var(--miguel-primary-strong)]" aria-label="Campanha do Miguel"><span className="grid size-8 place-items-center rounded-md bg-[var(--miguel-primary)] text-lg text-primary-foreground">J</span><span className="text-lg">Juntos por Vidas</span></Link><div className="flex items-center gap-1"><Button variant="ghost" size="icon" aria-label="Pesquisar"><Search className="size-5" /></Button><Button variant="ghost" size="icon" aria-label="Compartilhar campanha" onClick={onShare}><Share2 className="size-5" /></Button><Button variant="ghost" size="icon" aria-label="Abrir menu"><Menu className="size-5" /></Button></div></div></header>;
+  return <header className="miguel-header"><div className="mx-auto flex h-14 max-w-[38rem] items-center justify-between px-4"><Link to="/miguel" aria-label="Campanha do Miguel"><img src={vakinhaLogo.url} alt="Vakinha" width={111} height={54} className="h-9 w-auto object-contain" /></Link><div className="flex items-center gap-1"><Button variant="ghost" size="icon" aria-label="Pesquisar"><Search className="size-5" /></Button><Button variant="ghost" size="icon" aria-label="Compartilhar campanha" onClick={onShare}><Share2 className="size-5" /></Button><Button variant="ghost" size="icon" aria-label="Abrir menu"><Menu className="size-5" /></Button></div></div></header>;
 }
 
 function CampaignStats() {
