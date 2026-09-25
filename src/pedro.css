@@ -1,0 +1,61 @@
+.pedro-page {
+  --pedro-primary: oklch(0.73 0.18 149);
+  --pedro-primary-strong: oklch(0.53 0.15 153);
+  --pedro-primary-soft: oklch(0.96 0.08 142);
+  --pedro-background: oklch(0.98 0.004 250);
+  --pedro-surface: oklch(1 0 0);
+  --pedro-text: oklch(0.25 0.01 250);
+  --pedro-muted: oklch(0.55 0.015 250);
+  --pedro-border: oklch(0.91 0.008 250);
+  min-height: 100vh;
+  padding-bottom: 10.5rem;
+  background: var(--pedro-background);
+  color: var(--pedro-text);
+  font-family: "Lato", Arial, sans-serif;
+}
+
+.pedro-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid var(--pedro-border);
+  background: var(--pedro-surface);
+}
+
+.pedro-scrollbar {
+  scrollbar-width: none;
+}
+
+.pedro-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.pedro-progress {
+  width: 3.62%;
+}
+
+.pedro-tab[aria-selected="true"] {
+  color: var(--pedro-primary-strong);
+  border-bottom-color: var(--pedro-primary);
+}
+
+.pedro-bottom {
+  box-shadow: 0 -4px 16px color-mix(in oklch, var(--pedro-text) 10%, transparent);
+}
+
+@media (min-width: 768px) {
+  .pedro-page {
+    padding-bottom: 8.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pedro-tab-panel {
+    animation: pedro-fade 180ms ease-out;
+  }
+}
+
+@keyframes pedro-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
