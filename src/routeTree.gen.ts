@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PedroRouteImport } from './routes/pedro'
 import { Route as PixRouteImport } from './routes/pix'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PedroRoute = PedroRouteImport.update({
+  id: '/pedro',
+  path: '/pedro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PixRoute = PixRouteImport.update({
@@ -25,27 +31,31 @@ const PixRoute = PixRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/pedro': typeof PedroRoute
   '/pix': typeof PixRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/pedro': typeof PedroRoute
   '/pix': typeof PixRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/pedro': typeof PedroRoute
   '/pix': typeof PixRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/pix'
+  fullPaths: '/' | '/pedro' | '/pix'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/pix'
-  id: '__root__' | '/' | '/pix'
+  to: '/' | '/pedro' | '/pix'
+  id: '__root__' | '/' | '/pedro' | '/pix'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  PedroRoute: typeof PedroRoute
   PixRoute: typeof PixRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pedro': {
+      id: '/pedro'
+      path: '/pedro'
+      fullPath: '/pedro'
+      preLoaderRoute: typeof PedroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pix': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  PedroRoute: PedroRoute,
   PixRoute: PixRoute,
 }
 export const routeTree = rootRouteImport
