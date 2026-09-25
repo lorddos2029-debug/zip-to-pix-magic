@@ -32,11 +32,22 @@ const TABS: Array<{ id: PedroTab; label: string }> = [
   { id: "perguntas", label: "Perguntas e Respostas" },
 ];
 
-const EMPTY_STATES: Record<Exclude<PedroTab, "sobre">, { title: string; description: string }> = {
-  atualizacoes: { title: "Ainda não há atualizações", description: "As novidades sobre a campanha aparecerão aqui." },
-  quem: { title: "Seja a próxima pessoa a ajudar", description: "As contribuições da campanha aparecerão aqui." },
-  perguntas: { title: "Ainda não há perguntas", description: "As perguntas e respostas da campanha aparecerão aqui." },
-};
+const SUPPORTERS = [
+  { name: "João", amount: "R$ 40,00", time: "há poucos minutos" },
+  { name: "Eva", amount: "R$ 45,00", time: "há 22 minutos" },
+  { name: "Bruno", amount: "R$ 45,00", time: "há 1 hora" },
+  { name: "Liz", amount: "R$ 10,00", time: "há 2 horas" },
+  { name: "Anônimo", amount: "R$ 100,00", time: "há 3 horas" },
+  { name: "Márcia", amount: "R$ 50,00", time: "há 5 horas" },
+];
+
+const FAQS = [
+  { question: "Para onde vai o valor arrecadado?", answer: "O valor será destinado à compra de um carro, de uma cadeira de rodas motorizada e à reforma da casa da família para dar mais conforto e autonomia ao Pedro." },
+  { question: "Qual é o valor mínimo para doar?", answer: "A contribuição mínima é de R$ 20,00. Qualquer valor acima disso faz diferença para a família." },
+  { question: "Como faço uma doação via Pix?", answer: "Toque em “Quero Ajudar”, escolha o valor, informe seus dados e use o QR Code ou o código Pix copia e cola." },
+  { question: "Como sei que meu pagamento foi confirmado?", answer: "Após o pagamento, a página acompanha a confirmação do Pix e mostra uma mensagem quando ele for aprovado." },
+  { question: "Como posso ajudar sem fazer uma doação?", answer: "Compartilhe esta campanha com amigos, familiares e grupos. Cada novo compartilhamento pode alcançar alguém disposto a ajudar." },
+];
 
 function VakinhaMark() {
   return (
@@ -94,6 +105,45 @@ function AboutPedro() {
   );
 }
 
+function UpdatesPanel() {
+  return (
+    <div className="pedro-tab-panel py-2">
+      <article className="flex gap-4 border-b border-[var(--pedro-border)] py-4">
+        <div className="grid size-14 shrink-0 place-items-center rounded-lg bg-[var(--pedro-primary-soft)] text-center text-[var(--pedro-primary-strong)]">
+          <span className="text-xl font-black leading-none">13</span><span className="text-xs font-bold uppercase">Set</span>
+        </div>
+        <div><h2 className="font-bold">Vaquinha criada</h2><p className="mt-1 text-sm leading-6 text-[var(--pedro-muted)]">Abrimos esta arrecadação para ajudar o Pedro Leonardo e sua família.</p></div>
+      </article>
+    </div>
+  );
+}
+
+function SupportersPanel() {
+  return (
+    <div className="pedro-tab-panel divide-y divide-[var(--pedro-border)]">
+      {SUPPORTERS.map((supporter) => (
+        <article key={`${supporter.name}-${supporter.time}`} className="flex items-center justify-between gap-4 py-4">
+          <div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-full bg-[var(--pedro-primary-soft)] font-black text-[var(--pedro-primary-strong)]">{supporter.name.charAt(0)}</span><div><h2 className="font-bold">{supporter.name}</h2><p className="text-xs text-[var(--pedro-muted)]">{supporter.time}</p></div></div>
+          <strong className="text-sm text-[var(--pedro-primary-strong)]">{supporter.amount}</strong>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function QuestionsPanel() {
+  return (
+    <div className="pedro-tab-panel divide-y divide-[var(--pedro-border)]">
+      {FAQS.map((item) => (
+        <details key={item.question} className="group py-4">
+          <summary className="cursor-pointer list-none pr-6 font-bold marker:hidden">{item.question}</summary>
+          <p className="mt-3 text-sm leading-6 text-[var(--pedro-muted)]">{item.answer}</p>
+        </details>
+      ))}
+    </div>
+  );
+}
+
 function CampaignTabs({ active, onChange }: { active: PedroTab; onChange: (tab: PedroTab) => void }) {
   return (
     <>
@@ -103,7 +153,10 @@ function CampaignTabs({ active, onChange }: { active: PedroTab; onChange: (tab: 
         ))}
       </div>
       <div role="tabpanel" className="pt-5">
-        {active === "sobre" ? <AboutPedro /> : <div className="pedro-tab-panel py-12 text-center"><h2 className="font-bold">{EMPTY_STATES[active].title}</h2><p className="mt-2 text-sm text-[var(--pedro-muted)]">{EMPTY_STATES[active].description}</p></div>}
+        {active === "sobre" && <AboutPedro />}
+        {active === "atualizacoes" && <UpdatesPanel />}
+        {active === "quem" && <SupportersPanel />}
+        {active === "perguntas" && <QuestionsPanel />}
       </div>
     </>
   );
