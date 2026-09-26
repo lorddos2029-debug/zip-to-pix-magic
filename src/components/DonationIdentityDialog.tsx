@@ -52,7 +52,7 @@ export function DonationIdentityDialog(props: DonationIdentityDialogProps) {
                 checked={props.anonymous}
                 onCheckedChange={props.onAnonymousChange}
                 aria-label="Quero doar anonimamente"
-                className="h-6 w-11 data-[state=checked]:bg-primary data-[state=unchecked]:bg-border [&>span]:h-5 [&>span]:w-5 [&>span]:data-[state=checked]:translate-x-5"
+                className="h-6 w-11 data-[state=checked]:bg-success data-[state=unchecked]:bg-border [&>span]:h-5 [&>span]:w-5 [&>span]:data-[state=checked]:translate-x-5"
               />
             </div>
             {!props.anonymous && (
