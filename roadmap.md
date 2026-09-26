@@ -4,3 +4,4 @@
 - [x] Add normal and anonymous identification flows.
 - [x] Preserve payment creation, status polling, and tracking.
 - [x] Verify normal and anonymous flows in desktop and mobile previews.
+- [x] Add an accessible on/off switch beside the anonymous donation option.
