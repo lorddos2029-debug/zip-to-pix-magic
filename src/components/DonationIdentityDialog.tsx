@@ -27,6 +27,11 @@ export function DonationIdentityDialog(props: DonationIdentityDialogProps) {
     event.preventDefault();
     if (!props.busy) void props.onSubmit();
   };
+  const telefoneFormatado = props.telefone
+    .replace(/\D/g, "")
+    .slice(0, 11)
+    .replace(/^(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{5})(\d)/, "$1-$2");
   const inputClass = "h-12 w-full rounded-lg border border-input bg-background px-4 text-base text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring";
   return (
     <Dialog open={props.open} onOpenChange={(open) => { if (!props.busy) props.onOpenChange(open); }}>
@@ -52,8 +57,8 @@ export function DonationIdentityDialog(props: DonationIdentityDialogProps) {
                 <input className={inputClass} type="email" aria-label="E-mail" placeholder="Seu e-mail" autoComplete="email" maxLength={255} value={props.email} onChange={(e) => props.onEmailChange(e.target.value)} />
               </>
             )}
-            <input className={inputClass} inputMode="numeric" aria-label="CPF" placeholder="CPF (000.000.000-00)" value={props.cpf} onChange={(e) => props.onCpfChange(e.target.value)} />
-            <input className={inputClass} type="tel" inputMode="numeric" aria-label="Celular com DDD" placeholder="Celular com DDD" autoComplete="tel" value={props.telefone} onChange={(e) => props.onTelefoneChange(e.target.value.replace(/\D/g, "").slice(0, 11))} />
+            <input className={inputClass} type="tel" inputMode="numeric" aria-label="CPF" placeholder="CPF" value={props.cpf} onChange={(e) => props.onCpfChange(e.target.value)} />
+            <input className={inputClass} type="tel" inputMode="numeric" aria-label="Celular com DDD" placeholder="Celular com DDD" autoComplete="tel" value={telefoneFormatado} onChange={(e) => props.onTelefoneChange(e.target.value.replace(/\D/g, "").slice(0, 11))} />
             {props.anonymous && (
               <p className="rounded-lg bg-muted px-3 py-2 text-left text-xs leading-5 text-muted-foreground">
                 <span aria-hidden="true">🔒</span> CPF e celular são exigidos pelo banco para gerar o Pix. Eles não aparecem na vakinha — sua doação continua anônima.

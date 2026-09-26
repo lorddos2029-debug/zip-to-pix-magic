@@ -81,7 +81,7 @@ function gerarIdentidadeAnonima(): { nome: string; email: string } {
   const identificador = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
   return {
     nome: `Doador Anônimo ${identificador.slice(0, 6).toUpperCase()}`,
-    email: `anonimo-${identificador}@doacao.invalid`,
+    email: `anonimo-${identificador}@example.com`,
   };
 }
 
