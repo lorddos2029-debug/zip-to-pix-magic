@@ -89,8 +89,8 @@ function AboutPietro() {
       <h3 className="text-lg font-bold">A história do Pietro</h3>
       <p>Pietro Hamm dos Santos foi um bebê muito sonhado e nasceu saudável. Com apenas 1 mês e 3 dias de vida, um engasgo com leite materno causou uma lesão cerebral, mudando completamente a rotina da família.</p>
       <figure className="overflow-hidden rounded-lg border border-[var(--pietro-border)]">
-        <img src="/pietro/pietro-story.jpg" alt="Pietro com sua família" width={960} height={1280} loading="lazy" className="max-h-[34rem] w-full object-cover object-top" />
-        <figcaption className="px-4 py-3 text-sm text-[var(--pietro-muted)]">O amor da família acompanha o Pietro em cada etapa dessa jornada.</figcaption>
+        <img src="/pietro/pietro-story.jpg" alt="Pietro em casa durante sua rotina de cuidados" width={720} height={1280} loading="lazy" className="max-h-[34rem] w-full object-cover object-top" />
+        <figcaption className="px-4 py-3 text-sm text-[var(--pietro-muted)]">O pequeno guerreiro em casa, cercado pelo cuidado da família.</figcaption>
       </figure>
       <p>Ainda no hospital, Pietro precisou passar por uma traqueostomia. Ao todo, já enfrentou quatro cirurgias. Depois veio o diagnóstico de paralisia cerebral com quadriplegia espástica grau 5 e epilepsia.</p>
       <p>Hoje, ele não engole, não tosse, não pisca e depende de cuidados constantes para viver. Recebe acompanhamento pelo Home Care do SUS e continua lutando todos os dias ao lado da família.</p>
