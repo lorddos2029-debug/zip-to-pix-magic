@@ -37,9 +37,9 @@ const VALORES = [
   { label: "R$ 1000", valor: 1000 },
 ];
 const BUMPS = [
-  { id: 60, nome: "Cesta Básica", preco: 65.0, img: "/pix/cesta.png" },
+  { id: 60, nome: "Cesta Básica", preco: 25.0, img: "/pix/cesta.png" },
   { id: 61, nome: "Auxílio Gás", preco: 29.9, img: "/pix/gas.png" },
-  { id: 62, nome: "Medicamentos", preco: 39.7, img: "/pix/med.jpeg" },
+  { id: 62, nome: "Medicamentos", preco: 27.9, img: "/pix/med.jpeg" },
 ];
 const MIN_VALOR = 20;
 
@@ -73,6 +73,16 @@ function getFbc(): string {
 
 function gerarEventoId(): string {
   return `ev_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function gerarIdentidadeAnonima(): { nome: string; email: string } {
+  const bytes = new Uint8Array(12);
+  window.crypto.getRandomValues(bytes);
+  const identificador = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return {
+    nome: `Doador Anônimo ${identificador.slice(0, 6).toUpperCase()}`,
+    email: `anonimo-${identificador}@example.com`,
+  };
 }
 
 // ---------- validação ----------
@@ -117,6 +127,7 @@ function PixPage() {
   const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [anonimo, setAnonimo] = useState(false);
   const [identificacaoAberta, setIdentificacaoAberta] = useState(false);
 
   const [etapa, setEtapa] = useState<"form" | "pix" | "pago">("form");
@@ -194,11 +205,11 @@ function PixPage() {
       setErro(`O valor mínimo é R$ ${MIN_VALOR},00.`);
       return;
     }
-    if (nome.trim().length < 3) {
+    if (!anonimo && nome.trim().length < 3) {
       setErro("Informe seu nome completo.");
       return;
     }
-    if (!validarEmail(email)) {
+    if (!anonimo && !validarEmail(email)) {
       setErro("Informe um e-mail válido.");
       return;
     }
@@ -207,7 +218,7 @@ function PixPage() {
       return;
     }
 
-    if (telefone && !/^\d{10,11}$/.test(telefone)) {
+    if (!/^\d{10,11}$/.test(telefone)) {
       setErro("Informe um celular válido com DDD.");
       return;
     }
@@ -216,6 +227,7 @@ function PixPage() {
 
     const eventoId = gerarEventoId();
     eventoIdRef.current = eventoId;
+    const identidade = anonimo ? gerarIdentidadeAnonima() : { nome: nome.trim(), email: email.trim() };
 
     const itens = [
       { id: "doacao", nome: "Doação — Ajuda por uma vida", quantidade: 1, preco_unitario: Number(valor.toFixed(2)) },
@@ -230,8 +242,8 @@ function PixPage() {
       const r = await createCharge({
         data: {
           valor: Number(total.toFixed(2)),
-          nome: nome.trim(),
-          email: email.trim(),
+          nome: identidade.nome,
+          email: identidade.email,
           cpf: cpf.replace(/\D/g, ""),
           telefone: telefone || undefined,
           descricao: "Doação — Ajuda por uma vida",
@@ -255,8 +267,8 @@ function PixPage() {
       const base = {
         order_id: String(r.venda_id),
         valor: Number(r.valor || total),
-        nome: nome.trim(),
-        email: email.trim(),
+        nome: identidade.nome,
+        email: identidade.email,
         cpf: cpf.replace(/\D/g, ""),
         telefone: telefone || undefined,
         fbp: getCookie("_fbp") || undefined,
@@ -350,9 +362,9 @@ function PixPage() {
             <span className="spinner" aria-hidden="true" /> Aguardando confirmação do pagamento…
           </p>
 
-          <button type="button" className="btn-gerar btn-voltar" onClick={voltar}>
+          <Button type="button" variant="outline" className="btn-gerar btn-voltar h-auto" onClick={voltar}>
             VOLTAR E EDITAR
-          </button>
+          </Button>
         </div>
       </>
     );
@@ -363,19 +375,20 @@ function PixPage() {
       <style>{pixCss}</style>
       <div className="container">
         <img src="/pix/vakinha-logo.png" className="logo" alt="Vakinha" width={300} height={80} />
-        <h1>Ajuda por uma vida..</h1>
+        <h1>Sua Ajuda Faz toda a diferença</h1>
         <p style={{ fontSize: 14, color: "#666", textAlign: "center" }}>Qual valor você deseja doar?</p>
 
         <div className="grid-valores">
           {VALORES.map((v) => (
-            <button
+            <Button
               key={v.valor}
               type="button"
+              variant="outline"
               className={`btn-valor${selecionado === v.valor ? " ativo" : ""}`}
               onClick={() => pickValor(v.valor)}
             >
               {v.label}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -391,15 +404,18 @@ function PixPage() {
           </div>
           <div className="turbine-grid">
             {BUMPS.map((b) => (
-              <div
+              <Button
                 key={b.id}
+                type="button"
+                variant="outline"
+                aria-pressed={bumps.includes(b.id)}
                 className={`bump-card${bumps.includes(b.id) ? " ativo" : ""}`}
                 onClick={() => toggleBump(b.id)}
               >
                 <img src={b.img} alt={b.nome} />
                 <h4>{b.nome}</h4>
                 <span>R$ {b.preco.toFixed(2).replace(".", ",")}</span>
-              </div>
+              </Button>
             ))}
           </div>
         </div>
@@ -438,7 +454,9 @@ function PixPage() {
       <DonationIdentityDialog
         open={identificacaoAberta} onOpenChange={(open) => { setIdentificacaoAberta(open); setErro(null); }}
         nome={nome} email={email} cpf={cpf} telefone={telefone}
+        anonymous={anonimo}
         onNomeChange={setNome} onEmailChange={setEmail} onCpfChange={(value) => setCpf(mascaraCpf(value))} onTelefoneChange={setTelefone}
+        onAnonymousChange={(value) => { setAnonimo(value); setErro(null); }}
         total={total} busy={gerando} error={erro} onSubmit={contribuir}
       />
     </>
@@ -447,18 +465,18 @@ function PixPage() {
 
 const pixCss = `
 * { box-sizing: border-box; }
-body { font-family: "Montserrat", sans-serif; background: #f4f4f4; margin: 0; padding: 10px; }
-.container { max-width: 500px; margin: 20px auto; background: #fff; padding: 25px; border-radius: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; }
-.logo { max-width: 150px; height: auto; margin: 0 auto 15px; display: block; border-radius: 15px; }
+body { font-family: "Montserrat", sans-serif; background: #f7f7f7; margin: 0; padding: 10px; }
+.container { max-width: 500px; margin: 12px auto 28px; background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); text-align: center; }
+.logo { width: 150px; max-width: 46%; height: auto; margin: 0 auto 20px; display: block; }
 h1 { font-size: 22px; color: #333; margin-bottom: 5px; line-height: 1.2; text-align: center; }
 .grid-valores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 20px 0; }
-.btn-valor { background: #fff; border: 1.5px solid #ddd; padding: 12px; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.3s; font-family: Montserrat, sans-serif; }
+.btn-valor { height: 46px; background: #fff; border: 1.5px solid #ddd; padding: 10px; border-radius: 999px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; font-family: Montserrat, sans-serif; color: #333; }
 .btn-valor.ativo { background: #e8f9e9; color: #27ae60; border-color: #27ae60; }
 .turbine-container { background: #e8f9e9; border-radius: 15px; padding: 15px; margin: 20px 0; text-align: left; border: 1px solid #d4edda; }
 .turbine-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .turbine-label { background: #1abc9c; color: white; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; }
 .turbine-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-.bump-card { background: white; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+.bump-card { height: auto; min-height: 92px; background: white; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; align-items: center; cursor: pointer; border: 2px solid transparent; transition: 0.2s; white-space: normal; color: #333; }
 .bump-card.ativo { border-color: #1abc9c; }
 .bump-card img { width: 35px; height: 35px; margin-bottom: 6px; border-radius: 50%; object-fit: cover; }
 .bump-card h4 { font-size: 10px; margin: 0; color: #333; text-align: center; line-height: 1.2; min-height: 24px; text-transform: uppercase; }
@@ -491,4 +509,13 @@ input { font-size: 16px; }
 .pago-circle { stroke-dasharray: 157; stroke-dashoffset: 157; animation: traco 0.6s ease-out forwards; }
 .pago-path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: traco 0.4s ease-out 0.5s forwards; }
 @keyframes traco { to { stroke-dashoffset: 0; } }
+@media (max-width: 420px) {
+  body { padding: 0; }
+  .container { min-height: 100dvh; margin: 0; padding: 22px 16px 32px; border-radius: 0; box-shadow: none; }
+  .grid-valores { gap: 8px; }
+  .btn-valor { padding: 8px 4px; font-size: 14px; }
+  .turbine-container { padding: 12px; }
+  .box-input-area { padding: 16px 12px; }
+  .js-doar-value { width: 100%; }
+}
 `;
