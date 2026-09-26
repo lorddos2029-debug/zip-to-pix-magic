@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Campaign and checkout images that must work on external hosts use real files under `public/`, because deployment targets may not serve Lovable asset-pointer URLs.
+- Anonymous checkout requires the donor's CPF and phone, hides name/email, and generates a unique non-person placeholder identity only when submitting.

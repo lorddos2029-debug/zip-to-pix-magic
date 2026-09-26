@@ -10,10 +10,12 @@ export interface DonationIdentityDialogProps {
   email: string;
   cpf: string;
   telefone: string;
+  anonymous: boolean;
   onNomeChange: (value: string) => void;
   onEmailChange: (value: string) => void;
   onCpfChange: (value: string) => void;
   onTelefoneChange: (value: string) => void;
+  onAnonymousChange: (value: boolean) => void;
   total: number;
   busy: boolean;
   error: string | null;
@@ -31,16 +33,35 @@ export function DonationIdentityDialog(props: DonationIdentityDialogProps) {
       <DialogContent className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-[500px] overflow-y-auto rounded-lg p-6 font-[Montserrat,sans-serif]">
         <DialogHeader>
           <DialogTitle className="text-left text-xl tracking-normal">Identificação 💚</DialogTitle>
-          <DialogDescription className="text-left">Preencha seus dados para doar {formatBRL(props.total)}.</DialogDescription>
+          <DialogDescription className="text-left">Preencha seus dados ou doe anonimamente.</DialogDescription>
         </DialogHeader>
         <form onSubmit={submit} noValidate className="grid gap-3">
           <fieldset disabled={props.busy} className="grid min-w-0 gap-3">
-            <input className={inputClass} aria-label="Nome completo" placeholder="Seu nome completo" autoComplete="name" value={props.nome} onChange={(e) => props.onNomeChange(e.target.value)} />
-            <input className={inputClass} type="email" aria-label="E-mail" placeholder="Seu e-mail" autoComplete="email" value={props.email} onChange={(e) => props.onEmailChange(e.target.value)} />
+            <Button
+              type="button"
+              variant="outline"
+              aria-pressed={props.anonymous}
+              onClick={() => props.onAnonymousChange(!props.anonymous)}
+              className={`h-12 justify-start border-2 px-4 font-semibold ${props.anonymous ? "border-primary bg-primary/10 text-primary" : "border-input"}`}
+            >
+              <span aria-hidden="true">🎭</span> Quero doar anonimamente
+            </Button>
+            {!props.anonymous && (
+              <>
+                <input className={inputClass} aria-label="Nome completo" placeholder="Seu nome completo" autoComplete="name" maxLength={200} value={props.nome} onChange={(e) => props.onNomeChange(e.target.value)} />
+                <input className={inputClass} type="email" aria-label="E-mail" placeholder="Seu e-mail" autoComplete="email" maxLength={255} value={props.email} onChange={(e) => props.onEmailChange(e.target.value)} />
+              </>
+            )}
             <input className={inputClass} inputMode="numeric" aria-label="CPF" placeholder="CPF (000.000.000-00)" value={props.cpf} onChange={(e) => props.onCpfChange(e.target.value)} />
-            <input className={inputClass} type="tel" aria-label="Celular com DDD (opcional)" placeholder="Celular com DDD (opcional)" autoComplete="tel" value={props.telefone} onChange={(e) => props.onTelefoneChange(e.target.value.replace(/\D/g, "").slice(0, 11))} />
+            <input className={inputClass} type="tel" inputMode="numeric" aria-label="Celular com DDD" placeholder="Celular com DDD" autoComplete="tel" value={props.telefone} onChange={(e) => props.onTelefoneChange(e.target.value.replace(/\D/g, "").slice(0, 11))} />
+            {props.anonymous && (
+              <p className="rounded-lg bg-muted px-3 py-2 text-left text-xs leading-5 text-muted-foreground">
+                <span aria-hidden="true">🔒</span> CPF e celular são exigidos pelo banco para gerar o Pix. Eles não aparecem na vakinha — sua doação continua anônima.
+              </p>
+            )}
           </fieldset>
           {props.error && <p role="alert" className="text-sm text-destructive">{props.error}</p>}
+          <p className="text-center text-xs text-muted-foreground">Total da doação: <strong className="text-foreground">{formatBRL(props.total)}</strong></p>
           <Button type="submit" disabled={props.busy} className="h-12 w-full text-base font-bold">{props.busy ? "Gerando Pix…" : "Gerar PIX agora"}</Button>
           <Button type="button" variant="ghost" disabled={props.busy} onClick={() => props.onOpenChange(false)} className="w-full text-muted-foreground">Cancelar</Button>
         </form>
