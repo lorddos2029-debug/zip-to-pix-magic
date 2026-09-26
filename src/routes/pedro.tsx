@@ -2,8 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Heart, MapPin, Menu, Search, Share2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import pedroHero from "@/assets/pedro-hero.jpg.asset.json";
-import pedroStory from "@/assets/pedro-story.jpg.asset.json";
 import "@/pedro.css";
 
 export const Route = createFileRoute("/pedro")({
@@ -51,9 +49,8 @@ const FAQS = [
 
 function VakinhaMark() {
   return (
-    <Link to="/pedro" aria-label="Página inicial da vaquinha" className="flex items-center gap-2 text-[var(--pedro-primary-strong)]">
-      <span className="grid size-8 place-items-center rounded-md bg-[var(--pedro-primary)] text-lg font-black text-primary-foreground">V</span>
-      <span className="text-xl font-black">vakinha</span>
+    <Link to="/pedro" aria-label="Página inicial da Vakinha" className="flex items-center">
+      <img src="/pedro/vakinha-logo.png" alt="Vakinha" width={300} height={80} className="h-8 w-auto object-contain" />
     </Link>
   );
 }
@@ -92,7 +89,7 @@ function AboutPedro() {
       <p className="border-t border-[var(--pedro-border)] pt-5 text-sm text-[var(--pedro-muted)]"><strong>Vaquinha criada em:</strong> 20/09/2026</p>
       <h2 className="text-xl font-black">Entenda</h2>
       <p>Pedro tem 4 anos. Para chegar ao hospital em Montes Claros, a família sai de moto até um ponto de encontro perto da Ponte Cigano, porque o táxi não consegue entrar na estrada de terra até a casa. Ali, embarcam no carro fretado. Quando o veículo já está cheio e não há espaço para a cadeira de rodas, Pedro faz o trajeto inteiro no colo. “Ele é igual chumbo”, diz o pai, Farley, sobre o peso de carregá-lo por duas horas de viagem.</p>
-      <img src={pedroStory.url} alt="Pedro Leonardo sorrindo" width={1100} height={572} loading="lazy" className="w-full rounded-lg object-cover" />
+      <img src="/pedro/pedro-story.jpg" alt="Pedro Leonardo sorrindo" width={1100} height={572} loading="lazy" className="w-full rounded-lg object-cover" />
       <p>Pedro nasceu com uma doença rara e progressiva chamada Hialinose Fibromatose Congênita, que vai afetando cada vez mais os movimentos do corpo, chegando a originar tumores. As articulações das pernas não esticam. Os braços têm alcance limitado. E, desde muito pequeno, ele convive com dores fortes o bastante para precisar de morfina, metadona e gabapentina todos os dias. Não existe cura. Só acompanhamento contínuo, para tentar dar mais qualidade de vida a ele.</p>
       <p>Farley é trabalhador rural, sem emprego fixo, e cria Pedro com a ajuda da avó, revezando os dias de cuidado com os dias de trabalho. Mora com o filho e os avós na zona rural de Coração de Jesus, em Minas Gerais. Hoje ele tem a guarda provisória de Pedro e segue no processo judicial para conseguir a guarda definitiva.</p>
       <p>Apesar de tudo, Farley descreve o filho como uma criança muito inteligente, que acompanha o que acontece ao redor mesmo sem conseguir se mexer como gostaria. Ele acredita que uma cadeira de rodas motorizada, adaptada ao movimento que Pedro ainda tem nos braços, poderia dar ao menino uma independência que hoje ele não tem. É um dos maiores sonhos da família.</p>
@@ -188,7 +185,7 @@ function PedroCampaign() {
       <CampaignHeader onShare={share} />
       <main className="mx-auto max-w-[38rem] px-4 py-4">
         <div className="relative overflow-hidden rounded-lg bg-[var(--pedro-primary-soft)]">
-          <img src={pedroHero.url} alt="Pedro Leonardo sentado e brincando" width={915} height={515} fetchPriority="high" className="aspect-[915/515] w-full object-cover" />
+          <img src="/pedro/pedro-hero.jpg" alt="Pedro Leonardo sentado e brincando" width={915} height={515} fetchPriority="high" className="aspect-[915/515] w-full object-cover" />
           <Button variant="secondary" size="icon" aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"} aria-pressed={liked} onClick={() => setLiked((value) => !value)} className="absolute right-3 top-3 rounded-full"><Heart className={liked ? "fill-[var(--pedro-primary)] text-[var(--pedro-primary)]" : "text-[var(--pedro-muted)]"} /></Button>
         </div>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs font-bold uppercase text-[var(--pedro-muted)]"><span className="rounded bg-[var(--pedro-border)] px-2 py-1">Solidariedade</span><span className="flex items-center gap-1"><MapPin className="size-4" /> Brasil</span></div>
