@@ -26,15 +26,15 @@ export const Route = createFileRoute("/pix")({
 });
 
 const VALORES = [
-  { label: "R$ 30", valor: 29.7 },
-  { label: "R$ 50", valor: 49.7 },
-  { label: "R$ 70", valor: 69.7 },
-  { label: "R$ 100", valor: 99.7 },
-  { label: "R$ 150", valor: 149.7 },
-  { label: "R$ 200", valor: 199.7 },
-  { label: "R$ 500", valor: 499.7 },
-  { label: "R$ 700", valor: 699.7 },
-  { label: "R$ 1000", valor: 999.7 },
+  { label: "R$ 30", valor: 30 },
+  { label: "R$ 50", valor: 50 },
+  { label: "R$ 70", valor: 70 },
+  { label: "R$ 100", valor: 100 },
+  { label: "R$ 150", valor: 150 },
+  { label: "R$ 200", valor: 200 },
+  { label: "R$ 500", valor: 500 },
+  { label: "R$ 700", valor: 700 },
+  { label: "R$ 1000", valor: 1000 },
 ];
 const BUMPS = [
   { id: 60, nome: "Cesta Básica", preco: 65.0, img: "/pix/cesta.png" },
