@@ -4,239 +4,619 @@ import { useState } from "react";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "O Pedro precisa de oxigênio para viver | Juntos Pela Vida" },
-      { name: "description", content: "O pequeno Pedro contraiu uma infecção grave e precisa de oxigênio em casa para continuar vivendo. Ajude com o que puder." },
-      { property: "og:title", content: "O Pedro precisa de oxigênio para viver" },
-      { property: "og:description", content: "Pulmões comprometidos, oxigênio em casa. Cada real vai direto para o tratamento do Pedro." },
+      { title: "Ajude o Willian | Juntos pela Vida" },
+      {
+        name: "description",
+        content:
+          "Ajude o Willian e seu pai neste período de dificuldade. Cada contribuição pode fazer diferença.",
+      },
+      { property: "og:title", content: "Ajude o Willian" },
+      {
+        property: "og:description",
+        content:
+          "Willian usa cadeira de rodas e, ao lado do pai, enfrenta dificuldades financeiras. Conheça a campanha e ajude como puder.",
+      },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap",
+      },
     ],
   }),
-  component: Campaign,
+  component: WillianCampaign,
 });
 
-type TabId = "sobre" | "atualizacoes" | "quem" | "premiada" | "selos" | "perguntas";
+type Tab = "sobre" | "atualizacoes" | "quem" | "perguntas";
 
-const TABS: Array<{ id: TabId; label: string }> = [
+const TABS: Array<{ id: Tab; label: string }> = [
   { id: "sobre", label: "Sobre" },
   { id: "atualizacoes", label: "Atualizações" },
   { id: "quem", label: "Quem ajudou" },
-  { id: "premiada", label: "Vakinha Premiada" },
-  { id: "selos", label: "Selos recebidos" },
   { id: "perguntas", label: "Perguntas e Respostas" },
 ];
 
-const TAB_EMPTY: Record<Exclude<TabId, "sobre">, string> = {
-  atualizacoes: "Nenhuma atualização disponível.",
-  quem: "Nenhum apoiador para exibir.",
-  premiada: "Vakinha Premiada não disponível.",
-  selos: "Nenhum selo recebido.",
-  perguntas: "Nenhuma pergunta disponível.",
-};
-
-function Campaign() {
-  const [liked, setLiked] = useState(false);
-  const [tab, setTab] = useState<TabId>("sobre");
-  const [expanded, setExpanded] = useState(false);
-
-
+function Brand() {
   return (
-    <>
-      <style>{campaignCss}</style>
-      <nav className="nav">
-        <div className="nav-inner">
-          <a href="#" className="nav-logo">
-            <svg xmlns="http://www.w3.org/2000/svg" width="150" height="40" fill="none" viewBox="0 0 123 32">
-              <path fill="#24CA68" fillRule="evenodd" d="M5.11 0h24.923a5.18 5.18 0 0 1 3.609 1.471 4.97 4.97 0 0 1 1.5 3.537v18.16q.001.119-.004.232V32l-6.636-3.82H5.11a5.18 5.18 0 0 1-3.609-1.472A4.97 4.97 0 0 1 0 23.171V5.011a4.97 4.97 0 0 1 1.501-3.538A5.18 5.18 0 0 1 5.111.002zm12.655 17.262q-.285 0-.566.037l-4.695-7.981a3.12 3.12 0 0 0-.402-3.833 3.26 3.26 0 0 0-1.83-.956c-.702-.114-1.421.002-2.048.33A3.2 3.2 0 0 0 6.8 6.338a3.1 3.1 0 0 0-.213 2.023 3.16 3.16 0 0 0 1.084 1.734 3.27 3.27 0 0 0 1.935.733l4.78 8.117a4.022 4.022 0 0 0-.34 4.25c.348.671.877 1.235 1.53 1.63a4.237 4.237 0 0 0 4.35.02 4.1 4.1 0 0 0 1.546-1.617 4.02 4.02 0 0 0-.301-4.253l4.797-8.142c.71-.03 1.39-.288 1.935-.734a3.16 3.16 0 0 0 1.082-1.734 3.1 3.1 0 0 0-.214-2.022 3.2 3.2 0 0 0-1.423-1.48 3.3 3.3 0 0 0-2.047-.328c-.7.113-1.343.45-1.83.956a3.12 3.12 0 0 0-.4 3.831l-4.703 7.981q-.299-.045-.602-.045z" clipRule="evenodd" />
-              <path fill="#24CA68" d="M42.39 12.184a3.8 3.8 0 0 1-.212-.874 1.67 1.67 0 0 1 .437-1.27 1.65 1.65 0 0 1 1.23-.526c.408-.002.805.141 1.119.405s.524.631.594 1.037l2.302 7.797h.046l2.301-7.797c.07-.406.28-.774.594-1.038a1.72 1.72 0 0 1 1.12-.404 1.64 1.64 0 0 1 1.229.526 1.66 1.66 0 0 1 .438 1.27q-.051.451-.212.874l-3.241 9.075c-.329.921-.545 1.228-2.254 1.228s-1.924-.307-2.253-1.228zM65.535 18.841c.045.781.166 1.557.359 2.315a1.43 1.43 0 0 1-.509.985 1.46 1.46 0 0 1-1.062.338 1.9 1.9 0 0 1-1.495-.53 1.86 1.86 0 0 1-.551-1.478 6 6 0 0 1-2.149 1.54 6 6 0 0 1-2.608.468 3.74 3.74 0 0 1-2.704-.945 3.7 3.7 0 0 1-1.222-2.573c0-2.858 2.189-3.66 4.854-3.967l2.116-.237c.827-.089 1.5-.283 1.5-1.278 0-.994-1.025-1.416-2.19-1.416-2.576 0-2.642 1.89-4.022 1.89a1.4 1.4 0 0 1-1.019-.352 1.37 1.37 0 0 1-.453-.971c0-1.369 1.951-3.116 5.519-3.116 3.332 0 5.64 1.063 5.64 3.542zm-3.474-2.48c-.444.308-.961.495-1.5.544l-1.261.188c-1.452.213-2.237.662-2.237 1.7 0 .78.735 1.417 1.93 1.417 1.905 0 3.071-1.228 3.071-2.502zM67.65 6.882c0-.45.173-.88.48-1.197a1.6 1.6 0 0 1 1.158-.496c.434 0 .85.179 1.157.496s.48.748.48 1.197v7.694l3.637-4.173c.154-.192.346-.349.562-.46a1.7 1.7 0 0 1 .694-.19c.396.009.775.17 1.062.454s.46.668.486 1.077c.009.213-.031.424-.117.618a1.34 1.34 0 0 1-.376.495l-2.427 2.623 3.409 4.729c.221.317.34.699.338 1.09.001.428-.16.84-.45 1.148-.288.308-.683.487-1.097.498a1.63 1.63 0 0 1-.841-.19 1.7 1.7 0 0 1-.64-.597l-3.094-4.521-1.144 1.043v2.574c0 .449-.173.88-.48 1.197a1.6 1.6 0 0 1-1.158.495 1.6 1.6 0 0 1-1.157-.495 1.72 1.72 0 0 1-.48-1.197zM80.83 5.19a1.76 1.76 0 0 1 1.723 1.41 1.75 1.75 0 0 1-1.051 1.96 1.76 1.76 0 0 1-2.134-.645 1.75 1.75 0 0 1 .22-2.213 1.76 1.76 0 0 1 1.242-.513m-1.689 6.318a1.68 1.68 0 0 1 1.043-1.555 1.69 1.69 0 0 1 2.205.911c.085.204.129.423.129.644v9.295a1.69 1.69 0 0 1-3.377 0zM84.344 11.243c0-1.039.461-1.725 1.522-1.725s1.523.686 1.523 1.725v.446h.047a4.87 4.87 0 0 1 1.772-1.618 4.73 4.73 0 0 1 2.312-.557c2.03 0 4.245 1.04 4.245 4.538v6.71c0 .457-.177.896-.493 1.22a1.67 1.67 0 0 1-1.191.505c-.447 0-.875-.182-1.191-.505a1.75 1.75 0 0 1-.493-1.22v-6.027c0-1.394-.67-2.387-2.124-2.387-.69.015-1.347.31-1.827.818a2.71 2.71 0 0 0-.734 1.9v5.693c0 .458-.177.896-.493 1.22a1.67 1.67 0 0 1-1.191.505c-.447 0-.875-.182-1.19-.505a1.75 1.75 0 0 1-.494-1.22zM98.4 6.882c0-.449.178-.88.494-1.197a1.68 1.68 0 0 1 2.382 0c.316.318.493.748.493 1.197v4.66h.047a4.51 4.51 0 0 1 3.761-1.786c2.03 0 4.246 1.02 4.246 4.452v6.586c0 .449-.178.88-.494 1.197a1.68 1.68 0 0 1-2.382 0 1.7 1.7 0 0 1-.493-1.197v-5.916c0-1.369-.669-2.343-2.122-2.343a2.6 2.6 0 0 0-1.828.803 2.64 2.64 0 0 0-.733 1.864v5.588c0 .45-.177.88-.493 1.197a1.682 1.682 0 0 1-2.876-1.197zM122.642 18.841c.046.781.166 1.557.359 2.315a1.43 1.43 0 0 1-.509.985 1.46 1.46 0 0 1-1.496-.53 1.86 1.86 0 0 1-.55-1.478 6 6 0 0 1-2.149 1.54 6 6 0 0 1-2.608.468 3.74 3.74 0 0 1-2.704-.945 3.663 3.663 0 0 1-1.222-2.573c0-2.858 2.189-3.66 4.855-3.967l2.115-.237c.834-.089 1.5-.283 1.5-1.278 0-.994-1.023-1.416-2.189-1.416-2.575 0-2.641 1.89-4.022 1.89a1.39 1.39 0 0 1-1.345-.792 1.4 1.4 0 0 1-.127-.531c0-1.369 1.951-3.116 5.518-3.116 3.332 0 5.641 1.063 5.641 3.542zm-3.475-2.48c-.443.307-.96.494-1.498.544l-1.261.188c-1.452.213-2.237.662-2.237 1.7 0 .78.735 1.417 1.931 1.417 1.903 0 3.069-1.228 3.069-2.502z" />
-            </svg>
-          </a>
-          <div className="nav-mobile">
-            <svg viewBox="0 0 24 24" fill="#24ca68"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14" /></svg>
-            <svg viewBox="0 0 24 24"><path d="M3 18h12v-2H3zM3 6v2h18V6zm0 7h18v-2H3z" /></svg>
-          </div>
-        </div>
-      </nav>
-      <div className="spacer" />
-      <div className="container">
-        <div className="campaign-image">
-          <img src="/campaign/pedro.webp" alt="Pedro no colo da mãe, com cateter de oxigênio no rosto" />
-          <button className="heart-btn" onClick={() => setLiked((v) => !v)} aria-label="Curtir">
-            <svg viewBox="0 0 40 40">
-              <circle cx="20" cy="20" r="20" fill="#fff" />
-              <path d="M10.789,2.572A6.652,6.652,0,0,0,3.739.285C.819,1.21-.387,4.422.109,7.262c.785,4.507,5.706,9,9.964,10.666a1.976,1.976,0,0,0,.7.142h.037a1.923,1.923,0,0,0,.695-.142c4.3-1.7,9.179-6.159,9.965-10.666a7.373,7.373,0,0,0,.108-1.192V5.946A5.729,5.729,0,0,0,17.839.285,6.029,6.029,0,0,0,16.014,0a6.9,6.9,0,0,0-5.225,2.572" transform="translate(9 11)" fill={liked ? "#24ca68" : "#dadada"} />
-            </svg>
-          </button>
-        </div>
-
-        <div className="tags-row">
-          <span>SOLIDARIEDADE / TRATAMENTOS</span>
-          <span className="location">
-            <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7m0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5S13.38 11.5 12 11.5" /></svg>
-            BARCARENA / PA
-          </span>
-        </div>
-
-        <h1 className="campaign-title">O Pedro precisa de oxigênio para viver💚</h1>
-        <p className="campaign-id">ID: 53057933</p>
-
-        <div className="mobile-stats-panel">
-          <div className="progress-bar"><div className="progress-fill" /></div>
-          <div className="collected-value">R$ 15.300,00 <span className="collected-goal">de R$ 45.000,00</span></div>
-          <div className="stats-box">
-            <div className="stat-row">
-              <span className="stat-label">
-                Corações Recebidos
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 18.319 15.34">
-                  <path d="M16.485,1.524a4.425,4.425,0,0,0-6.326,0L9.159,2.525,8.16,1.524a4.425,4.425,0,0,0-6.326,0,4.8,4.8,0,0,0,0,6.726l7.325,7.086,7.326-7.086A4.8,4.8,0,0,0,16.485,1.524Z" fill="#007a47" />
-                </svg>
-              </span>
-              <span className="stat-value">1755</span>
-            </div>
-            <div className="stat-row">
-              <span className="stat-label">Apoiadores</span>
-              <span className="stat-value">187</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="short-desc">
-          💚 "Meu filho está lutando para respirar. A gente já não tem mais como bancar o tratamento sozinho." O pequeno Pedro contraiu uma infecção grave e hoje está com os pulmões comprometidos. Ele precisa de oxigênio em casa para continuar vivendo.
-          {!expanded && <span onClick={() => setExpanded(true)}>ver tudo</span>}
-        </div>
-        {expanded && (
-          <div className="full-desc">
-            Pedro no colo da mãe, com o cateter de oxigênio no rosto. É assim, dia e noite — com a família ao lado o tempo inteiro. 🫁 Pulmões comprometidos. Oxigênio em casa. Cada dia é uma luta. Qualquer valor ajuda a manter o oxigênio ligado e os remédios em dia. 💚
-          </div>
-        )}
-
-        <div className="tabs-wrap">
-          {TABS.map((t) => (
-            <div
-              key={t.id}
-              className={`tab${tab === t.id ? " active" : ""}`}
-              onClick={() => setTab(t.id)}
-            >
-              {t.label}
-            </div>
-          ))}
-        </div>
-
-        {tab === "sobre" ? (
-          <div>
-            <div className="divider" />
-            <p className="created-date"><strong>Vaquinha criada em:</strong> 17/08/2026</p>
-
-            <div className="description">
-              <p><strong>🫁 O Pedro precisa de oxigênio para viver</strong></p>
-              <p>O Pedro contraiu uma infecção grave que comprometeu seus pulmões. Desde então, ele depende de oxigênio contínuo para respirar — em casa, com a família ao redor, tentando manter tudo funcionando.</p>
-              <p>Além do oxigênio, ele precisa de medicação diária sem interrupção. Sem esses recursos, ele não consegue respirar. Não é metáfora: é literalmente a diferença entre viver e não viver.</p>
-              <p>⚠️ Cada real arrecadado vai direto para pagar o oxigênio, os medicamentos e os insumos que mantêm o Pedro vivo.</p>
-              <p><strong>👨‍👩‍👦 Uma família que já não consegue mais sozinha.</strong></p>
-              <p>Os pais do Pedro chegaram num ponto em que os recursos acabaram. O custo do tratamento é contínuo e crescente — e eles não têm mais condições de arcar com tudo sozinhos.</p>
-              <p>Qualquer valor ajuda a manter o oxigênio ligado e os remédios em dia. Não existe contribuição pequena quando uma vida está em jogo.</p>
-              <p>💚 <strong>Apelo da família:</strong> "O Pedro é a nossa vida. Não conseguimos mais bancar tudo sozinhos. Qualquer valor ajuda a manter o oxigênio ligado e os remédios em dia. Que Deus abençoe cada pessoa que ajudar o nosso menino. 🙏" — <strong>Família do Pedro</strong></p>
-              <p><strong>Quanto vale um dia respirando?</strong></p>
-              <p>Com sua contribuição, o Pedro consegue manter o oxigênio e os remédios em dia. Escolha um valor e faça parte dessa história.</p>
-              <p>🫁 Oxigênio contínuo em casa</p>
-              <p>💊 Medicação diária sem interrupção</p>
-              <p>🩺 Cuidados e insumos para o tratamento</p>
-              <p>Se essa página chegou até você, não deixe esse momento passar. Compartilhe a história do Pedro com amigos, familiares e grupos. Cada compartilhamento pode alcançar a pessoa que vai fazer a diferença para esse menino continuar respirando. 💚🙏</p>
-              <p>Que Deus abençoe você e sua família.</p>
-            </div>
-
-            <p className="aviso">AVISO LEGAL: O texto e as imagens incluídos nessa página são de única e exclusiva responsabilidade do criador da vaquinha e não representam a opinião ou endosso da plataforma Vakinha.</p>
-          </div>
-        ) : (
-          <div className="tab-empty">{TAB_EMPTY[tab]}</div>
-        )}
-      </div>
-
-      <div className="mobile-bottom">
-        <div className="mb-protected">
-          <div className="mb-protected-badge">
-            <svg viewBox="0 0 24 24" width="22" height="22">
-              <circle cx="12" cy="12" r="12" fill="#1a6e2e" />
-              <path d="M12 4L6 6.5v4.5c0 4 2.5 7.5 6 9 3.5-1.5 6-5 6-9V6.5L12 4z" fill="#fff" />
-              <path d="M10 12l1.5 1.5 3-3" stroke="#1a6e2e" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span>Doação Protegida</span>
-          </div>
-        </div>
-        <div className="mb-btns">
-          <Link to="/pix" className="btn-donate">Quero Ajudar</Link>
-          <button
-            className="btn-share"
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({ title: "O Pedro precisa de oxigênio para viver", url: window.location.href }).catch(() => undefined);
-              } else {
-                navigator.clipboard?.writeText(window.location.href).catch(() => undefined);
-              }
-            }}
-          >
-            Compartilhar
-          </button>
-        </div>
-      </div>
-    </>
+    <Link to="/" className="brand" aria-label="Juntos pela Vida">
+      <span className="brand-mark">♥</span>
+      <span>Juntos pela Vida</span>
+    </Link>
   );
 }
 
-const campaignCss = `
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Lato', Arial, sans-serif; -webkit-font-smoothing: antialiased; }
-body { background: #f9f9f9; color: #282828; padding-bottom: 180px; }
-a { text-decoration: none; color: inherit; }
-.nav { position: fixed; top: 0; left: 0; right: 0; height: 60px; background: #fff; z-index: 200; border-bottom: 2px solid #f1f0f0; display: flex; align-items: center; }
-.nav-inner { width: 100%; padding: 0 16px; display: flex; align-items: center; justify-content: space-between; }
-.nav-logo svg { width: 110px; height: auto; display: block; }
-.nav-mobile { display: flex; align-items: center; gap: 16px; }
-.nav-mobile svg { width: 24px; height: 24px; fill: #282828; }
-.spacer { height: 60px; }
-.container { padding: 16px; }
-.campaign-image { position: relative; border-radius: 12px; overflow: hidden; margin-bottom: 16px; background: #e8f5e9; }
-.campaign-image img { width: 100%; height: auto; display: block; object-fit: cover; }
-.heart-btn { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; background: transparent; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3)); }
-.heart-btn svg { width: 40px; height: 40px; }
-.tags-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 14px; gap: 12px; flex-wrap: wrap; }
-.tags-row > span:first-child { background-color: #f1f3f5; padding: 4px 8px; border-radius: 4px; font-weight: 600; color: #495057; font-size: 12px; }
-.location { display: flex; align-items: center; gap: 4px; color: #868e96; font-size: 12px; font-weight: 600; }
-.location svg { width: 16px; height: 16px; fill: currentColor; }
-h1.campaign-title { font-size: 24px; font-weight: 900; line-height: 1.2; color: #212529; margin-bottom: 4px; }
-.campaign-id { font-size: 12px; color: #adb5bd; margin-bottom: 20px; }
-.mobile-stats-panel { background-color: #ffffff; padding: 16px; border-radius: 12px; margin-bottom: 24px; }
-.progress-bar { width: 100%; height: 4px; background: #f1f0f0; border-radius: 2px; overflow: hidden; margin-bottom: 12px; }
-.progress-fill { height: 100%; width: 10%; background: #24ca68; border-radius: 2px; }
-.collected-value { font-size: 24px; font-weight: 900; color: #24ca68; margin-bottom: 16px; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
-.collected-goal { font-size: 16px; font-weight: 400; color: #8a8a8a; }
-.stats-box { background: #eeffe6; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
-.stat-row { display: flex; justify-content: space-between; align-items: center; }
-.stat-label { font-size: 14px; color: #4a4a4a; display: flex; align-items: center; gap: 6px; }
-.stat-value { font-size: 14px; font-weight: 700; color: #282828; }
-.short-desc { font-size: 15px; line-height: 1.5; color: #495057; margin-bottom: 20px; }
-.short-desc span { color: #0a8f51; font-weight: 700; cursor: pointer; text-decoration: underline; display: inline-block; padding: 2px 4px; }
-.full-desc { font-size: 15px; color: #343a40; line-height: 1.6; margin-bottom: 20px; }
-.tabs-wrap { display: flex; overflow-x: auto; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; touch-action: pan-x; border-bottom: 1px solid #e9ecef; margin-bottom: 20px; gap: 16px; padding-bottom: 4px; white-space: nowrap; scrollbar-width: none; -ms-overflow-style: none; }
-.tabs-wrap::-webkit-scrollbar { display: none; }
-.tab { flex-shrink: 0; font-size: 15px; color: #6c757d; white-space: nowrap; padding: 10px 4px; cursor: pointer; border-bottom: 3px solid transparent; font-weight: 500; transition: all 0.2s ease; }
-.tab.active { color: #24ca68; border-bottom-color: #24ca68; font-weight: 700; }
-.tab:hover { color: #282828; }
-.tab-empty { padding: 20px 0; color: #8a8a8a; font-size: 14px; }
-.pix-row { font-size: 14px; color: #495057; margin-bottom: 8px; }
-.pix-key { display: flex; align-items: center; justify-content: space-between; background-color: #e8f5e9; color: #0a8f51; padding: 14px 16px; border-radius: 8px; font-size: 16px; cursor: pointer; width: 100%; font-weight: 700; margin-bottom: 20px; }
-.pix-key svg { fill: #0a8f51; width: 20px; height: 20px; flex-shrink: 0; }
-.divider { height: 1px; background-color: #dee2e6; margin: 20px 0; }
-.created-date { font-size: 13px; color: #6c757d; margin-bottom: 20px; }
-.description h3 { font-size: 18px; line-height: 1.3; color: #212529; margin-top: 0; margin-bottom: 12px; }
-.description p { font-size: 15px; line-height: 1.6; color: #343a40; margin-bottom: 16px; }
-.aviso { font-size: 12px; color: #868e96; line-height: 1.5; margin: 0; }
-.mobile-bottom { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.08); }
-.mb-protected { background: #d5fac3; display: flex; align-items: center; justify-content: center; padding: 8px 16px; }
-.mb-protected-badge { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #1a6e2e; border-radius: 30px; padding: 4px 12px 4px 6px; background: #fff; }
-.mb-protected-badge span { font-size: 11px; font-weight: 900; color: #1a6e2e; letter-spacing: .05em; text-transform: uppercase; }
-.mb-btns { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px; background: #fff; }
-.mb-btns .btn-donate { width: 100%; padding: 16px; background: #24ca68; color: #fff; font-size: 18px; font-weight: 700; border: none; border-radius: 8px; text-align: center; display: block; cursor: pointer; }
-.mb-btns .btn-share { width: 100%; padding: 16px; background: #fff; color: #282828; font-size: 18px; font-weight: 700; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; }
+function WillianCampaign() {
+  const [tab, setTab] = useState<Tab>("sobre");
+  const [liked, setLiked] = useState(false);
+
+  const share = () => {
+    const data = {
+      title: "Ajude o Willian",
+      text: "Conheça a campanha do Willian e de seu pai.",
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      void navigator.share(data).catch(() => undefined);
+      return;
+    }
+
+    void navigator.clipboard?.writeText(window.location.href).catch(() => undefined);
+  };
+
+  return (
+    <div className="campaign-page">
+      <style>{styles}</style>
+
+      <header className="topbar">
+        <div className="topbar-inner">
+          <Brand />
+          <div className="top-actions">
+            <button type="button" aria-label="Compartilhar campanha" onClick={share} className="icon-button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="18" cy="5" r="2.2" />
+                <circle cx="6" cy="12" r="2.2" />
+                <circle cx="18" cy="19" r="2.2" />
+                <path d="m8 11 7.8-4.5M8 13l7.8 4.5" />
+              </svg>
+            </button>
+            <span className="menu-icon" aria-hidden="true">
+              <i />
+              <i />
+              <i />
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <main className="content">
+        <section className="hero-card">
+          <img
+            src="/willian/willian-hero.jpg"
+            alt="Willian no colo do pai"
+            width={400}
+            height={481}
+            fetchPriority="high"
+          />
+          <button
+            type="button"
+            aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+            aria-pressed={liked}
+            onClick={() => setLiked((value) => !value)}
+            className={`heart-button${liked ? " liked" : ""}`}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 20.6 4.9 14C1.3 10.7 3.6 5 8.3 5c1.5 0 2.9.7 3.7 1.8C12.8 5.7 14.2 5 15.7 5c4.7 0 7 5.7 3.4 9L12 20.6Z" />
+            </svg>
+          </button>
+        </section>
+
+        <div className="meta-row">
+          <span>SOLIDARIEDADE</span>
+          <span className="country">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 21s6-5.6 6-12a6 6 0 1 0-12 0c0 6.4 6 12 6 12Z" />
+              <circle cx="12" cy="9" r="2" />
+            </svg>
+            BRASIL
+          </span>
+        </div>
+
+        <h1>Ajude o Willian</h1>
+        <p className="campaign-id">ID: WILLIAN2026</p>
+
+        <section className="stats">
+          <div className="progress-track" aria-label="Progresso da arrecadação">
+            <div className="progress-value" />
+          </div>
+          <div className="raised">
+            R$ 1.427,92 <span>de R$ 13.000,00</span>
+          </div>
+
+          <div className="stats-box">
+            <div>
+              <span>Corações Recebidos</span>
+              <strong>1.755</strong>
+            </div>
+            <div>
+              <span>Apoiadores</span>
+              <strong>421</strong>
+            </div>
+          </div>
+        </section>
+
+        <nav className="tabs" aria-label="Informações da campanha">
+          {TABS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={tab === item.id ? "active" : ""}
+              onClick={() => setTab(item.id)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        {tab === "sobre" ? (
+          <article className="story">
+            <p>
+              Willian é uma pessoa com deficiência e usa cadeira de rodas. Ao lado dele está seu pai,
+              que enfrenta dificuldades financeiras e precisa de ajuda para atender às necessidades dos
+              dois. Esta campanha nasce de um pedido simples: que eles não precisem atravessar esse momento
+              sem apoio.
+            </p>
+
+            <img
+              className="story-image"
+              src="/willian/willian-hero.jpg"
+              alt="Willian ao lado de seu pai"
+              width={400}
+              height={481}
+              loading="lazy"
+            />
+
+            <p className="created"><strong>Vaquinha criada em:</strong> 20/09/2026</p>
+
+            <h2>Entenda</h2>
+
+            <p>
+              Quando o dinheiro não é suficiente para o básico, o dia a dia fica mais difícil. Para o pai
+              do Willian, a preocupação com as necessidades da casa se soma ao desejo de oferecer ao filho
+              cuidado, segurança e dignidade.
+            </p>
+
+            <p>
+              Willian é muito mais do que sua deficiência. É alguém que merece respeito, acolhimento e a
+              oportunidade de viver com suas necessidades atendidas. A cadeira de rodas faz parte da sua
+              vida, mas não define quem ele é.
+            </p>
+
+            <p>
+              <strong>O amor de um pai é imenso, mas ninguém deveria enfrentar a necessidade sozinho.</strong>{" "}
+              Há momentos em que o apoio de outras pessoas faz a diferença entre continuar com preocupação
+              e encontrar um pouco de tranquilidade para seguir.
+            </p>
+
+            <p>
+              A proposta desta vaquinha é reunir ajuda para as necessidades básicas de Willian e seu pai,
+              oferecendo apoio neste período de dificuldade. Cada contribuição pode aliviar o peso financeiro
+              e ajudar os dois a cuidar do presente com mais segurança.
+            </p>
+
+            <p>
+              Não é preciso resolver tudo sozinho para fazer parte dessa mudança. Uma doação, somada a tantas
+              outras, pode se transformar em um apoio importante para essa família.
+            </p>
+
+            <p>
+              Se você não puder contribuir agora, compartilhe a campanha. Sua mensagem pode chegar a alguém
+              que tenha condições de ajudar. Willian e seu pai merecem saber que existem pessoas dispostas a
+              caminhar ao lado deles.
+            </p>
+
+            <p>
+              <strong>
+                Ajude o Willian. Sua solidariedade pode trazer mais dignidade e tranquilidade para ele e seu pai.
+              </strong>
+            </p>
+
+            <p className="legal">
+              AVISO LEGAL: O texto e as imagens incluídos nessa página são de única e exclusiva responsabilidade
+              do criador da vaquinha e não representam a opinião ou endosso da plataforma.
+            </p>
+          </article>
+        ) : (
+          <section className="empty-tab">
+            {tab === "atualizacoes" && "Nenhuma atualização publicada no momento."}
+            {tab === "quem" && "As informações de apoiadores serão exibidas aqui quando estiverem disponíveis."}
+            {tab === "perguntas" && "Nenhuma pergunta publicada no momento."}
+          </section>
+        )}
+
+        <footer className="footer">
+          <Brand />
+          <p>
+            Campanha criada pela <strong>Família do Willian</strong> para apoiar Willian e seu pai.
+          </p>
+        </footer>
+      </main>
+
+      <div className="bottom-bar">
+        <div className="safe-line">♡ CONTRIBUA COM SEGURANÇA</div>
+        <div className="bottom-actions">
+          <Link to="/pix" className="donate-button">Quero Ajudar</Link>
+          <button type="button" className="share-button" onClick={share}>Compartilhar</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const styles = `
+:root {
+  --green: #20c96b;
+  --green-dark: #07984b;
+  --green-soft: #d5ffc5;
+  --ink: #2e2e2e;
+  --muted: #8b8b8b;
+  --line: #e8e8e8;
+}
+
+* { box-sizing: border-box; }
+html { background: #f2f2f2; }
+body {
+  margin: 0;
+  background: #f2f2f2;
+  color: var(--ink);
+  font-family: Inter, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button, a { font: inherit; }
+button { cursor: pointer; }
+
+.campaign-page {
+  min-height: 100vh;
+  padding-bottom: 158px;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid #ededed;
+}
+.topbar-inner {
+  width: 100%;
+  max-width: 520px;
+  height: 56px;
+  margin: 0 auto;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--green);
+  font-size: 17px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.brand-mark {
+  width: 28px;
+  height: 24px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: var(--green);
+  font-size: 16px;
+  line-height: 1;
+}
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.icon-button {
+  width: 28px;
+  height: 28px;
+  padding: 2px;
+  border: 0;
+  background: transparent;
+}
+.icon-button svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: var(--green);
+  stroke-width: 1.8;
+}
+.menu-icon {
+  width: 20px;
+  display: grid;
+  gap: 4px;
+}
+.menu-icon i {
+  display: block;
+  height: 2px;
+  border-radius: 3px;
+  background: #222;
+}
+
+.content {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  background: #fff;
+  min-height: calc(100vh - 56px);
+  padding: 14px 14px 0;
+}
+
+.hero-card {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  overflow: hidden;
+  border-radius: 11px;
+  background: #eee;
+}
+.hero-card > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 36%;
+  display: block;
+}
+.heart-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #e2e2e2;
+  border-radius: 50%;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 7px rgba(0,0,0,.08);
+}
+.heart-button svg {
+  width: 23px;
+  height: 23px;
+  fill: none;
+  stroke: #cfcfcf;
+  stroke-width: 1.7;
+}
+.heart-button.liked svg {
+  fill: var(--green);
+  stroke: var(--green);
+}
+
+.meta-row {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #919191;
+  font-size: 11px;
+  font-weight: 600;
+}
+.country {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.country svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+h1 {
+  margin: 11px 0 4px;
+  font-size: 21px;
+  line-height: 1.18;
+  font-weight: 800;
+}
+.campaign-id {
+  margin: 0 0 18px;
+  font-size: 12px;
+  color: #5e5e5e;
+  font-weight: 600;
+}
+
+.stats { margin-bottom: 24px; }
+.progress-track {
+  width: 100%;
+  height: 4px;
+  background: #dfdfdf;
+  border-radius: 20px;
+  overflow: hidden;
+}
+.progress-value {
+  width: 10.98%;
+  height: 100%;
+  background: var(--green);
+  border-radius: inherit;
+}
+.raised {
+  margin-top: 13px;
+  color: var(--green);
+  font-size: 22px;
+  font-weight: 800;
+}
+.raised span {
+  color: #8b8b8b;
+  font-size: 13px;
+  font-weight: 400;
+}
+.stats-box {
+  margin-top: 18px;
+  border: 1px solid #e5f0e8;
+  border-radius: 14px;
+  padding: 13px 14px;
+  display: grid;
+  gap: 14px;
+}
+.stats-box div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #6e6e6e;
+  font-size: 13px;
+}
+.stats-box strong {
+  color: #333;
+  font-size: 13px;
+}
+
+.tabs {
+  margin: 0 -1px;
+  border-bottom: 1px solid #e9e9e9;
+  display: flex;
+  gap: 23px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button {
+  flex: 0 0 auto;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 11px 0;
+  color: #929292;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.tabs button.active {
+  color: var(--green);
+  border-bottom-color: var(--green);
+}
+
+.story {
+  padding-top: 17px;
+}
+.story p {
+  margin: 0 0 20px;
+  color: #3b3b3b;
+  font-size: 14px;
+  line-height: 1.78;
+}
+.story-image {
+  width: 100%;
+  max-height: 470px;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+  margin: 18px 0 24px;
+  border-radius: 14px;
+}
+.story .created {
+  font-size: 12px;
+  color: #444;
+  margin: 0 0 22px;
+}
+.story h2 {
+  margin: 0 0 17px;
+  font-size: 18px;
+  font-weight: 700;
+}
+.story .legal {
+  margin-top: 28px;
+  color: #929292;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.empty-tab {
+  min-height: 260px;
+  padding: 26px 4px;
+  color: #777;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.footer {
+  margin: 40px -14px 0;
+  padding: 28px 14px 30px;
+  background: #292929;
+  color: #fff;
+}
+.footer .brand {
+  margin-bottom: 20px;
+  font-size: 17px;
+}
+.footer p {
+  margin: 0;
+  color: #d8d8d8;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.bottom-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 50;
+  width: 100%;
+  max-width: 520px;
+  transform: translateX(-50%);
+  background: #fff;
+  box-shadow: 0 -2px 10px rgba(0,0,0,.08);
+}
+.safe-line {
+  height: 42px;
+  display: grid;
+  place-items: center;
+  background: var(--green-soft);
+  color: #16894b;
+  font-size: 11px;
+  font-weight: 800;
+}
+.bottom-actions {
+  padding: 12px 14px 14px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 9px;
+}
+.donate-button,
+.share-button {
+  min-height: 56px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 800;
+}
+.donate-button {
+  border: 1px solid var(--green);
+  background: var(--green);
+  color: #fff;
+}
+.share-button {
+  border: 2px solid #e1e1e1;
+  background: #fff;
+  color: #353535;
+}
+
+@media (min-width: 521px) {
+  .content {
+    box-shadow: 0 0 0 1px rgba(0,0,0,.03);
+  }
+  .hero-card { height: 300px; }
+}
 `;
