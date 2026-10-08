@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import logo from "@/assets/uploads/6662.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -40,9 +41,8 @@ const TABS: Array<{ id: Tab; label: string }> = [
 
 function Brand() {
   return (
-    <Link to="/" className="brand" aria-label="Juntos pela Vida">
-      <span className="brand-mark">♥</span>
-      <span>Juntos pela Vida</span>
+    <Link to="/" className="brand" aria-label="Vakinha">
+      <img src={logo} alt="Vakinha" className="brand-logo" />
     </Link>
   );
 }
@@ -309,16 +309,10 @@ button { cursor: pointer; }
   font-weight: 800;
   text-decoration: none;
 }
-.brand-mark {
-  width: 28px;
-  height: 24px;
-  border-radius: 6px;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  background: var(--green);
-  font-size: 16px;
-  line-height: 1;
+.brand-logo {
+  width: 118px;
+  height: auto;
+  display: block;
 }
 .top-actions {
   display: flex;
