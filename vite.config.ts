@@ -12,4 +12,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  // VPS/Node production target. Emits .output/server/index.mjs.
+  nitro: {
+    preset: "node-server",
+  },
 });
