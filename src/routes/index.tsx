@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import logo from "@/assets/uploads/6662.png";
+import willianHero from "@/assets/uploads/6663.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -94,7 +95,7 @@ function WillianCampaign() {
       <main className="content">
         <section className="hero-card">
           <img
-            src="/willian/willian-hero.jpg"
+            src={willianHero}
             alt="Willian no colo do pai"
             width={400}
             height={481}
@@ -171,7 +172,7 @@ function WillianCampaign() {
 
             <img
               className="story-image"
-              src="/willian/willian-hero.jpg"
+              src={willianHero}
               alt="Willian ao lado de seu pai"
               width={400}
               height={481}
