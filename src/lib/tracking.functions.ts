@@ -45,6 +45,24 @@ export const trackDonation = createServerFn({ method: "POST" })
       ip = undefined;
     }
 
+    // Nunca marque uma venda como paga apenas por uma chamada do navegador.
+    // Confirme o status diretamente na UrusPay antes de enviar Purchase/paid.
+    if (data.stage === "paid") {
+      const key = process.env["URUSPAY_API_KEY"]?.trim() || process.env["URUS_API_KEY"]?.trim();
+      const orderId = Number(data.order_id);
+      if (!key || !Number.isSafeInteger(orderId) || orderId <= 0) {
+        throw new Error("Não foi possível verificar o pagamento na UrusPay.");
+      }
+      const response = await fetch(`https://uruspaypagamentos.com/api/v1/status/${orderId}`, {
+        headers: { Authorization: `Bearer ${key}` },
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!response.ok) throw new Error("Consulta de pagamento indisponível na UrusPay.");
+      const payment = (await response.json()) as Record<string, unknown>;
+      const verified = payment["pago"] === true || payment["status"] === "paid";
+      if (!verified) throw new Error("Pagamento ainda não confirmado na UrusPay.");
+    }
+
     const [facebook, utmify] = await Promise.all([
       sendFacebookEvent({
         eventName: data.stage === "paid" ? "Purchase" : "InitiateCheckout",
