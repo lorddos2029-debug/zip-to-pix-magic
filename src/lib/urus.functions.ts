@@ -16,7 +16,15 @@ function getClientIp(): string | undefined {
   }
 }
 
-const URUS_BASE = "https://urusbot.online/api/v1";
+const URUS_BASE = "https://uruspaypagamentos.com/api/v1";
+
+function getUrusApiKey(): string {
+  const key = process.env["URUSPAY_API_KEY"]?.trim() || process.env["URUS_API_KEY"]?.trim();
+  if (!key) {
+    throw new Error("Pagamento indisponível: configure URUSPAY_API_KEY no ambiente do servidor e reinicie a aplicação.");
+  }
+  return key;
+}
 
 const itemSchema = z.object({
   id: z.string().max(100),
@@ -62,8 +70,7 @@ export interface UrusChargeResult {
 export const createUrusCharge = createServerFn({ method: "POST" })
   .inputValidator((data: UrusChargeInput) => chargeSchema.parse(data))
   .handler(async ({ data }): Promise<UrusChargeResult> => {
-    const apiKey = process.env["URUS_API_KEY"];
-    if (!apiKey) throw new Error("Pagamento indisponível: a chave URUS_API_KEY não está configurada neste servidor.");
+    const apiKey = getUrusApiKey();
 
     const res = await fetch(`${URUS_BASE}/charge`, {
       method: "POST",
@@ -102,8 +109,7 @@ export const checkUrusStatus = createServerFn({ method: "POST" })
     z.object({ venda_id: z.number().int().positive() }).parse(data),
   )
   .handler(async ({ data }): Promise<UrusStatusResult> => {
-    const apiKey = process.env["URUS_API_KEY"];
-    if (!apiKey) throw new Error("Pagamento indisponível: a chave URUS_API_KEY não está configurada neste servidor.");
+    const apiKey = getUrusApiKey();
 
     const res = await fetch(`${URUS_BASE}/status/${data.venda_id}`, {
       headers: { Authorization: `Bearer ${apiKey}` },
