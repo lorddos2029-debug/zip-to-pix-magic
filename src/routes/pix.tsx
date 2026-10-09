@@ -173,8 +173,7 @@ function PixPage() {
           window.fbq?.("track", "Purchase", {
             value: cobranca.valor,
             currency: "BRL",
-            eventID: eventoIdRef.current,
-          });
+          }, { eventID: eventoIdRef.current });
           const base = trackDataRef.current;
           if (base) {
             void track({
@@ -283,8 +282,7 @@ function PixPage() {
       window.fbq?.("track", "InitiateCheckout", {
         value: base.valor,
         currency: "BRL",
-        eventID: `${eventoId}_ic`,
-      });
+      }, { eventID: `${eventoId}_ic` });
       void track({
         data: { ...base, stage: "checkout", evento_id: `${eventoId}_ic` },
       } as Parameters<typeof track>[0]).catch(() => undefined);
