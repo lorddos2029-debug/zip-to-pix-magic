@@ -136,11 +136,21 @@ function PixPage() {
   const [gerando, setGerando] = useState(false);
   const [cobranca, setCobranca] = useState<UrusChargeResult | null>(null);
   const eventoIdRef = useRef<string>("");
+  const icEventIdRef = useRef<string>("");
+  const purchaseTrackedRef = useRef(false);
 
   const createCharge = useServerFn(createUrusCharge);
   const checkStatus = useServerFn(checkUrusStatus);
   const track = useServerFn(trackDonation);
   const trackDataRef = useRef<Record<string, unknown> | null>(null);
+
+  // IC ao abrir o checkout, com identificador reutilizado na CAPI após a geração do Pix.
+  useEffect(() => {
+    if (icEventIdRef.current) return;
+    const eventId = `${gerarEventoId()}_ic`;
+    icEventIdRef.current = eventId;
+    window.fbq?.("track", "InitiateCheckout", { currency: "BRL" }, { eventID: eventId });
+  }, []);
 
   const totalBumps = bumps.reduce((s, id) => s + (BUMPS.find((b) => b.id === id)?.preco || 0), 0);
   const total = (Number.isFinite(valor) ? valor : 0) + totalBumps;
@@ -168,7 +178,8 @@ function PixPage() {
     const timer = window.setInterval(async () => {
       try {
         const r = await checkStatus({ data: { venda_id: cobranca.venda_id } });
-        if (r.pago) {
+        if (r.pago && !purchaseTrackedRef.current) {
+          purchaseTrackedRef.current = true;
           window.clearInterval(timer);
           window.fbq?.("track", "Purchase", {
             value: cobranca.valor,
@@ -226,6 +237,7 @@ function PixPage() {
 
     const eventoId = gerarEventoId();
     eventoIdRef.current = eventoId;
+    purchaseTrackedRef.current = false;
     const identidade = anonimo ? gerarIdentidadeAnonima() : { nome: nome.trim(), email: email.trim() };
 
     const itens = [
@@ -279,12 +291,8 @@ function PixPage() {
         utm: getQueryParams(),
       };
       trackDataRef.current = base;
-      window.fbq?.("track", "InitiateCheckout", {
-        value: base.valor,
-        currency: "BRL",
-      }, { eventID: `${eventoId}_ic` });
       void track({
-        data: { ...base, stage: "checkout", evento_id: `${eventoId}_ic` },
+        data: { ...base, stage: "checkout", evento_id: icEventIdRef.current || `${eventoId}_ic` },
       } as Parameters<typeof track>[0]).catch(() => undefined);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar o Pix. Tente novamente.");
