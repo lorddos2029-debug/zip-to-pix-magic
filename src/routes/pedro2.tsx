@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import logo from "@/assets/uploads/6662.png";
 const pedroHero = "/pedro2/pedro-foto.jpg";
 
 export const Route = createFileRoute("/pedro2")({
@@ -41,8 +42,8 @@ const TABS: Array<{ id: Tab; label: string }> = [
 
 function Brand() {
   return (
-    <Link to="/" className="brand" aria-label="Juntos por Vidas">
-      <span>Juntos por Vidas</span>
+    <Link to="/" className="brand" aria-label="Vakinha">
+      <img src={logo} alt="Vakinha" className="brand-logo" />
     </Link>
   );
 }
