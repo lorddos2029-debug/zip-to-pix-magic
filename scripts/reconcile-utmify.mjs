@@ -44,9 +44,23 @@ function valueFrom(object, keys) {
   return null;
 }
 
-async function syncOrder(id) {
-  const existing = await readQueued(id);
-  if (existing?.synced_paid === true) return "ja_sincronizado";
+function trackingFrom(payment, existing) {
+  const source = {
+    ...(payment?.trackingParameters && typeof payment.trackingParameters === "object" ? payment.trackingParameters : {}),
+    ...(payment?.utm && typeof payment.utm === "object" ? payment.utm : {}),
+  };
+  const fields = ["src", "sck", "utm_source", "utm_campaign", "utm_medium", "utm_content", "utm_term"];
+  const found = {};
+  for (const key of fields) {
+    const stored = existing?.utm?.[key];
+    const provider = payment?.[key] ?? payment?.metadata?.[key] ?? source[key];
+    const value = typeof stored === "string" && stored.trim() ? stored : provider;
+    if (typeof value === "string" && value.trim()) found[key] = value.trim();
+  }
+  return found;
+}
+
+async function fetchPayment(id) {
   const response = await fetch(providerBase + "/status/" + id, {
     headers: { Authorization: "Bearer " + urusKey },
     signal: AbortSignal.timeout(15000),
@@ -54,6 +68,31 @@ async function syncOrder(id) {
   if (!response.ok) throw new Error("Falha ao consultar UrusPay (HTTP " + response.status + ")");
   const payment = await response.json();
   if (!payment || payment.ok === false) throw new Error("UrusPay nao confirmou a consulta");
+  return payment;
+}
+
+async function inspectOrder(id) {
+  const existing = await readQueued(id);
+  const payment = await fetchPayment(id);
+  const fields = Object.keys(trackingFrom(payment, existing));
+  // Nunca mostra dados pessoais, valores de UTMs ou tokens.
+  return JSON.stringify({
+    id,
+    pago_na_uruspay: payment.pago === true || String(payment.status || "").toLowerCase() === "paid",
+    sincronizado_localmente: existing?.synced_paid === true,
+    fila_local: Boolean(existing),
+    campos_atribuicao_presentes: fields,
+    tem_utm_campaign: fields.includes("utm_campaign"),
+  });
+}
+
+async function syncOrder(id) {
+  const existing = await readQueued(id);
+  if (existing?.synced_paid === true) {
+    const fields = Object.keys(existing?.utm || {});
+    return fields.includes("utm_campaign") ? "ja_sincronizado_com_utm_campaign" : "ja_sincronizado_sem_utm_campaign_local";
+  }
+  const payment = await fetchPayment(id);
   const paid = payment.pago === true || String(payment.status || "").toLowerCase() === "paid";
   if (!paid) return "aguardando_pagamento";
 
@@ -78,7 +117,7 @@ async function syncOrder(id) {
     : [{ id: "doacao", name: "Doacao", planId: null, planName: null,
          quantity: 1, priceInCents: Math.round(amount * 100) }];
 
-  const utm = existing?.utm || payment;
+  const utm = trackingFrom(payment, existing);
   const utmParam = (key) => typeof utm?.[key] === "string" ? utm[key] : null;
   const payload = {
     orderId: String(id), platform: "UrusPay", paymentMethod: "pix", status: "paid",
@@ -115,15 +154,19 @@ async function syncOrder(id) {
   await mkdir(folder, { recursive: true, mode: 0o700 });
   await writeFile(join(folder, String(id) + ".json"), JSON.stringify({
     ...(existing || { order_id: id, created_at: createdAt, valor: amount, nome: name, email }),
+    utm,
     synced_paid: true, synced_at: new Date().toISOString(),
   }), { encoding: "utf8", mode: 0o600 });
-  return "paid_enviado";
+  return utm.utm_campaign ? "paid_enviado_com_utm_campaign" : "paid_enviado_sem_utm_campaign";
 }
 
 async function main() {
   if (!urusKey) throw new Error("Credencial URUSPAY_API_KEY/URUS_API_KEY ausente no servidor");
   if (!utmifyKey) throw new Error("UTMIFY_API_TOKEN ausente no servidor");
   let ids = process.argv.slice(2);
+  const inspect = ids[0] === "--inspect";
+  if (inspect) ids = ids.slice(1);
+  if (inspect && ids.length !== 1) throw new Error("Uso: node scripts/reconcile-utmify.mjs --inspect 49002");
   if (!ids.length) {
     await mkdir(folder, { recursive: true, mode: 0o700 });
     ids = (await readdir(folder)).filter((x) => /^\d+\.json$/.test(x)).map((x) => x.slice(0, -5));
@@ -133,7 +176,7 @@ async function main() {
     const id = Number(rawId);
     if (!Number.isSafeInteger(id)) throw new Error("ID fora do limite");
     try {
-      console.log("Pedido #" + id + ": " + await syncOrder(id));
+      console.log("Pedido #" + id + ": " + await (inspect ? inspectOrder(id) : syncOrder(id)));
     } catch (error) {
       process.exitCode = 1;
       console.error("Pedido #" + id + ": ERRO - " + (error instanceof Error ? error.message : "indefinido"));
