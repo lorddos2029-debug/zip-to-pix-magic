@@ -8,6 +8,7 @@ import { formatBRL } from "@/lib/pix";
 import { checkUrusStatus, createUrusCharge, type UrusChargeResult } from "@/lib/urus.functions";
 import { trackDonation } from "@/lib/tracking.functions";
 import { getCampaignAttribution } from "@/lib/campaign-attribution";
+import { trackMetaInitiateCheckout } from "@/lib/meta-pixel";
 
 export const Route = createFileRoute("/pix")({
   head: () => ({
@@ -143,7 +144,7 @@ function PixPage() {
     if (icEventIdRef.current) return;
     const eventId = `${gerarEventoId()}_ic`;
     icEventIdRef.current = eventId;
-    window.fbq?.("track", "InitiateCheckout", { currency: "BRL" }, { eventID: eventId });
+    trackMetaInitiateCheckout(eventId);
   }, []);
 
   const totalBumps = bumps.reduce((s, id) => s + (BUMPS.find((b) => b.id === id)?.preco || 0), 0);
