@@ -81,8 +81,10 @@ function FelipeCampaign() {
         <section className="hero-card">
           <video
             controls
+            autoPlay
+            muted
             playsInline
-            preload="metadata"
+            preload="auto"
             aria-label="Vídeo da campanha do Kaue"
             src="/videos/vsl-felipe.mp4"
           >
