@@ -10,7 +10,7 @@ export const UTM_FIELDS = [
 const STORAGE_KEY = "juntosporvidas:attribution:v1";
 const SESSION_MS = 30 * 60 * 1000;
 
-type AttributionData = Partial<Record<(typeof UTM_FIELDS)[number], string>>;
+type AttributionData = Record<string, string>;
 
 export function getCampaignAttribution(): AttributionData {
   if (typeof window === "undefined") return {};
