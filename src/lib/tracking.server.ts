@@ -29,9 +29,9 @@ export interface CapiPayload {
 }
 
 export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
-  const pixelId = process.env["FB_PIXEL_ID"];
+  const pixelId = "1849843465686098"; // Mesmo ID do Pixel instalado globalmente no site.
   const token = process.env["FB_CAPI_ACCESS_TOKEN"];
-  if (!pixelId || !token) return "sem_credencial";
+  if (!token) return "sem_credencial";
 
   const userData: Record<string, unknown> = {};
   if (p.email) userData["em"] = [await sha256(p.email)];
