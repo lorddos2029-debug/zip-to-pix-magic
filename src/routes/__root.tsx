@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { getCampaignAttribution } from "../lib/campaign-attribution";
+import { ensureMetaPixel } from "../lib/meta-pixel";
 
 function NotFoundComponent() {
   return (
@@ -140,6 +141,7 @@ function RootComponent() {
   useEffect(() => {
     // Captura os UTMs da página de campanha ANTES do visitante abrir /pix.
     getCampaignAttribution();
+    ensureMetaPixel();
   }, []);
 
   return (
