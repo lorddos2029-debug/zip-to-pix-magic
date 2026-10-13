@@ -2,13 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import logo from "@/assets/uploads/6662.png";
 
-export const Route = createFileRoute("/felipe")({
+export const Route = createFileRoute("/kaue")({
   head: () => ({
     meta: [
-      { title: "Ajude o Felipe | Juntos por Vidas" },
-      { name: "description", content: "Conheça a história do Felipe e de sua mãe Priscila e ajude a divulgar a campanha." },
-      { property: "og:title", content: "Ajude o Felipe" },
-      { property: "og:description", content: "Felipe precisa de apoio para obter um equipamento de assistência respiratória." },
+      { title: "Ajude o Kaue | Juntos por Vidas" },
+      { name: "description", content: "Conheça a história do Kaue e de sua mãe Priscila e ajude a divulgar a campanha." },
+      { property: "og:title", content: "Ajude o Kaue" },
+      { property: "og:description", content: "Kaue precisa de apoio para obter um equipamento de assistência respiratória." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -42,7 +42,7 @@ function FelipeCampaign() {
   const [copied, setCopied] = useState(false);
 
   const share = async () => {
-    const data = { title: "Ajude o Felipe", text: "Conheça a história do Felipe e de sua mãe Priscila.", url: window.location.href };
+    const data = { title: "Ajude o Kaue", text: "Conheça a história do Kaue e de sua mãe Priscila.", url: window.location.href };
     try {
       if (navigator.share) await navigator.share(data);
       else if (navigator.clipboard) {
@@ -83,7 +83,7 @@ function FelipeCampaign() {
             controls
             playsInline
             preload="metadata"
-            aria-label="Vídeo da campanha do Felipe"
+            aria-label="Vídeo da campanha do Kaue"
             src="/videos/vsl-felipe.mp4"
           >
             Seu navegador não oferece suporte à reprodução do vídeo.
@@ -112,8 +112,8 @@ function FelipeCampaign() {
           </span>
         </div>
 
-        <h1>Ajude o Felipe</h1>
-        <p className="campaign-id">Campanha: Ajude o Felipe</p>
+        <h1>Ajude o Kaue</h1>
+        <p className="campaign-id">Campanha: Ajude o Kaue</p>
 
         <section className="stats" aria-label="Informações da campanha">
           <div className="progress-track" role="progressbar" aria-label="Progresso informado da arrecadação" aria-valuemin={0} aria-valuemax={50000} aria-valuenow={8111}>
@@ -140,18 +140,18 @@ function FelipeCampaign() {
         {tab === "sobre" ? (
           <article className="story">
             <p>
-              A doença tirou de Felipe até a força para tossir. Sua mãe agora luta para não vê-lo voltar ao hospital.
+              A doença tirou de Kaue até a força para tossir. Sua mãe agora luta para não vê-lo voltar ao hospital.
             </p>
-            <p className="felipe-intro">Aos 14 anos, Felipe depende de um aparelho alugado para ajudar a eliminar as secreções dos pulmões. A família relata que precisa de apoio para obter um equipamento próprio e continuar os cuidados em casa.</p>
-            <h2>Conheça a história do Felipe</h2>
-            <p><strong>O FELIPE NÃO PODE ESPERAR.</strong> Segundo a família, o aparelho de assistência respiratória é alugado e deverá ser devolvido.</p>
-            <p>Priscila conta que seu filho Felipe, de 14 anos, tem Atrofia Muscular Espinhal (AME) tipo 2 e passou 36 dias internado por causa de uma pneumonia grave.</p>
-            <p>A doença enfraqueceu a musculatura de Felipe a ponto de ele não conseguir tossir sozinho. Sem conseguir eliminar as secreções, ele pode enfrentar novas complicações respiratórias.</p>
+            <p className="kaue-intro">Aos 14 anos, Kaue depende de um aparelho alugado para ajudar a eliminar as secreções dos pulmões. A família relata que precisa de apoio para obter um equipamento próprio e continuar os cuidados em casa.</p>
+            <h2>Conheça a história do Kaue</h2>
+            <p><strong>O KAUE NÃO PODE ESPERAR.</strong> Segundo a família, o aparelho de assistência respiratória é alugado e deverá ser devolvido.</p>
+            <p>Priscila conta que seu filho Kaue, de 14 anos, tem Atrofia Muscular Espinhal (AME) tipo 2 e passou 36 dias internado por causa de uma pneumonia grave.</p>
+            <p>A doença enfraqueceu a musculatura de Kaue a ponto de ele não conseguir tossir sozinho. Sem conseguir eliminar as secreções, ele pode enfrentar novas complicações respiratórias.</p>
             <p>Hoje, um equipamento chamado Cough Assist ajuda a eliminar essas secreções. A dificuldade é que esse aparelho é alugado, e a família busca recursos para adquirir um equipamento próprio.</p>
-            <p><strong>Depoimento atribuído à mãe:</strong> “Eu vou ter que devolver o aparelho que meu filho precisa e não sei o que vou fazer depois. Não temos condições de comprar um. E esperar pode demorar um tempo que o Felipe não tem.”</p>
-            <p>Na campanha de origem, a família relata que o equipamento custa cerca de R$ 80 mil e que também precisa adaptar a casa para os cuidados diários de Felipe.</p>
+            <p><strong>Depoimento atribuído à mãe:</strong> “Eu vou ter que devolver o aparelho que meu filho precisa e não sei o que vou fazer depois. Não temos condições de comprar um. E esperar pode demorar um tempo que o Kaue não tem.”</p>
+            <p>Na campanha de origem, a família relata que o equipamento custa cerca de R$ 80 mil e que também precisa adaptar a casa para os cuidados diários de Kaue.</p>
             <p><strong>Priscila relata:</strong> “Como mãe, meu medo é devolver esse aparelho e ficar sem saber como vou ajudar meu filho se ele não conseguir eliminar as secreções.”</p>
-            <p>A história de Felipe e de sua mãe Priscila pede apoio para manter os cuidados respiratórios e evitar novas internações.</p>
+            <p>A história de Kaue e de sua mãe Priscila pede apoio para manter os cuidados respiratórios e evitar novas internações.</p>
             <p>Se você puder contribuir, confira os dados da arrecadação original. Se não puder, compartilhar a história também ajuda a alcançar mais pessoas.</p>
             <p className="legal">Informações e depoimentos reproduzidos da campanha de referência, sem verificação independente. Os valores de arrecadação e meta foram fornecidos para esta página, sem verificação independente. Consulte a campanha de origem e confirme o destinatário antes de contribuir.</p>
           </article>
@@ -172,7 +172,7 @@ function FelipeCampaign() {
 
         <footer className="footer">
           <Brand />
-          <p>Divulgação da campanha do Felipe e de sua mãe Priscila. Consulte as informações atualizadas e o destinatário antes de contribuir.</p>
+          <p>Divulgação da campanha do Kaue e de sua mãe Priscila. Consulte as informações atualizadas e o destinatário antes de contribuir.</p>
         </footer>
       </main>
 
