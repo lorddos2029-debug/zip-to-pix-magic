@@ -86,9 +86,9 @@ async function inspectOrder(id) {
   });
 }
 
-async function syncOrder(id) {
+async function syncOrder(id, repairAttribution = false) {
   const existing = await readQueued(id);
-  if (existing?.synced_paid === true) {
+  if (existing?.synced_paid === true && !repairAttribution) {
     const fields = Object.keys(existing?.utm || {});
     return fields.includes("utm_campaign") ? "ja_sincronizado_com_utm_campaign" : "ja_sincronizado_sem_utm_campaign_local";
   }
@@ -118,6 +118,11 @@ async function syncOrder(id) {
          quantity: 1, priceInCents: Math.round(amount * 100) }];
 
   const utm = trackingFrom(payment, existing);
+  // Uma atualização retroativa só pode usar o identificador da campanha
+  // realmente registrado na origem; nunca inventar atribuição.
+  if (repairAttribution && !utm.utm_campaign) {
+    return "sem_utm_campaign_original_para_recuperar";
+  }
   const utmParam = (key) => typeof utm?.[key] === "string" ? utm[key] : null;
   const payload = {
     orderId: String(id), platform: "UrusPay", paymentMethod: "pix", status: "paid",
@@ -165,8 +170,9 @@ async function main() {
   if (!utmifyKey) throw new Error("UTMIFY_API_TOKEN ausente no servidor");
   let ids = process.argv.slice(2);
   const inspect = ids[0] === "--inspect";
-  if (inspect) ids = ids.slice(1);
-  if (inspect && ids.length !== 1) throw new Error("Uso: node scripts/reconcile-utmify.mjs --inspect 49002");
+  const repair = ids[0] === "--repair-attribution";
+  if (inspect || repair) ids = ids.slice(1);
+  if ((inspect || repair) && ids.length !== 1) throw new Error("Uso: node scripts/reconcile-utmify.mjs --inspect|--repair-attribution 49002");
   if (!ids.length) {
     await mkdir(folder, { recursive: true, mode: 0o700 });
     ids = (await readdir(folder)).filter((x) => /^\d+\.json$/.test(x)).map((x) => x.slice(0, -5));
@@ -176,7 +182,7 @@ async function main() {
     const id = Number(rawId);
     if (!Number.isSafeInteger(id)) throw new Error("ID fora do limite");
     try {
-      console.log("Pedido #" + id + ": " + await (inspect ? inspectOrder(id) : syncOrder(id)));
+      console.log("Pedido #" + id + ": " + await (inspect ? inspectOrder(id) : syncOrder(id, repair)));
     } catch (error) {
       process.exitCode = 1;
       console.error("Pedido #" + id + ": ERRO - " + (error instanceof Error ? error.message : "indefinido"));
