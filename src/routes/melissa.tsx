@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import logo from "@/assets/uploads/6662.png";
 
 // Fotografias publicadas na página original da campanha de Melissa.
 // O script scripts/install-melissa-assets.sh faz a cópia para /public/melissa.
@@ -45,8 +46,8 @@ const TABS: Array<{ id: Tab; label: string }> = [
 
 function Brand() {
   return (
-    <Link to="/" className="brand" aria-label="Juntos por Vidas">
-      <img src="/pix/logo-juntos.png" alt="Juntos por Vidas" className="brand-logo" />
+    <Link to="/" className="brand" aria-label="Vakinha">
+      <img src={logo} alt="Vakinha" className="brand-logo" />
     </Link>
   );
 }
