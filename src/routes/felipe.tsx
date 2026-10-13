@@ -28,8 +28,6 @@ const TABS: Array<{ id: Tab; label: string }> = [
   { id: "perguntas", label: "Perguntas e Respostas" },
 ];
 
-const campaignUrl = "https://esperancaredee.brpr.workers.dev/c/felipe";
-
 function Brand() {
   return (
     <Link to="/" className="brand" aria-label="Página inicial">
@@ -166,7 +164,7 @@ function FelipeCampaign() {
                 <p><strong>Para que é a campanha?</strong></p>
                 <p>Para apoiar a compra de um equipamento respiratório e os cuidados descritos pela família.</p>
                 <p><strong>Onde conferir os dados da arrecadação?</strong></p>
-                <p>Na página de origem da campanha, acessível pelo botão Quero Ajudar.</p>
+                <p>O botão Quero Ajudar abre o checkout de doações.</p>
               </div>
             )}
           </section>
@@ -181,7 +179,7 @@ function FelipeCampaign() {
       <div className="bottom-bar">
         <div className="safe-line">♡ CONHEÇA E COMPARTILHE ESTA CAMPANHA</div>
         <div className="bottom-actions">
-          <a href={campaignUrl} target="_blank" rel="noopener noreferrer" className="donate-button">Quero Ajudar</a>
+          <Link to="/pix" className="donate-button">Quero Ajudar</Link>
           <button type="button" className="share-button" onClick={() => void share()}>
             {copied ? "Link copiado!" : "Compartilhar"}
           </button>
