@@ -286,7 +286,7 @@ function PixPage() {
         fbc: getFbc() || undefined,
         user_agent: navigator.userAgent,
         source_url: window.location.href,
-        created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+        created_at: r.created_at ?? new Date().toISOString().slice(0, 19).replace("T", " "),
         itens,
         utm: getQueryParams(),
       };
