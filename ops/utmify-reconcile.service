@@ -1,0 +1,11 @@
+[Unit]
+Description=Verificar PIX pagos na UrusPay e sincronizar a UTMify
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/home/ubuntu/zip-to-pix-magic
+EnvironmentFile=/etc/zip-to-pix-magic.env
+ExecStart=/bin/bash -lc 'source /home/ubuntu/.nvm/nvm.sh && node /home/ubuntu/zip-to-pix-magic/scripts/reconcile-utmify.mjs'
