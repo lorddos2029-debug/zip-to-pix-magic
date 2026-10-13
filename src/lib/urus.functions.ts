@@ -59,6 +59,7 @@ export type UrusChargeInput = z.infer<typeof chargeSchema>;
 
 export interface UrusChargeResult {
   venda_id: number;
+  created_at?: string;
   pix_code: string;
   qr_code_url: string;
   expira_em?: string | undefined;
@@ -97,13 +98,14 @@ export const createUrusCharge = createServerFn({ method: "POST" })
     if (typeof body["expira_em"] === "string") result.expira_em = body["expira_em"];
     if (typeof body["check_status_url"] === "string") result.check_status_url = body["check_status_url"];
 
+    result.created_at = new Date().toISOString().slice(0, 19).replace("T", " ");
     // Salva a cobrança no servidor: a confirmação da UTMify não pode depender
     // de o doador manter o checkout aberto no navegador.
     try {
       const { queueUtmifyOrder } = await import("./utmify-queue.server");
       await queueUtmifyOrder({
         order_id: result.venda_id,
-        created_at: new Date().toISOString().slice(0, 19).replace("T", " "),
+        created_at: result.created_at,
         valor: result.valor,
         nome: data.nome,
         email: data.email,
