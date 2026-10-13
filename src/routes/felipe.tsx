@@ -118,8 +118,12 @@ function FelipeCampaign() {
         <p className="campaign-id">Campanha: Ajude o Felipe</p>
 
         <section className="stats" aria-label="Informações da campanha">
-          <div className="progress-track" aria-hidden="true"><div className="progress-value" style={{ width: "0%" }} /></div>
-          <div className="raised">Ajude o Felipe <span>a continuar recebendo cuidados.</span></div>
+          <div className="progress-track" role="progressbar" aria-label="Progresso informado da arrecadação" aria-valuemin={0} aria-valuemax={50000} aria-valuenow={8111}>
+            <div className="progress-value" style={{ width: "16.22%" }} />
+          </div>
+          <p className="fundraised-label">Arrecadado</p>
+          <div className="raised">R$ 8.111,00 <span>de R$ 50.000</span></div>
+          <p className="stats-note">Valores informados para esta página, sem verificação independente.</p>
           <div className="stats-box">
             <div><span>Objetivo da campanha</span><strong>Assistência respiratória</strong></div>
             <div><span>Informações financeiras</span><strong>Consulte a campanha</strong></div>
@@ -151,7 +155,7 @@ function FelipeCampaign() {
             <p><strong>Priscila relata:</strong> “Como mãe, meu medo é devolver esse aparelho e ficar sem saber como vou ajudar meu filho se ele não conseguir eliminar as secreções.”</p>
             <p>A história de Felipe e de sua mãe Priscila pede apoio para manter os cuidados respiratórios e evitar novas internações.</p>
             <p>Se você puder contribuir, confira os dados da arrecadação original. Se não puder, compartilhar a história também ajuda a alcançar mais pessoas.</p>
-            <p className="legal">Informações e depoimentos reproduzidos da campanha de referência, sem verificação independente. Esta página não apresenta números de arrecadação, verificações ou garantias de doação não confirmados.</p>
+            <p className="legal">Informações e depoimentos reproduzidos da campanha de referência, sem verificação independente. Os valores de arrecadação e meta foram fornecidos para esta página, sem verificação independente. Consulte a campanha de origem e confirme o destinatário antes de contribuir.</p>
           </article>
         ) : (
           <section className="empty-tab">
@@ -362,6 +366,8 @@ h1 {
 }
 
 .stats { margin-bottom: 24px; }
+.fundraised-label { margin: 14px 0 -8px; color: #666; font-size: 13px; font-weight: 700; }
+.stats-note { margin: 8px 0 0; color: #8b8b8b; font-size: 11px; line-height: 1.5; }
 .progress-track {
   width: 100%;
   height: 4px;
