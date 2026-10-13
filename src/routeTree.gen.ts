@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as KaueRouteImport } from './routes/kaue'
 import { Route as MiguelRouteImport } from './routes/miguel'
 import { Route as PedroRouteImport } from './routes/pedro'
+import { Route as Pedro2RouteImport } from './routes/pedro2'
 import { Route as PietroRouteImport } from './routes/pietro'
 import { Route as PixRouteImport } from './routes/pix'
 
@@ -36,6 +37,11 @@ const PedroRoute = PedroRouteImport.update({
   path: '/pedro',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Pedro2Route = Pedro2RouteImport.update({
+  id: '/pedro2',
+  path: '/pedro2',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PietroRoute = PietroRouteImport.update({
   id: '/pietro',
   path: '/pietro',
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/kaue': typeof KaueRoute
   '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
+  '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
   '/pix': typeof PixRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/kaue': typeof KaueRoute
   '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
+  '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
   '/pix': typeof PixRoute
 }
@@ -69,15 +77,16 @@ export interface FileRoutesById {
   '/kaue': typeof KaueRoute
   '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
+  '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
   '/pix': typeof PixRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kaue' | '/miguel' | '/pedro' | '/pietro' | '/pix'
+  fullPaths: '/' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/kaue' | '/miguel' | '/pedro' | '/pietro' | '/pix'
-  id: '__root__' | '/' | '/kaue' | '/miguel' | '/pedro' | '/pietro' | '/pix'
+  to: '/' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
+  id: '__root__' | '/' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -85,6 +94,7 @@ export interface RootRouteChildren {
   KaueRoute: typeof KaueRoute
   MiguelRoute: typeof MiguelRoute
   PedroRoute: typeof PedroRoute
+  Pedro2Route: typeof Pedro2Route
   PietroRoute: typeof PietroRoute
   PixRoute: typeof PixRoute
 }
@@ -119,6 +129,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PedroRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pedro2': {
+      id: '/pedro2'
+      path: '/pedro2'
+      fullPath: '/pedro2'
+      preLoaderRoute: typeof Pedro2RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pietro': {
       id: '/pietro'
       path: '/pietro'
@@ -141,6 +158,7 @@ const rootRouteChildren: RootRouteChildren = {
   KaueRoute: KaueRoute,
   MiguelRoute: MiguelRoute,
   PedroRoute: PedroRoute,
+  Pedro2Route: Pedro2Route,
   PietroRoute: PietroRoute,
   PixRoute: PixRoute,
 }
