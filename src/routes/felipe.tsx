@@ -57,7 +57,7 @@ function FelipeCampaign() {
   };
 
   return (
-    <div className="campaign-page felipe-campaign">
+    <div className="campaign-page">
       <style>{styles}</style>
 
       <header className="topbar">
@@ -95,7 +95,7 @@ function FelipeCampaign() {
             aria-label={liked ? "Remover dos favoritos" : "Adicionar aos favoritos"}
             aria-pressed={liked}
             onClick={() => setLiked((value) => !value)}
-            className={liked ? "heart-button liked" : "heart-button"}
+            className={`heart-button${liked ? " liked" : ""}`}
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path d="M12 20.6 4.9 14C1.3 10.7 3.6 5 8.3 5c1.5 0 2.9.7 3.7 1.8C12.8 5.7 14.2 5 15.7 5c4.7 0 7 5.7 3.4 9L12 20.6Z" />
@@ -114,7 +114,7 @@ function FelipeCampaign() {
           </span>
         </div>
 
-        <h1>A doença tirou de Felipe até a força para tossir. Sua mãe agora luta para não vê-lo voltar ao hospital.</h1>
+        <h1>Ajude o Felipe</h1>
         <p className="campaign-id">Campanha: Ajude o Felipe</p>
 
         <section className="stats" aria-label="Informações da campanha">
@@ -126,7 +126,6 @@ function FelipeCampaign() {
           </div>
         </section>
 
-        <p className="felipe-intro">Aos 14 anos, Felipe depende de um aparelho alugado para ajudar a eliminar as secreções dos pulmões. A família relata que precisa de apoio para obter um equipamento próprio e continuar os cuidados em casa.</p>
 
         <nav className="tabs" aria-label="Informações da campanha">
           {TABS.map((item) => (
@@ -138,6 +137,10 @@ function FelipeCampaign() {
 
         {tab === "sobre" ? (
           <article className="story">
+            <p>
+              A doença tirou de Felipe até a força para tossir. Sua mãe agora luta para não vê-lo voltar ao hospital.
+            </p>
+            <p className="felipe-intro">Aos 14 anos, Felipe depende de um aparelho alugado para ajudar a eliminar as secreções dos pulmões. A família relata que precisa de apoio para obter um equipamento próprio e continuar os cuidados em casa.</p>
             <h2>Conheça a história do Felipe</h2>
             <p><strong>O FELIPE NÃO PODE ESPERAR.</strong> Segundo a família, o aparelho de assistência respiratória é alugado e deverá ser devolvido.</p>
             <p>Priscila conta que seu filho Felipe, de 14 anos, tem Atrofia Muscular Espinhal (AME) tipo 2 e passou 36 dias internado por causa de uma pneumonia grave.</p>
@@ -543,10 +546,11 @@ h1 {
   .hero-card { height: 300px; }
 }
 
-.felipe-campaign .hero-card { height: auto; aspect-ratio: 16 / 9; background: #111; }
-.felipe-campaign .hero-card > video { width: 100%; height: 100%; display: block; object-fit: contain; }
-.felipe-campaign .felipe-intro { color: #626262; font-size: 14px; line-height: 1.65; margin: 14px 0 20px; }
-.felipe-campaign .raised { font-size: 20px; }
-.felipe-campaign .stats-box strong { text-align: right; }
-@media (min-width: 521px) { .felipe-campaign .hero-card { height: auto; } }
+.hero-card > video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  background: #111;
+}
 `;
