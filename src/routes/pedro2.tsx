@@ -139,11 +139,11 @@ function Pedro2Campaign() {
           <div className="stats-box">
             <div>
               <span>Corações Recebidos</span>
-              <strong>—</strong>
+              <strong>231</strong>
             </div>
             <div>
               <span>Apoiadores</span>
-              <strong>—</strong>
+              <strong>164</strong>
             </div>
           </div>
         </section>
@@ -346,8 +346,8 @@ button { cursor: pointer; }
 .hero-card > img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  object-position: center 36%;
+  object-fit: contain;
+  object-position: center center;
   display: block;
 }
 .heart-button {
