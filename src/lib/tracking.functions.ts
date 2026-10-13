@@ -94,5 +94,14 @@ export const trackDonation = createServerFn({ method: "POST" })
         : Promise.resolve("sem_pedido"),
     ]);
 
+    if (data.stage === "paid" && utmify === "enviado") {
+      try {
+        const { markUtmifyOrderSynced } = await import("./utmify-queue.server");
+        await markUtmifyOrderSynced(data.order_id);
+      } catch (error) {
+        // O envio ja foi aceito pela UTMify; mantenha o retorno de sucesso.
+        console.error("[UTMify] Falha ao marcar pedido sincronizado:", error instanceof Error ? error.message : "erro desconhecido");
+      }
+    }
     return { facebook, utmify };
   });
