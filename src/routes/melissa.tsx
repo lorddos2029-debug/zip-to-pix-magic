@@ -5,7 +5,6 @@ import { useState } from "react";
 // O script scripts/install-melissa-assets.sh faz a cópia para /public/melissa.
 const melissaHero = "/melissa/melissa-hero.jpeg";
 const melissaBanner = "/melissa/melissa-banner.png";
-const originalCampaignUrl = "https://melissadelua.com.br/";
 
 export const Route = createFileRoute("/melissa")({
   head: () => ({
@@ -166,7 +165,7 @@ function MelissaCampaign() {
         </nav>
 
         {tab === "sobre" ? (
-          <article className="story">
+          <article className="story" id="historia-melissa">
             <p>
               Melissa tem 7 anos e sonha em andar com mais independência.
               Segundo a família, ela tem paralisia cerebral e precisa
@@ -192,7 +191,7 @@ function MelissaCampaign() {
               para a preparação de uma cirurgia relacionada à mobilidade.
             </p>
             <p>
-              No relato publicado no site original, a família conta que a
+              Segundo o relato da família, a
               interrupção dos tratamentos e a demora no atendimento têm sido
               dificuldades importantes. O objetivo é reunir recursos para que
               ela possa voltar às terapias e chegar à cirurgia com o
@@ -201,36 +200,29 @@ function MelissaCampaign() {
             <img
               className="story-image melissa-banner"
               src={melissaBanner}
-              alt="Imagem da campanha original: Melissa sonha em andar"
+              alt="Melissa sonha em andar"
               width={1024}
               height={512}
               loading="lazy"
             />
             <p>
-              A meta anunciada na campanha original é de R$ 43.200,00,
+              A meta informada é de R$ 43.200,00,
               destinada a seis meses de fisioterapia e outras terapias,
               consultas médicas, medicamentos e cuidados essenciais.
               O valor de R$ 21.000,00 indicado como arrecadado nesta página
               foi fornecido para esta publicação e não foi confirmado
-              diretamente no site original.
+              de forma independente.
             </p>
             <p>
               <strong>
-                Conheça a campanha da Melissa e, se puder ajudar, faça sua
-                contribuição pelo site original da família.
+                Conheça a história da Melissa e compartilhe esta campanha
+                com quem possa ajudar.
               </strong>
             </p>
-            <p>
-              <a href={originalCampaignUrl} target="_blank" rel="noopener noreferrer">
-                Acessar a campanha original da Melissa
-              </a>
-            </p>
             <p className="legal">
-              História e fotografias provenientes de melissadelua.com.br.
-              Valores de arrecadação, corações e apoiadores apresentados conforme
-              as informações fornecidas para esta página, sem verificação
-              independente. Esta página é informativa e não é operada
-              pela campanha original.
+              História e fotografias da Melissa. Os valores e os números
+              de apoiadores foram informados para esta página e não são
+              atualizados automaticamente pelo sistema de doações.
             </p>
           </article>
         ) : (
@@ -244,8 +236,7 @@ function MelissaCampaign() {
         <footer className="footer">
           <Brand />
           <p>
-            Divulgação da história de <strong>Melissa</strong>. As contribuições são feitas
-            diretamente na <a href={originalCampaignUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#fff", textDecoration: "underline" }}>campanha original</a>.
+            Campanha de apoio à <strong>Melissa</strong> e sua família.
           </p>
         </footer>
       </main>
@@ -253,7 +244,7 @@ function MelissaCampaign() {
       <div className="bottom-bar">
         <div className="safe-line">♡ CONTRIBUA COM SEGURANÇA</div>
         <div className="bottom-actions">
-          <a href={originalCampaignUrl} target="_blank" rel="noopener noreferrer" className="donate-button">Quero Ajudar</a>
+          <a href="#historia-melissa" className="donate-button">Conhecer a história</a>
           <button type="button" className="share-button" onClick={share}>Compartilhar</button>
         </div>
       </div>
@@ -366,7 +357,7 @@ button { cursor: pointer; }
   height: 260px;
   overflow: hidden;
   border-radius: 11px;
-  background: #f8f8f8;
+  background: #eee;
 }
 .hero-card > img {
   width: 100%;
