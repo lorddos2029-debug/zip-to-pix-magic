@@ -244,7 +244,7 @@ function MelissaCampaign() {
       <div className="bottom-bar">
         <div className="safe-line">♡ CONTRIBUA COM SEGURANÇA</div>
         <div className="bottom-actions">
-          <a href="#historia-melissa" className="donate-button">Conhecer a história</a>
+          <Link to="/pix" className="donate-button">Quero Ajudar</Link>
           <button type="button" className="share-button" onClick={share}>Compartilhar</button>
         </div>
       </div>
