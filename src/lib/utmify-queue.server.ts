@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 export interface QueuedUtmifyOrder {
@@ -30,5 +30,20 @@ export async function queueUtmifyOrder(order: QueuedUtmifyOrder): Promise<void> 
   } catch (error) {
     // Não sobrescreva os dados da compra se o registro já existir.
     if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+  }
+}
+
+export async function markUtmifyOrderSynced(orderId: string): Promise<void> {
+  const id = Number(orderId);
+  if (!Number.isSafeInteger(id) || id <= 0) return;
+  const folder = process.env["UTMIFY_QUEUE_DIR"]?.trim() || resolve(process.cwd(), ".utmify-queue");
+  const filename = join(folder, `${id}.json`);
+  try {
+    const record = JSON.parse(await readFile(filename, "utf8")) as Record<string, unknown>;
+    await writeFile(filename, JSON.stringify({
+      ...record, synced_paid: true, synced_at: new Date().toISOString(),
+    }), { encoding: "utf8", mode: 0o600 });
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
   }
 }
