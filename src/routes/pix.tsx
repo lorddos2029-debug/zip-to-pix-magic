@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/pix";
 import { checkUrusStatus, createUrusCharge, type UrusChargeResult } from "@/lib/urus.functions";
 import { trackDonation } from "@/lib/tracking.functions";
+import { getCampaignAttribution } from "@/lib/campaign-attribution";
 
 export const Route = createFileRoute("/pix")({
   head: () => ({
@@ -46,14 +47,7 @@ const MIN_VALOR = 20;
 // ---------- helpers de rastreamento ----------
 
 function getQueryParams(): Record<string, string> {
-  if (typeof window === "undefined") return {};
-  const params = new URLSearchParams(window.location.search);
-  const out: Record<string, string> = {};
-  for (const key of ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "src", "sck"]) {
-    const v = params.get(key);
-    if (v) out[key] = v;
-  }
-  return out;
+  return getCampaignAttribution();
 }
 
 function getCookie(name: string): string {
