@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AnaRouteImport } from './routes/ana'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KaueRouteImport } from './routes/kaue'
 import { Route as MiguelRouteImport } from './routes/miguel'
@@ -17,6 +18,11 @@ import { Route as Pedro2RouteImport } from './routes/pedro2'
 import { Route as PietroRouteImport } from './routes/pietro'
 import { Route as PixRouteImport } from './routes/pix'
 
+const AnaRoute = AnaRouteImport.update({
+  id: '/ana',
+  path: '/ana',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -60,7 +66,8 @@ export interface FileRoutesByFullPath {
   '/pedro': typeof PedroRoute
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
-  '/pix': typeof PixRoute
+  '/pix': typeof PixRoute  '/ana': typeof AnaRoute
+
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -69,7 +76,8 @@ export interface FileRoutesByTo {
   '/pedro': typeof PedroRoute
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
-  '/pix': typeof PixRoute
+  '/pix': typeof PixRoute  '/ana': typeof AnaRoute
+
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -79,17 +87,19 @@ export interface FileRoutesById {
   '/pedro': typeof PedroRoute
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
-  '/pix': typeof PixRoute
+  '/pix': typeof PixRoute  '/ana': typeof AnaRoute
+
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
+  fullPaths: '/' | '/ana' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
-  id: '__root__' | '/' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
+  to: '/' | '/ana' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
+  id: '__root__' | '/' | '/ana' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  AnaRoute: typeof AnaRoute
   IndexRoute: typeof IndexRoute
   KaueRoute: typeof KaueRoute
   MiguelRoute: typeof MiguelRoute
@@ -106,6 +116,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ana': {
+      id: '/ana'
+      path: '/ana'
+      fullPath: '/ana'
+      preLoaderRoute: typeof AnaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kaue': {
@@ -154,6 +171,7 @@ declare module '@tanstack/react-router' {
 }
 
 const rootRouteChildren: RootRouteChildren = {
+  AnaRoute: AnaRoute,
   IndexRoute: IndexRoute,
   KaueRoute: KaueRoute,
   MiguelRoute: MiguelRoute,
