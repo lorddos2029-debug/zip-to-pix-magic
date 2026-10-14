@@ -66,8 +66,8 @@ export interface FileRoutesByFullPath {
   '/pedro': typeof PedroRoute
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
-  '/pix': typeof PixRoute  '/ana': typeof AnaRoute
-
+  '/pix': typeof PixRoute
+  '/ana': typeof AnaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -76,8 +76,8 @@ export interface FileRoutesByTo {
   '/pedro': typeof PedroRoute
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
-  '/pix': typeof PixRoute  '/ana': typeof AnaRoute
-
+  '/pix': typeof PixRoute
+  '/ana': typeof AnaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -87,8 +87,8 @@ export interface FileRoutesById {
   '/pedro': typeof PedroRoute
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
-  '/pix': typeof PixRoute  '/ana': typeof AnaRoute
-
+  '/pix': typeof PixRoute
+  '/ana': typeof AnaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
