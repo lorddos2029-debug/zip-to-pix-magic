@@ -198,7 +198,7 @@ function JoanaCampaign() {
               Os valores apresentados foram informados para a campanha
               e não são atualizados automaticamente pelo checkout.
             </p>
-          </article></article>
+          </article>
         ) : (
           <section className="empty-tab">
             {tab === "atualizacoes" && "Nenhuma atualização publicada no momento."}
