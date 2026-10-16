@@ -102,8 +102,11 @@ function mascaraCpf(valor: string): string {
     .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
 }
 
-function validarEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+function gerarEmailTecnico(): string {
+  const bytes = new Uint8Array(12);
+  window.crypto.getRandomValues(bytes);
+  const id = Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+  return `doacao-${id}@example.com`;
 }
 
 declare global {
@@ -119,9 +122,7 @@ function PixPage() {
   const [bumps, setBumps] = useState<number[]>([]);
 
   const [nome, setNome] = useState("");
-  const [email, setEmail] = useState("");
   const [cpf, setCpf] = useState("");
-  const [telefone, setTelefone] = useState("");
   const [anonimo, setAnonimo] = useState(false);
   const [identificacaoAberta, setIdentificacaoAberta] = useState(false);
 
@@ -214,26 +215,18 @@ function PixPage() {
       setErro("Informe seu nome completo.");
       return;
     }
-    if (!anonimo && !validarEmail(email)) {
-      setErro("Informe um e-mail válido.");
-      return;
-    }
     if (!validarCpf(cpf)) {
       setErro("Informe um CPF válido.");
       return;
     }
 
-    if (!/^\d{10,11}$/.test(telefone)) {
-      setErro("Informe um celular válido com DDD.");
-      return;
-    }
     setErro(null);
     setGerando(true);
 
     const eventoId = gerarEventoId();
     eventoIdRef.current = eventoId;
     purchaseTrackedRef.current = false;
-    const identidade = anonimo ? gerarIdentidadeAnonima() : { nome: nome.trim(), email: email.trim() };
+    const identidade = anonimo ? gerarIdentidadeAnonima() : { nome: nome.trim(), email: gerarEmailTecnico() };
 
     const itens = [
       { id: "doacao", nome: "Doação — Ajuda por uma vida", quantidade: 1, preco_unitario: Number(valor.toFixed(2)) },
@@ -251,7 +244,6 @@ function PixPage() {
           nome: identidade.nome,
           email: identidade.email,
           cpf: cpf.replace(/\D/g, ""),
-          telefone: telefone || undefined,
           descricao: "Doação — Ajuda por uma vida",
           itens,
           ...getQueryParams(),
@@ -276,7 +268,6 @@ function PixPage() {
         nome: identidade.nome,
         email: identidade.email,
         cpf: cpf.replace(/\D/g, ""),
-        telefone: telefone || undefined,
         fbp: getCookie("_fbp") || undefined,
         fbc: getFbc() || undefined,
         user_agent: navigator.userAgent,
@@ -454,9 +445,9 @@ function PixPage() {
       </div>
       <DonationIdentityDialog
         open={identificacaoAberta} onOpenChange={(open) => { setIdentificacaoAberta(open); setErro(null); }}
-        nome={nome} email={email} cpf={cpf} telefone={telefone}
+        nome={nome} cpf={cpf}
         anonymous={anonimo}
-        onNomeChange={setNome} onEmailChange={setEmail} onCpfChange={(value) => setCpf(mascaraCpf(value))} onTelefoneChange={setTelefone}
+        onNomeChange={setNome} onCpfChange={(value) => setCpf(mascaraCpf(value))}
         onAnonymousChange={(value) => { setAnonimo(value); setErro(null); }}
         total={total} busy={gerando} error={erro} onSubmit={contribuir}
       />
