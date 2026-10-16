@@ -3,7 +3,7 @@
  * Se o script da tag <head> ainda não estiver disponível quando uma rota
  * SPA montar, cria a fila oficial fbq para não perder o InitiateCheckout.
  */
-export const META_PIXEL_ID = "1849843465686098";
+export const META_PIXEL_ID = "2165302517752672";
 
 type MetaQueue = ((...args: unknown[]) => void) & {
   callMethod?: (...args: unknown[]) => void;
