@@ -48,7 +48,6 @@ export function DonationIdentityDialog(props: DonationIdentityDialogProps) {
               <input className={inputClass} aria-label="Nome completo" placeholder="Seu nome completo" autoComplete="name" maxLength={200} value={props.nome} onChange={(e) => props.onNomeChange(e.target.value)} />
             )}
             <input className={inputClass} type="tel" inputMode="numeric" aria-label="CPF" placeholder="CPF" value={props.cpf} onChange={(e) => props.onCpfChange(e.target.value)} />
-            {props.anonymous && <p className="text-left text-xs text-muted-foreground">Seu nome fica oculto publicamente. O CPF é necessário para processar o Pix.</p>}
           </fieldset>
           {props.error && <p role="alert" className="text-sm text-destructive">{props.error}</p>}
           <Button type="submit" disabled={props.busy} className="h-14 w-full rounded-xl bg-[#20c768] text-base font-bold text-white hover:bg-[#18ad56]">{props.busy ? "Gerando Pix…" : "Gerar PIX agora"}</Button>
