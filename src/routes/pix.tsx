@@ -215,7 +215,7 @@ function PixPage() {
       setErro("Informe seu nome completo.");
       return;
     }
-    if (!anonimo && !validarCpf(cpf)) {
+    if (!validarCpf(cpf)) {
       setErro("Informe um CPF válido.");
       return;
     }
@@ -243,7 +243,7 @@ function PixPage() {
           valor: Number(total.toFixed(2)),
           nome: identidade.nome,
           email: identidade.email,
-          cpf: anonimo ? undefined : cpf.replace(/\D/g, ""),
+          cpf: cpf.replace(/\D/g, ""),
           descricao: "Doação — Ajuda por uma vida",
           itens,
           ...getQueryParams(),
@@ -267,7 +267,7 @@ function PixPage() {
         valor: Number(r.valor || total),
         nome: identidade.nome,
         email: identidade.email,
-        cpf: anonimo ? undefined : cpf.replace(/\D/g, ""),
+        cpf: cpf.replace(/\D/g, ""),
         fbp: getCookie("_fbp") || undefined,
         fbc: getFbc() || undefined,
         user_agent: navigator.userAgent,
