@@ -29,7 +29,7 @@ export interface CapiPayload {
 }
 
 export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
-  const pixelId = "1849843465686098"; // Mesmo ID do Pixel instalado globalmente no site.
+  const pixelId = "2165302517752672"; // Mesmo ID do Pixel instalado globalmente no site.
   const token = process.env["FB_CAPI_ACCESS_TOKEN"];
   if (!token) return "sem_credencial";
 
