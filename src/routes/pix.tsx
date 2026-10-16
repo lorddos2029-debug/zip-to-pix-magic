@@ -215,7 +215,7 @@ function PixPage() {
       setErro("Informe seu nome completo.");
       return;
     }
-    if (!validarCpf(cpf)) {
+    if (!anonimo && !validarCpf(cpf)) {
       setErro("Informe um CPF válido.");
       return;
     }
@@ -243,7 +243,7 @@ function PixPage() {
           valor: Number(total.toFixed(2)),
           nome: identidade.nome,
           email: identidade.email,
-          cpf: cpf.replace(/\D/g, ""),
+          cpf: anonimo ? undefined : cpf.replace(/\D/g, ""),
           descricao: "Doação — Ajuda por uma vida",
           itens,
           ...getQueryParams(),
@@ -267,7 +267,7 @@ function PixPage() {
         valor: Number(r.valor || total),
         nome: identidade.nome,
         email: identidade.email,
-        cpf: cpf.replace(/\D/g, ""),
+        cpf: anonimo ? undefined : cpf.replace(/\D/g, ""),
         fbp: getCookie("_fbp") || undefined,
         fbc: getFbc() || undefined,
         user_agent: navigator.userAgent,
@@ -449,7 +449,7 @@ function PixPage() {
         anonymous={anonimo}
         onNomeChange={setNome} onCpfChange={(value) => setCpf(mascaraCpf(value))}
         onAnonymousChange={(value) => { setAnonimo(value); setErro(null); }}
-        total={total} busy={gerando} error={erro} onSubmit={contribuir}
+        busy={gerando} error={erro} onSubmit={contribuir}
       />
     </>
   );
