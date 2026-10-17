@@ -231,10 +231,50 @@ function WillianCampaign() {
             </p>
           </article>
         ) : (
-          <section className="empty-tab">
-            {tab === "atualizacoes" && "Nenhuma atualização publicada no momento."}
-            {tab === "quem" && "As informações de apoiadores serão exibidas aqui quando estiverem disponíveis."}
-            {tab === "perguntas" && "Nenhuma pergunta publicada no momento."}
+          <section className="campaign-extra-panel" role="tabpanel" aria-label={TABS.find((item) => item.id === tab)?.label}>
+            {tab === "atualizacoes" && (
+              <>
+                <h2>Atualizações da campanha</h2>
+                <p className="panel-intro">Acompanhe por aqui as novidades sobre o Willian e sua família.</p>
+                <div className="panel-empty">
+                  <span className="panel-symbol" aria-hidden="true">📋</span>
+                  <strong>Ainda não há atualizações publicadas</strong>
+                  <p>Quando a família compartilhar novidades, elas poderão aparecer nesta área.</p>
+                </div>
+              </>
+            )}
+            {tab === "quem" && (
+              <>
+                <h2>Quem ajudou</h2>
+                <p className="panel-intro">A solidariedade faz a diferença. Você também pode contribuir ou compartilhar esta campanha.</p>
+                <div className="panel-empty">
+                  <span className="panel-symbol" aria-hidden="true">♡</span>
+                  <strong>Lista de contribuições indisponível</strong>
+                  <p>Os nomes e valores de contribuições só serão exibidos quando houver registros confirmados e autorização para publicação.</p>
+                  <Link to="/pix" className="panel-action">Quero ajudar</Link>
+                </div>
+              </>
+            )}
+            {tab === "perguntas" && (
+              <>
+                <h2>Perguntas e Respostas</h2>
+                <p className="panel-intro">Informações sobre como ajudar e acompanhar a campanha.</p>
+                <div className="faq-list">
+                  {[
+                    { question: "Como posso ajudar o Willian?", answer: "Clique em Quero Ajudar para acessar a página de contribuição. Você também pode compartilhar o link da campanha." },
+                    { question: "Posso contribuir com qualquer valor?", answer: "Consulte os valores e as opções disponíveis na página de contribuição antes de confirmar." },
+                    { question: "Como acompanhar as novidades?", answer: "As informações publicadas pela organização da campanha ficarão na aba Atualizações." },
+                    { question: "Posso compartilhar esta campanha?", answer: "Sim. Utilize o botão Compartilhar para enviar a campanha a outras pessoas." },
+                    { question: "Onde encontro os dados para contribuir?", answer: "No botão Quero Ajudar, que leva à página com as instruções de contribuição." },
+                  ].map(({ question, answer }) => (
+                    <details className="faq-item" key={question}>
+                      <summary>{question}<span className="faq-chevron" aria-hidden="true">⌄</span></summary>
+                      <p>{answer}</p>
+                    </details>
+                  ))}
+                </div>
+              </>
+            )}
           </section>
         )}
 
@@ -258,6 +298,22 @@ function WillianCampaign() {
 }
 
 const styles = `
+.campaign-extra-panel { padding: 22px 18px 34px; background: #fff; min-height: 270px; }
+.campaign-extra-panel h2 { margin: 0 0 10px; font-size: 21px; line-height: 1.3; color: #303030; }
+.panel-intro { margin: 0 0 22px; color: #777; font-size: 14px; line-height: 1.6; }
+.panel-empty { padding: 28px 16px; text-align: center; background: #f9faf9; border: 1px solid #eaeaea; border-radius: 12px; }
+.panel-symbol { display: block; font-size: 29px; margin-bottom: 14px; color: #20c96b; }
+.panel-empty strong { display: block; font-size: 15px; line-height: 1.5; }
+.panel-empty p { margin: 9px auto 0; max-width: 350px; color: #858585; line-height: 1.6; font-size: 13px; }
+.panel-action { display: inline-block; margin-top: 20px; padding: 12px 22px; background: #20c96b; border-radius: 9px; color: white; font-weight: 700; text-decoration: none; }
+.faq-list { border-top: 1px solid #e9e9e9; }
+.faq-item { border-bottom: 1px solid #e9e9e9; }
+.faq-item summary { cursor: pointer; padding: 18px 3px; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; font-weight: 650; line-height: 1.45; }
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-chevron { font-size: 23px; color: #777; transition: transform .2s; }
+.faq-item[open] .faq-chevron { transform: rotate(180deg); }
+.faq-item p { margin: -4px 0 18px; padding-right: 18px; color: #777; font-size: 14px; line-height: 1.6; }
+
 :root {
   --green: #20c96b;
   --green-dark: #07984b;
