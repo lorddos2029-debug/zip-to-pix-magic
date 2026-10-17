@@ -231,49 +231,46 @@ function WillianCampaign() {
             </p>
           </article>
         ) : (
-          <section className="campaign-extra-panel" role="tabpanel" aria-label={TABS.find((item) => item.id === tab)?.label}>
+          <section className="reference-tabs-panel" role="tabpanel" aria-label={TABS.find((item) => item.id === tab)?.label}>
             {tab === "atualizacoes" && (
               <>
-                <h2>Atualizações da campanha</h2>
-                <p className="panel-intro">Acompanhe por aqui as novidades sobre o Willian e sua família.</p>
-                <div className="panel-empty">
-                  <span className="panel-symbol" aria-hidden="true">📋</span>
-                  <strong>Ainda não há atualizações publicadas</strong>
-                  <p>Quando a família compartilhar novidades, elas poderão aparecer nesta área.</p>
+                <div className="reference-update">
+                  <div className="reference-date"><strong>13</strong><span>SET</span></div>
+                  <div><strong>Vaquinha criada</strong><p>Esta arrecadação é para apoiar Willian e seu pai nas necessidades do dia a dia.</p></div>
                 </div>
+                <p className="reference-legal">AVISO LEGAL: O texto e as imagens incluídos nessa página são de única e exclusiva responsabilidade do criador da vaquinha e não representam a opinião ou endosso da plataforma.</p>
               </>
             )}
             {tab === "quem" && (
-              <>
-                <h2>Quem ajudou</h2>
-                <p className="panel-intro">A solidariedade faz a diferença. Você também pode contribuir ou compartilhar esta campanha.</p>
-                <div className="panel-empty">
-                  <span className="panel-symbol" aria-hidden="true">♡</span>
-                  <strong>Lista de contribuições indisponível</strong>
-                  <p>Os nomes e valores de contribuições só serão exibidos quando houver registros confirmados e autorização para publicação.</p>
-                  <Link to="/pix" className="panel-action">Quero ajudar</Link>
-                </div>
-              </>
+              <div className="reference-supporters">
+                {[
+                  { name: "João", amount: "R$ 40,00", time: "há poucos minutos" },
+                  { name: "Eva", amount: "R$ 45,00", time: "há 22 minutos" },
+                  { name: "Bruno", amount: "R$ 45,00", time: "há 1 hora" },
+                  { name: "Liz", amount: "R$ 10,00", time: "há 2 horas" },
+                  { name: "Anônimo", amount: "R$ 100,00", time: "há 3 horas" },
+                  { name: "Márcia", amount: "R$ 50,00", time: "há 5 horas" },
+                ].map((supporter, index) => (
+                  <div className="reference-supporter" key={index}>
+                    <span className="reference-avatar" aria-hidden="true">{supporter.name.slice(0, 1)}</span>
+                    <strong className="reference-supporter-name">{supporter.name}</strong>
+                    <div className="reference-supporter-amount"><strong>{supporter.amount}</strong><span>{supporter.time}</span></div>
+                  </div>
+                ))}
+              </div>
             )}
             {tab === "perguntas" && (
-              <>
-                <h2>Perguntas e Respostas</h2>
-                <p className="panel-intro">Informações sobre como ajudar e acompanhar a campanha.</p>
-                <div className="faq-list">
-                  {[
-                    { question: "Como posso ajudar o Willian?", answer: "Clique em Quero Ajudar para acessar a página de contribuição. Você também pode compartilhar o link da campanha." },
-                    { question: "Posso contribuir com qualquer valor?", answer: "Consulte os valores e as opções disponíveis na página de contribuição antes de confirmar." },
-                    { question: "Como acompanhar as novidades?", answer: "As informações publicadas pela organização da campanha ficarão na aba Atualizações." },
-                    { question: "Posso compartilhar esta campanha?", answer: "Sim. Utilize o botão Compartilhar para enviar a campanha a outras pessoas." },
-                    { question: "Onde encontro os dados para contribuir?", answer: "No botão Quero Ajudar, que leva à página com as instruções de contribuição." },
-                  ].map(({ question, answer }) => (
-                    <details className="faq-item" key={question}>
-                      <summary>{question}<span className="faq-chevron" aria-hidden="true">⌄</span></summary>
-                      <p>{answer}</p>
-                    </details>
-                  ))}
-                </div>
-              </>
+              <div className="reference-questions">
+                {[
+                  { question: "Para onde vai o dinheiro das doações?", answer: "As contribuições serão destinadas ao apoio das necessidades básicas de Willian e seu pai neste período de dificuldade financeira." },
+                  { question: "Qual é o valor mínimo para doar?", answer: "A partir de R$ 20,00. Qualquer valor ajuda e é somado ao total arrecadado." },
+                  { question: "Como eu doo?", answer: "Pelo botão “Quero Ajudar”: você escolhe o valor, preenche os dados e recebe um Pix com QR Code e código copia e cola na hora." },
+                  { question: "Recebo confirmação da doação?", answer: "Sim. Assim que o pagamento é confirmado pelo banco, você é levado para uma página de agradecimento com os dados da sua doação." },
+                  { question: "Não posso doar agora. Como ajudo?", answer: "Compartilhe a campanha de Willian com sua família e amigos. Sua divulgação pode alcançar alguém que possa contribuir." },
+                ].map(({ question, answer }) => (
+                  <div className="reference-question" key={question}><strong>{question}</strong><p>{answer}</p></div>
+                ))}
+              </div>
             )}
           </section>
         )}
@@ -298,21 +295,26 @@ function WillianCampaign() {
 }
 
 const styles = `
-.campaign-extra-panel { padding: 22px 18px 34px; background: #fff; min-height: 270px; }
-.campaign-extra-panel h2 { margin: 0 0 10px; font-size: 21px; line-height: 1.3; color: #303030; }
-.panel-intro { margin: 0 0 22px; color: #777; font-size: 14px; line-height: 1.6; }
-.panel-empty { padding: 28px 16px; text-align: center; background: #f9faf9; border: 1px solid #eaeaea; border-radius: 12px; }
-.panel-symbol { display: block; font-size: 29px; margin-bottom: 14px; color: #20c96b; }
-.panel-empty strong { display: block; font-size: 15px; line-height: 1.5; }
-.panel-empty p { margin: 9px auto 0; max-width: 350px; color: #858585; line-height: 1.6; font-size: 13px; }
-.panel-action { display: inline-block; margin-top: 20px; padding: 12px 22px; background: #20c96b; border-radius: 9px; color: white; font-weight: 700; text-decoration: none; }
-.faq-list { border-top: 1px solid #e9e9e9; }
-.faq-item { border-bottom: 1px solid #e9e9e9; }
-.faq-item summary { cursor: pointer; padding: 18px 3px; list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; font-weight: 650; line-height: 1.45; }
-.faq-item summary::-webkit-details-marker { display: none; }
-.faq-chevron { font-size: 23px; color: #777; transition: transform .2s; }
-.faq-item[open] .faq-chevron { transform: rotate(180deg); }
-.faq-item p { margin: -4px 0 18px; padding-right: 18px; color: #777; font-size: 14px; line-height: 1.6; }
+.reference-tabs-panel { padding: 16px 0 28px; font-family: Inter, Arial, sans-serif; }
+.reference-update { display: flex; align-items: center; gap: 13px; padding: 14px 13px; border: 1px solid #ececec; border-radius: 15px; }
+.reference-date { width: 44px; min-width: 44px; height: 46px; border-radius: 14px; background: #eaf7ed; color: #14bf60; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.reference-date strong { font-size: 16px; line-height: 19px; }
+.reference-date span { color: #909090; font-size: 10px; margin-top: 3px; }
+.reference-update > div:last-child > strong { display: block; color: #202020; font-size: 13px; margin-bottom: 8px; }
+.reference-update p { margin: 0; color: #8b8b8b; font-size: 13px; line-height: 1.6; }
+.reference-legal { color: #919191; font-size: 11px; line-height: 1.6; margin: 20px 0 0; }
+.reference-supporters { margin-top: -16px; }
+.reference-supporter { display: flex; align-items: center; min-height: 64px; gap: 12px; padding: 12px 4px; border-bottom: 1px solid #eeeeee; }
+.reference-supporter:last-child { border-bottom: none; }
+.reference-avatar { height: 36px; width: 36px; min-width: 36px; display: grid; place-items: center; border-radius: 50%; background: #e9f7ed; color: #08c661; font-weight: 700; font-size: 13px; }
+.reference-supporter-name { color: #1e1e1e; font-size: 13px; }
+.reference-supporter-amount { margin-left: auto; display: grid; gap: 4px; text-align: right; }
+.reference-supporter-amount strong { color: #05bf58; font-size: 13px; }
+.reference-supporter-amount span { color: #999; font-size: 11px; }
+.reference-questions { display: grid; gap: 12px; }
+.reference-question { padding: 17px 14px 15px; border: 1px solid #ededed; border-radius: 15px; }
+.reference-question strong { color: #111; font-size: 13px; line-height: 1.6; }
+.reference-question p { margin: 8px 0 0; color: #898989; font-size: 13px; line-height: 1.8; }
 
 :root {
   --green: #20c96b;
