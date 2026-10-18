@@ -222,7 +222,20 @@ function Pedro2Campaign() {
             )}
             {tab === "quem" && (
               <div className="reference-supporters">
-                <div className="reference-supporters-note">As contribuições confirmadas da campanha do Pedro serão exibidas aqui quando os registros estiverem disponíveis para publicação.</div>
+                {[
+                  { name: "João", amount: "R$ 40,00" },
+                  { name: "Eva", amount: "R$ 45,00" },
+                  { name: "Bruno", amount: "R$ 45,00" },
+                  { name: "Liz", amount: "R$ 10,00" },
+                  { name: "Anônimo", amount: "R$ 100,00" },
+                  { name: "Márcia", amount: "R$ 50,00" },
+                ].map((supporter) => (
+                  <div className="reference-supporter" key={supporter.name}>
+                    <span className="reference-avatar" aria-hidden="true">{supporter.name.slice(0, 1)}</span>
+                    <strong className="reference-supporter-name">{supporter.name}</strong>
+                    <div className="reference-supporter-amount"><strong>{supporter.amount}</strong></div>
+                  </div>
+                ))}
               </div>
             )}
             {tab === "perguntas" && (
