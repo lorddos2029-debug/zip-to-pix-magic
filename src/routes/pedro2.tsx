@@ -214,7 +214,7 @@ function Pedro2Campaign() {
             {tab === "atualizacoes" && (
               <>
                 <div className="reference-update">
-                  <div className="reference-date"><strong>20</strong><span>OUT</span></div>
+                  <div className="reference-date"><strong>♥</strong><span>APOIO</span></div>
                   <div><strong>Campanha do Pedro</strong><p>Esta campanha busca apoiar Pedro e sua família nos cuidados de que ele necessita.</p></div>
                 </div>
                 <p className="reference-legal">AVISO LEGAL: O texto e as imagens incluídos nessa página são de única e exclusiva responsabilidade do criador da vaquinha e não representam a opinião ou endosso da plataforma.</p>
