@@ -135,7 +135,7 @@ function JoanaCampaign() {
             <div className="progress-value" />
           </div>
           <div className="raised">
-            R$ 56.432,94 <span>— meta atingida</span>
+            R$ 56.432,94 <span>de R$ 100.000,00</span>
           </div>
 
           <div className="stats-box">
@@ -212,7 +212,20 @@ function JoanaCampaign() {
             )}
             {tab === "quem" && (
               <div className="reference-supporters">
-                <div className="reference-supporters-note">As contribuições confirmadas da campanha da Joana serão exibidas aqui quando os registros estiverem disponíveis para publicação.</div>
+                {[
+                  { name: "João", amount: "R$ 40,00" },
+                  { name: "Eva", amount: "R$ 45,00" },
+                  { name: "Bruno", amount: "R$ 45,00" },
+                  { name: "Liz", amount: "R$ 10,00" },
+                  { name: "Anônimo", amount: "R$ 100,00" },
+                  { name: "Márcia", amount: "R$ 50,00" },
+                ].map((supporter) => (
+                  <div className="reference-supporter" key={supporter.name}>
+                    <span className="reference-avatar" aria-hidden="true">{supporter.name.slice(0, 1)}</span>
+                    <strong className="reference-supporter-name">{supporter.name}</strong>
+                    <div className="reference-supporter-amount"><strong>{supporter.amount}</strong></div>
+                  </div>
+                ))}
               </div>
             )}
             {tab === "perguntas" && (
@@ -455,7 +468,7 @@ h1 {
   overflow: hidden;
 }
 .progress-value {
-  width: 100%;
+  width: 56.43%;
   height: 100%;
   background: var(--green);
   border-radius: inherit;
