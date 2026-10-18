@@ -133,7 +133,7 @@ function Pedro2Campaign() {
             <div className="progress-value" />
           </div>
           <div className="raised">
-            R$ 18.000,00 <span>de R$ 50.000,00</span>
+            R$ 18.421,54 <span>de R$ 50.000,00</span>
           </div>
 
           <div className="stats-box">
@@ -195,7 +195,7 @@ function Pedro2Campaign() {
             <p>
               A campanha tem como objetivo reunir apoio para o Pedro e sua família.
               A meta informada pelos organizadores é de R$ 50.000,00,
-              dos quais R$ 18.000,00 foram informados como arrecadados.
+              dos quais R$ 18.421,54 foram informados como arrecadados.
             </p>
             <p>
               <strong>
@@ -210,10 +210,34 @@ function Pedro2Campaign() {
             </p>
           </article>
         ) : (
-          <section className="empty-tab">
-            {tab === "atualizacoes" && "Nenhuma atualização publicada no momento."}
-            {tab === "quem" && "As informações de apoiadores serão exibidas aqui quando estiverem disponíveis."}
-            {tab === "perguntas" && "Nenhuma pergunta publicada no momento."}
+          <section className="reference-tabs-panel" role="tabpanel" aria-label={TABS.find((item) => item.id === tab)?.label}>
+            {tab === "atualizacoes" && (
+              <>
+                <div className="reference-update">
+                  <div className="reference-date"><strong>20</strong><span>OUT</span></div>
+                  <div><strong>Campanha do Pedro</strong><p>Esta campanha busca apoiar Pedro e sua família nos cuidados de que ele necessita.</p></div>
+                </div>
+                <p className="reference-legal">AVISO LEGAL: O texto e as imagens incluídos nessa página são de única e exclusiva responsabilidade do criador da vaquinha e não representam a opinião ou endosso da plataforma.</p>
+              </>
+            )}
+            {tab === "quem" && (
+              <div className="reference-supporters">
+                <div className="reference-supporters-note">As contribuições confirmadas da campanha do Pedro serão exibidas aqui quando os registros estiverem disponíveis para publicação.</div>
+              </div>
+            )}
+            {tab === "perguntas" && (
+              <div className="reference-questions">
+                {[
+                  { question: "Para onde vai o dinheiro das doações?", answer: "As contribuições são destinadas a apoiar as necessidades de cuidados de Pedro e sua família, conforme a finalidade desta campanha." },
+                  { question: "Qual é o valor mínimo para doar?", answer: "A partir de R$ 20,00. Qualquer valor ajuda e é somado ao total arrecadado." },
+                  { question: "Como eu doo?", answer: "Pelo botão “Quero Ajudar”: você escolhe o valor, preenche os dados e recebe um Pix com QR Code e código copia e cola na hora." },
+                  { question: "Recebo confirmação da doação?", answer: "Sim. A confirmação depende do processamento do pagamento. Consulte o comprovante e o status apresentado na página de contribuição." },
+                  { question: "Não posso doar agora. Como ajudo?", answer: "Compartilhe a campanha de Pedro com sua família e amigos. Sua divulgação pode alcançar alguém que possa contribuir." },
+                ].map(({ question, answer }) => (
+                  <div className="reference-question" key={question}><strong>{question}</strong><p>{answer}</p></div>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
@@ -237,6 +261,28 @@ function Pedro2Campaign() {
 }
 
 const styles = `
+.reference-tabs-panel { padding: 16px 0 28px; font-family: Inter, Arial, sans-serif; }
+.reference-update { display: flex; align-items: center; gap: 13px; padding: 14px 13px; border: 1px solid #ececec; border-radius: 15px; }
+.reference-date { width: 44px; min-width: 44px; height: 46px; border-radius: 14px; background: #eaf7ed; color: #14bf60; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.reference-date strong { font-size: 16px; line-height: 19px; }
+.reference-date span { color: #909090; font-size: 10px; margin-top: 3px; }
+.reference-update > div:last-child > strong { display: block; color: #202020; font-size: 13px; margin-bottom: 8px; }
+.reference-update p { margin: 0; color: #8b8b8b; font-size: 13px; line-height: 1.6; }
+.reference-legal { color: #919191; font-size: 11px; line-height: 1.6; margin: 20px 0 0; }
+.reference-supporters { margin-top: -16px; }
+.reference-supporter { display: flex; align-items: center; min-height: 64px; gap: 12px; padding: 12px 4px; border-bottom: 1px solid #eeeeee; }
+.reference-supporter:last-child { border-bottom: none; }
+.reference-avatar { height: 36px; width: 36px; min-width: 36px; display: grid; place-items: center; border-radius: 50%; background: #e9f7ed; color: #08c661; font-weight: 700; font-size: 13px; }
+.reference-supporter-name { color: #1e1e1e; font-size: 13px; }
+.reference-supporter-amount { margin-left: auto; display: grid; gap: 4px; text-align: right; }
+.reference-supporter-amount strong { color: #05bf58; font-size: 13px; }
+.reference-supporter-amount span { color: #999; font-size: 11px; }
+.reference-questions { display: grid; gap: 12px; }
+.reference-question { padding: 17px 14px 15px; border: 1px solid #ededed; border-radius: 15px; }
+.reference-question strong { color: #111; font-size: 13px; line-height: 1.6; }
+.reference-question p { margin: 8px 0 0; color: #898989; font-size: 13px; line-height: 1.8; }
+.reference-supporters-note { margin-top: 12px; padding: 22px 16px; border: 1px solid #ededed; border-radius: 15px; color: #858585; font-size: 13px; line-height: 1.7; }
+
 :root {
   --green: #20c96b;
   --green-dark: #07984b;
@@ -419,7 +465,7 @@ h1 {
   overflow: hidden;
 }
 .progress-value {
-  width: 36%;
+  width: 36.84%;
   height: 100%;
   background: var(--green);
   border-radius: inherit;
