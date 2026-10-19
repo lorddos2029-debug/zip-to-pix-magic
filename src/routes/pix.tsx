@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 import { formatBRL } from "@/lib/pix";
 import { checkUrusStatus, createUrusCharge, type UrusChargeResult } from "@/lib/urus.functions";
-import { trackDonation } from "@/lib/tracking.functions";
+import { trackDonation, trackPixPageOpen } from "@/lib/tracking.functions";
 import { getCampaignAttribution } from "@/lib/campaign-attribution";
 import { trackMetaInitiateCheckout } from "@/lib/meta-pixel";
 
@@ -138,15 +138,29 @@ function PixPage() {
   const createCharge = useServerFn(createUrusCharge);
   const checkStatus = useServerFn(checkUrusStatus);
   const track = useServerFn(trackDonation);
+  const trackPageOpen = useServerFn(trackPixPageOpen);
   const trackDataRef = useRef<Record<string, unknown> | null>(null);
 
-  // IC ao abrir o checkout, com identificador reutilizado na CAPI após a geração do Pix.
+  // IC no acesso a /pix: dispara no navegador e no servidor sem esperar
+  // a geração da cobrança. Um event_id comum evita duplicação no Meta Pixel.
   useEffect(() => {
     if (icEventIdRef.current) return;
     const eventId = `${gerarEventoId()}_ic`;
     icEventIdRef.current = eventId;
     trackMetaInitiateCheckout(eventId);
-  }, []);
+    void trackPageOpen({
+      data: {
+        event_id: eventId,
+        fbp: getCookie("_fbp") || undefined,
+        fbc: getFbc() || undefined,
+        source_url: window.location.origin + "/pix",
+      },
+    }).then(({ facebook }) => {
+      if (facebook !== "enviado") console.warn("[Meta] IC /pix:", facebook);
+    }).catch((error) => {
+      console.error("[Meta] Falha ao enviar IC /pix pela CAPI:", error);
+    });
+  }, [trackPageOpen]);
 
   const totalBumps = bumps.reduce((s, id) => s + (BUMPS.find((b) => b.id === id)?.preco || 0), 0);
   const total = (Number.isFinite(valor) ? valor : 0) + totalBumps;
@@ -261,7 +275,8 @@ function PixPage() {
       setCobranca(r);
       setEtapa("pix");
 
-      // Rastreamento: InitiateCheckout (Pixel + CAPI) e pedido pendente na UTMify
+      // A cobrança pendente já foi notificada à UTMify pelo servidor.
+      // O InitiateCheckout já ocorreu na entrada em /pix; não repetir aqui.
       const base = {
         order_id: String(r.venda_id),
         valor: Number(r.valor || total),
@@ -277,9 +292,6 @@ function PixPage() {
         utm: getQueryParams(),
       };
       trackDataRef.current = base;
-      void track({
-        data: { ...base, stage: "checkout", evento_id: icEventIdRef.current || `${eventoId}_ic` },
-      } as Parameters<typeof track>[0]).catch(() => undefined);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao gerar o Pix. Tente novamente.");
     } finally {
