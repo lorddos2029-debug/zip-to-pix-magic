@@ -63,15 +63,7 @@ export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
       `https://graph.facebook.com/${FB_VERSION}/${pixelId}/events?access_token=${encodeURIComponent(token)}`,
       { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
     );
-    if (res.ok) return "enviado";
-    const rejected = await res.json().catch(() => ({})) as Record<string, unknown>;
-    const message = String(rejected["message"] || rejected["error"] || rejected["errors"] && JSON.stringify(rejected["errors"]) || "validação recusada");
-    const sanitized = message
-      .replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9.-]+/g, "[email]")
-      .replace(/\b\d{11,14}\b/g, "[documento]")
-      .slice(0, 350);
-    console.error("[UTMify] HTTP " + res.status + ": " + sanitized);
-    return "erro: " + res.status + " " + sanitized;
+    return res.ok ? "enviado" : `erro: ${res.status}`;
   } catch {
     return "erro: rede";
   }
@@ -166,7 +158,15 @@ export async function sendUtmifyOrder(p: UtmifyPayload): Promise<string> {
       headers: { "Content-Type": "application/json", "x-api-token": token },
       body: JSON.stringify(body),
     });
-    return res.ok ? "enviado" : `erro: ${res.status}`;
+    if (res.ok) return "enviado";
+    const rejected = await res.json().catch(() => ({})) as Record<string, unknown>;
+    const message = String(rejected["message"] || rejected["error"] || (rejected["errors"] ? JSON.stringify(rejected["errors"]) : "") || "validação recusada");
+    const sanitized = message
+      .replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9.-]+/g, "[email]")
+      .replace(/\b\d{11,14}\b/g, "[documento]")
+      .slice(0, 450);
+    console.error("[UTMify] HTTP " + res.status + ": " + sanitized);
+    return "erro: " + res.status + " " + sanitized;
   } catch {
     return "erro: rede";
   }
