@@ -14,7 +14,11 @@ function safeEqual(a: string, b: string): boolean {
   return x.length > 0 && x.length === y.length && timingSafeEqual(x, y);
 }
 function objects(...items: unknown[]): Record<string, unknown>[] {
-  return items.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object" && !Array.isArray(item)));
+  const parsed = items.map(item => {
+    if (typeof item !== "string") return item;
+    try { return JSON.parse(item); } catch { return null; }
+  });
+  return parsed.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object" && !Array.isArray(item)));
 }
 function pick(containers: Record<string, unknown>[], keys: string[]): unknown {
   for (const o of containers) {
