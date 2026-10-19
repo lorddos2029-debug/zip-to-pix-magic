@@ -73,6 +73,17 @@ function utmifyDate(d: Date): string {
   return d.toISOString().slice(0, 19).replace("T", " ");
 }
 
+function normalizeUtmifyDate(input: string | undefined): string {
+  if (!input) return utmifyDate(new Date());
+  const value = input.trim();
+  if (!value) return utmifyDate(new Date());
+  // Horários sem fuso do gateway UrusPay são locais do Brasil.
+  const normalized = value.replace(" ", "T");
+  const hasZone = /(?:Z|[+-]\\d{2}:\\d{2})$/i.test(normalized);
+  const date = new Date(hasZone ? normalized : normalized + "-03:00");
+  return Number.isNaN(date.getTime()) ? utmifyDate(new Date()) : utmifyDate(date);
+}
+
 export interface UtmifyPayload {
   orderId: string;
   status: "waiting_payment" | "paid";
@@ -99,12 +110,8 @@ export async function sendUtmifyOrder(p: UtmifyPayload): Promise<string> {
     platform: "UrusPay",
     paymentMethod: "pix",
     status: p.status,
-    createdAt: p.createdAt,
-    approvedDate: p.status === "paid"
-      ? (p.approvedDate && !Number.isNaN(Date.parse(p.approvedDate.replace(" ", "T")))
-          ? p.approvedDate
-          : utmifyDate(new Date()))
-      : null,
+    createdAt: normalizeUtmifyDate(p.createdAt),
+    approvedDate: p.status === "paid" ? normalizeUtmifyDate(p.approvedDate) : null,
     refundedAt: null,
     customer: {
       name: p.nome,
@@ -112,7 +119,7 @@ export async function sendUtmifyOrder(p: UtmifyPayload): Promise<string> {
       phone: p.telefone ? p.telefone.replace(/\D/g, "") : null,
       document: p.cpf ? p.cpf.replace(/\D/g, "") : null,
       country: "BR",
-      ip: p.ip ?? null,
+      ip: p.ip || undefined,
     },
     products:
       p.itens && p.itens.length > 0
@@ -160,11 +167,13 @@ export async function sendUtmifyOrder(p: UtmifyPayload): Promise<string> {
     });
     if (res.ok) return "enviado";
     const rejected = await res.json().catch(() => ({})) as Record<string, unknown>;
-    const message = String(rejected["message"] || rejected["error"] || (rejected["errors"] ? JSON.stringify(rejected["errors"]) : "") || "validação recusada");
+    const errorCode = String(rejected["message"] || rejected["error"] || "validação recusada");
+    const details = rejected["details"] || rejected["errors"] || rejected["issues"] || rejected["data"] || rejected["validationErrors"] || null;
+    const message = errorCode + " " + (details ? JSON.stringify(details) : "campos=" + Object.keys(rejected).join(","));
     const sanitized = message
       .replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9.-]+/g, "[email]")
-      .replace(/\b\d{11,14}\b/g, "[documento]")
-      .slice(0, 450);
+      .replace(/\\b\\d{11,14}\\b/g, "[documento]")
+      .slice(0, 1200);
     console.error("[UTMify] HTTP " + res.status + ": " + sanitized);
     return "erro: " + res.status + " " + sanitized;
   } catch {
