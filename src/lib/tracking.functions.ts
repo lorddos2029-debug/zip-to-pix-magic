@@ -73,3 +73,44 @@ export const trackDonation = createServerFn({ method: "POST" })
     if (facebook !== "enviado") console.error("[Meta CAPI] InitiateCheckout:", facebook);
     return { facebook, utmify };
   });
+
+
+const pixOpenSchema = z.object({
+  event_id: z.string().min(8).max(100),
+  fbp: z.string().max(200).optional(),
+  fbc: z.string().max(250).optional(),
+  source_url: z.string().url().max(500),
+});
+
+export type PixOpenInput = z.infer<typeof pixOpenSchema>;
+
+/**
+ * InitiateCheckout ao entrar em /pix, mesmo antes de gerar a cobrança.
+ * O mesmo event_id é usado no Pixel do navegador e na Meta CAPI.
+ */
+export const trackPixPageOpen = createServerFn({ method: "POST" })
+  .inputValidator((data: PixOpenInput) => pixOpenSchema.parse(data))
+  .handler(async ({ data }): Promise<{ facebook: string }> => {
+    const { sendFacebookEvent } = await import("./tracking.server");
+    const req = getRequest();
+    const ip =
+      req.headers.get("cf-connecting-ip") ??
+      req.headers.get("x-real-ip") ??
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      undefined;
+    const userAgent = req.headers.get("user-agent") ?? undefined;
+
+    const facebook = await sendFacebookEvent({
+      eventName: "InitiateCheckout",
+      eventId: data.event_id,
+      fbp: data.fbp,
+      fbc: data.fbc,
+      ip,
+      userAgent,
+      sourceUrl: data.source_url,
+    });
+    if (facebook !== "enviado") {
+      console.error("[Meta CAPI] InitiateCheckout /pix:", facebook);
+    }
+    return { facebook };
+  });
