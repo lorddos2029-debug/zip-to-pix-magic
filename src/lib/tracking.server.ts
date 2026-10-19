@@ -26,6 +26,7 @@ export interface CapiPayload {
   ip?: string | undefined;
   userAgent?: string | undefined;
   sourceUrl?: string | undefined;
+  eventTime?: number | undefined;
 }
 
 export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
@@ -47,7 +48,7 @@ export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
     data: [
       {
         event_name: p.eventName,
-        event_time: Math.floor(Date.now() / 1000),
+        event_time: Number.isSafeInteger(p.eventTime) && Number(p.eventTime) > Math.floor(Date.now() / 1000) - 7 * 86400 && Number(p.eventTime) <= Math.floor(Date.now() / 1000) ? p.eventTime : Math.floor(Date.now() / 1000),
         event_id: p.eventId,
         action_source: "website",
         event_source_url: p.sourceUrl,
