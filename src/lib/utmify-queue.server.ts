@@ -142,3 +142,26 @@ export async function withUtmifyOrderLock<T>(orderId: number, action: () => Prom
     ).catch(error => console.error("[UTMify] Falha ao liberar lock:", error instanceof Error ? error.message : "erro"));
   }
 }
+
+export async function sendWaitingForOrder(orderId: number): Promise<string> {
+  const order = await getQueuedUtmifyOrder(orderId);
+  if (!order) return "sem_pedido_persistido";
+  if (order.synced_pending) return "ja_enviado";
+  const { sendUtmifyOrder } = await import("./tracking.server");
+  const result = await sendUtmifyOrder({
+    orderId: String(orderId),
+    status: "waiting_payment",
+    createdAt: order.created_at,
+    valor: order.valor,
+    nome: order.nome,
+    email: order.email,
+    cpf: order.cpf,
+    telefone: order.telefone,
+    ip: order.ip,
+    itens: order.itens,
+    utm: order.utm,
+  });
+  if (result === "enviado") await markUtmifyOrderFlags(orderId, { synced_pending: true });
+  else console.error("[UTMify] Pix " + orderId + " gerado: " + result);
+  return result;
+}
