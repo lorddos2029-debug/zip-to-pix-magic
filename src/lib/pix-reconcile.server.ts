@@ -14,6 +14,15 @@ export interface PixSyncResult {
   facebook: string;
 }
 
+const providerPaidTime = (p: Record<string, unknown>): number | undefined => {
+  const raw = [p["pago_em"], p["paid_at"], p["approved_at"]].find(v => typeof v === "string" && v.trim()) as string | undefined;
+  if (!raw) return undefined;
+  const normalized = raw.trim().replace(" ", "T");
+  const aware = /(?:Z|[+-]\\d{2}:\\d{2})$/i.test(normalized) ? normalized : normalized + "-03:00";
+  const seconds = Math.floor(Date.parse(aware) / 1000);
+  return Number.isFinite(seconds) ? seconds : undefined;
+};
+
 export async function reconcilePixOrder(orderId: number): Promise<PixSyncResult> {
   if (!Number.isSafeInteger(orderId) || orderId <= 0) throw new Error("ID da venda inválido.");
 
@@ -83,6 +92,7 @@ export async function reconcilePixOrder(orderId: number): Promise<PixSyncResult>
         ip: current.ip,
         userAgent: current.user_agent,
         sourceUrl: current.source_url,
+        eventTime: providerPaidTime(payment),
       });
       if (facebook === "enviado") await markUtmifyOrderFlags(orderId, { synced_meta_paid: true });
       else console.error("[Meta CAPI] Venda " + orderId + ": " + facebook);
