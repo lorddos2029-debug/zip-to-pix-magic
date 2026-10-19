@@ -73,13 +73,28 @@ export const createUrusCharge = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<UrusChargeResult> => {
     const apiKey = getUrusApiKey();
 
-    const res = await fetch(`${URUS_BASE}/charge`, {
+    // A UrusPay envia a notificação a um endpoint fixo. Nunca inclua
+    // os dados do doador na URL; os detalhes estão no armazenamento privado.
+    let webhookUrl = process.env["URUSPAY_WEBHOOK_URL"]?.trim() || "";
+    if (!webhookUrl) {
+      try {
+        const origin = new URL(getRequest().url).origin;
+        if (origin.startsWith("https://")) webhookUrl = origin + "/api/pix-webhook";
+      } catch {}
+    }
+    if (webhookUrl && (!webhookUrl.startsWith("https://") || webhookUrl.length > 220)) {
+      webhookUrl = "";
+    }
+    const chargeBody: Record<string, unknown> = { ...data, ip: data.ip ?? getClientIp() };
+    if (webhookUrl) chargeBody["webhook_url"] = webhookUrl;
+
+    const res = await fetch(URUS_BASE + "/charge", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: "Bearer " + apiKey,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ ...data, ip: data.ip ?? getClientIp() }),
+      body: JSON.stringify(chargeBody),
     });
 
     const body = (await res.json().catch(() => null)) as Record<string, unknown> | null;
@@ -99,32 +114,62 @@ export const createUrusCharge = createServerFn({ method: "POST" })
     if (typeof body["check_status_url"] === "string") result.check_status_url = body["check_status_url"];
 
     result.created_at = new Date().toISOString().slice(0, 19).replace("T", " ");
-    // Salva a cobrança no servidor: a confirmação da UTMify não pode depender
-    // de o doador manter o checkout aberto no navegador.
+    // Fila durável na Vercel (Upstash) ou disco quando executado na VPS.
+    // Envia o pedido waiting_payment do servidor assim que o Pix é criado.
+    const sourceUrl = (() => {
+      try { return getRequest().headers.get("referer") || ""; }
+      catch { return ""; }
+    })();
+    const trackingOrder = {
+      order_id: result.venda_id,
+      created_at: result.created_at,
+      valor: result.valor,
+      nome: data.nome,
+      email: data.email,
+      cpf: data.cpf,
+      telefone: data.telefone,
+      ip: getClientIp(),
+      itens: data.itens,
+      fbp: data.fbp,
+      fbc: data.fbc,
+      evento_id: data.evento_id,
+      user_agent: data.user_agent,
+      source_url: sourceUrl,
+      utm: Object.fromEntries(
+        Object.entries({
+          utm_source: data.utm_source, utm_medium: data.utm_medium,
+          utm_campaign: data.utm_campaign, utm_content: data.utm_content,
+          utm_term: data.utm_term, src: data.src, sck: data.sck,
+        }).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
+      ),
+    };
     try {
-      const { queueUtmifyOrder } = await import("./utmify-queue.server");
-      await queueUtmifyOrder({
-        order_id: result.venda_id,
-        created_at: result.created_at,
-        valor: result.valor,
-        nome: data.nome,
-        email: data.email,
-        cpf: data.cpf,
-        telefone: data.telefone,
-        ip: getClientIp(),
-        itens: data.itens,
-        utm: Object.fromEntries(
-          Object.entries({
-            utm_source: data.utm_source, utm_medium: data.utm_medium,
-            utm_campaign: data.utm_campaign, utm_content: data.utm_content,
-            utm_term: data.utm_term, src: data.src, sck: data.sck,
-          }).filter((entry): entry is [string, string] => typeof entry[1] === "string"),
-        ),
-      });
+      const { queueUtmifyOrder, sendWaitingForOrder } = await import("./utmify-queue.server");
+      await queueUtmifyOrder(trackingOrder);
+      await sendWaitingForOrder(result.venda_id);
     } catch (error) {
-      // O pedido já existe na UrusPay: falhas de rastreamento não devem impedir
-      // o checkout nem causar a criação acidental de cobranças duplicadas.
-      console.error("[UTMify] Não foi possível registrar a cobrança para reconciliação:", error instanceof Error ? error.message : "erro desconhecido");
+      console.error("[Pix] Falha na fila persistente da Vercel:", error instanceof Error ? error.message : "erro");
+      // Mesmo sem armazenamento configurado, a venda gerada pode ser enviada
+      // imediatamente à UTMify; a aprovação exige a fila durável.
+      try {
+        const { sendUtmifyOrder } = await import("./tracking.server");
+        const response = await sendUtmifyOrder({
+          orderId: String(result.venda_id),
+          status: "waiting_payment",
+          createdAt: result.created_at,
+          valor: result.valor,
+          nome: data.nome,
+          email: data.email,
+          cpf: data.cpf,
+          telefone: data.telefone,
+          ip: trackingOrder.ip,
+          itens: data.itens,
+          utm: trackingOrder.utm,
+        });
+        if (response !== "enviado") console.error("[UTMify] Pix gerado:", response);
+      } catch (sendError) {
+        console.error("[UTMify] Falha no envio pendente:", sendError instanceof Error ? sendError.message : "erro");
+      }
     }
     return result;
   });
