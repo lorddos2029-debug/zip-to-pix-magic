@@ -10,10 +10,18 @@ export const Route = createFileRoute("/api/reconcile-pix")({
           return Response.json({ ok: false }, { status: 401 });
         }
         try {
-          const { listQueuedUtmifyOrders } = await import("../../lib/utmify-queue.server");
+          const { listQueuedUtmifyOrders, getQueuedUtmifyOrder, deferQueuedPixOrder, clearExpiredQueuedPixOrder } = await import("../../lib/utmify-queue.server");
           const { reconcilePixOrder } = await import("../../lib/pix-reconcile.server");
           const orders = await listQueuedUtmifyOrders(40);
-          const results = await Promise.allSettled(orders.map(id => reconcilePixOrder(id)));
+          const results = await Promise.allSettled(orders.map(async id => {
+            if (!await getQueuedUtmifyOrder(id)) {
+              await clearExpiredQueuedPixOrder(id);
+              return { order_id: id, paid: false, utmify: "expirado", facebook: "expirado" };
+            }
+            const result = await reconcilePixOrder(id);
+            if (!result.paid) await deferQueuedPixOrder(id);
+            return result;
+          }));
           const processed = results.filter(r => r.status === "fulfilled").length;
           const paid = results.filter(r => r.status === "fulfilled" && r.value.paid).length;
           results.forEach((r, i) => {
