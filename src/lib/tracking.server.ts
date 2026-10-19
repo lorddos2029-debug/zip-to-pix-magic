@@ -29,13 +29,13 @@ export interface CapiPayload {
 }
 
 export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
-  const pixelId = "2165302517752672"; // Mesmo ID do Pixel instalado globalmente no site.
+  const pixelId = "2165302517752672"; // Pixel do site de doações (navegador e CAPI).
   const token = process.env["FB_CAPI_ACCESS_TOKEN"];
   if (!token) return "sem_credencial";
 
   const userData: Record<string, unknown> = {};
   if (p.email) userData["em"] = [await sha256(p.email)];
-  if (p.phone) userData["ph"] = [await sha256(`55${p.phone.replace(/\D/g, "")}`)];
+  if (p.phone) { const digits = p.phone.replace(/\D/g, ""); userData["ph"] = [await sha256(digits.startsWith("55") ? digits : "55" + digits)]; }
   if (p.cpf) userData["external_id"] = [await sha256(p.cpf.replace(/\D/g, ""))];
   if (p.fbp) userData["fbp"] = p.fbp;
   if (p.fbc) userData["fbc"] = p.fbc;
@@ -76,6 +76,7 @@ export interface UtmifyPayload {
   orderId: string;
   status: "waiting_payment" | "paid";
   createdAt: string;
+  approvedDate?: string | undefined;
   valor: number;
   nome: string;
   email: string;
@@ -98,7 +99,11 @@ export async function sendUtmifyOrder(p: UtmifyPayload): Promise<string> {
     paymentMethod: "pix",
     status: p.status,
     createdAt: p.createdAt,
-    approvedDate: p.status === "paid" ? utmifyDate(new Date()) : null,
+    approvedDate: p.status === "paid"
+      ? (p.approvedDate && !Number.isNaN(Date.parse(p.approvedDate.replace(" ", "T")))
+          ? p.approvedDate
+          : utmifyDate(new Date()))
+      : null,
     refundedAt: null,
     customer: {
       name: p.nome,
