@@ -26,12 +26,12 @@ const prefix = "pix-ready:tracking:";
 const pendingKey = prefix + "pending";
 const directory = () => process.env["UTMIFY_QUEUE_DIR"]?.trim() || resolve(process.cwd(), ".utmify-queue");
 const filePath = (id: number) => join(directory(), String(id) + ".json");
-const redisUrl = () => process.env["UPSTASH_REDIS_REST_URL"]?.trim();
-const redisToken = () => process.env["UPSTASH_REDIS_REST_TOKEN"]?.trim();
+const redisUrl = () => (process.env["UPSTASH_REDIS_REST_URL"] || process.env["KV_REST_API_URL"])?.trim();
+const redisToken = () => (process.env["UPSTASH_REDIS_REST_TOKEN"] || process.env["KV_REST_API_TOKEN"])?.trim();
 const redisEnabled = () => Boolean(redisUrl() && redisToken());
 
 export async function redisCommand(...command: (string | number)[]): Promise<any> {
-  if (!redisEnabled()) throw new Error("Configure UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN na Vercel.");
+  if (!redisEnabled()) throw new Error("Conecte Upstash Redis ao projeto na Vercel (REST URL e REST TOKEN ausentes).");
   const response = await fetch(redisUrl()!, {
     method: "POST",
     headers: {
@@ -49,7 +49,7 @@ export async function redisCommand(...command: (string | number)[]): Promise<any
 function assertStorage() {
   if (redisEnabled()) return;
   if (process.env["VERCEL"]) {
-    throw new Error("Fila de Pix requer UPSTASH_REDIS_REST_URL e UPSTASH_REDIS_REST_TOKEN na Vercel.");
+    throw new Error("Fila de Pix requer integração Upstash Redis ativa neste projeto Vercel.");
   }
 }
 
