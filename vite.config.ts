@@ -12,8 +12,8 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  // VPS/Node production target. Emits .output/server/index.mjs.
+  // Vercel needs a Vercel Function bundle. Keep the Node server for the VPS.
   nitro: {
-    preset: "node-server",
+    preset: process.env.VERCEL ? "vercel" : "node-server",
   },
 });
