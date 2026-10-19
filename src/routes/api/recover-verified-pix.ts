@@ -126,7 +126,6 @@ async function processSale(id: number, sync: boolean) {
       cpf: str(pick(contactSources, ["cpf", "document", "documento"])) || undefined,
       telefone: str(pick(contactSources, ["telefone", "phone"])) || undefined,
       itens: [item], utm,
-      event_id: undefined,
       evento_id: str(pick(track, ["evento_id", "event_id"])) || fallback.event_id || "pix_purchase_" + id,
       fbp: str(pick(track, ["fbp", "_fbp"])) || fallback.fbp || undefined,
       fbc: str(pick(track, ["fbc", "_fbc"])) || fallback.fbc || undefined,
