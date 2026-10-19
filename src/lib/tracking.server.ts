@@ -17,7 +17,7 @@ async function sha256(value: string): Promise<string> {
 export interface CapiPayload {
   eventName: "InitiateCheckout" | "Purchase";
   eventId: string;
-  value: number;
+  value?: number;
   email?: string | undefined;
   phone?: string | undefined;
   cpf?: string | undefined;
@@ -53,7 +53,9 @@ export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
         action_source: "website",
         event_source_url: p.sourceUrl,
         user_data: userData,
-        custom_data: { value: Number(p.value.toFixed(2)), currency: "BRL" },
+        custom_data: typeof p.value === "number" && Number.isFinite(p.value)
+          ? { value: Number(p.value.toFixed(2)), currency: "BRL" }
+          : { currency: "BRL" },
       },
     ],
   };
