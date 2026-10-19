@@ -165,3 +165,13 @@ export async function sendWaitingForOrder(orderId: number): Promise<string> {
   else console.error("[UTMify] Pix " + orderId + " gerado: " + result);
   return result;
 }
+
+export async function deferQueuedPixOrder(orderId: number): Promise<void> {
+  // Redis queue on a daily Vercel Cron: revisit old unpaid Pix later,
+  // allowing new orders to be checked instead of clogging the first 40.
+  if (redisEnabled()) await redisCommand("ZADD", pendingKey, Date.now() + 86400000, String(orderId));
+}
+
+export async function clearExpiredQueuedPixOrder(orderId: number): Promise<void> {
+  if (redisEnabled()) await redisCommand("ZREM", pendingKey, String(orderId));
+}
