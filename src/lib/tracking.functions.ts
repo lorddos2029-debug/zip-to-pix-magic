@@ -32,7 +32,7 @@ export type TrackDonationInput = z.infer<typeof trackSchema>;
 export const trackDonation = createServerFn({ method: "POST" })
   .inputValidator((data: TrackDonationInput) => trackSchema.parse(data))
   .handler(async ({ data }): Promise<{ facebook: string; utmify: string }> => {
-    const { sendFacebookEvent, sendUtmifyOrder, utmifyDate } = await import("./tracking.server");
+    const { sendFacebookEvent } = await import("./tracking.server");
 
     let ip: string | undefined;
     try {
@@ -45,27 +45,18 @@ export const trackDonation = createServerFn({ method: "POST" })
       ip = undefined;
     }
 
-    // Nunca marque uma venda como paga apenas por uma chamada do navegador.
-    // Confirme o status diretamente na UrusPay antes de enviar Purchase/paid.
+    // Eventos de pagamento passam exclusivamente pelo conciliador com os
+    // dados originais salvos no servidor e status confirmado na UrusPay.
     if (data.stage === "paid") {
-      const key = process.env["URUSPAY_API_KEY"]?.trim() || process.env["URUS_API_KEY"]?.trim();
-      const orderId = Number(data.order_id);
-      if (!key || !Number.isSafeInteger(orderId) || orderId <= 0) {
-        throw new Error("Não foi possível verificar o pagamento na UrusPay.");
-      }
-      const response = await fetch(`https://uruspaypagamentos.com/api/v1/status/${orderId}`, {
-        headers: { Authorization: `Bearer ${key}` },
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!response.ok) throw new Error("Consulta de pagamento indisponível na UrusPay.");
-      const payment = (await response.json()) as Record<string, unknown>;
-      const verified = payment["pago"] === true || payment["status"] === "paid";
-      if (!verified) throw new Error("Pagamento ainda não confirmado na UrusPay.");
+      const { reconcilePixOrder } = await import("./pix-reconcile.server");
+      const result = await reconcilePixOrder(Number(data.order_id));
+      return { facebook: result.facebook, utmify: result.utmify };
     }
 
+    const { sendWaitingForOrder } = await import("./utmify-queue.server");
     const [facebook, utmify] = await Promise.all([
       sendFacebookEvent({
-        eventName: data.stage === "paid" ? "Purchase" : "InitiateCheckout",
+        eventName: "InitiateCheckout",
         eventId: data.evento_id,
         value: data.valor,
         email: data.email,
@@ -77,31 +68,8 @@ export const trackDonation = createServerFn({ method: "POST" })
         userAgent: data.user_agent,
         sourceUrl: data.source_url,
       }),
-      data.order_id
-        ? sendUtmifyOrder({
-            orderId: data.order_id,
-            status: data.stage === "paid" ? "paid" : "waiting_payment",
-            createdAt: data.created_at ?? utmifyDate(new Date()),
-            valor: data.valor,
-            nome: data.nome,
-            email: data.email,
-            cpf: data.cpf,
-            telefone: data.telefone,
-            ip,
-            itens: data.itens,
-            utm: data.utm,
-          })
-        : Promise.resolve("sem_pedido"),
+      sendWaitingForOrder(Number(data.order_id)),
     ]);
-
-    if (data.stage === "paid" && utmify === "enviado") {
-      try {
-        const { markUtmifyOrderSynced } = await import("./utmify-queue.server");
-        await markUtmifyOrderSynced(data.order_id);
-      } catch (error) {
-        // O envio ja foi aceito pela UTMify; mantenha o retorno de sucesso.
-        console.error("[UTMify] Falha ao marcar pedido sincronizado:", error instanceof Error ? error.message : "erro desconhecido");
-      }
-    }
+    if (facebook !== "enviado") console.error("[Meta CAPI] InitiateCheckout:", facebook);
     return { facebook, utmify };
   });
