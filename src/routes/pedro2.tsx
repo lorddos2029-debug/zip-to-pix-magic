@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import logo from "@/assets/uploads/6662.png";
-const pedroHero = "/pedro2/pedro-foto.jpg";
+// Fotos da campanha do Pedro já presentes em public/pedro e publicadas pela Vercel.
+const pedroHero = "/pedro/pedro-hero.jpg";
+const pedroStory = "/pedro/pedro-story.jpg";
 
 export const Route = createFileRoute("/pedro2")({
   head: () => ({
@@ -171,7 +173,7 @@ function Pedro2Campaign() {
 
             <img
               className="story-image"
-              src={pedroHero}
+              src={pedroStory}
               alt="Pedro acompanhado na foto da campanha"
               width={395}
               height={556}
