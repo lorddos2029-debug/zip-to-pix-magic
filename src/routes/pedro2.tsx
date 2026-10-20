@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import logo from "@/assets/uploads/6662.png";
-// Fotos da campanha do Pedro já presentes em public/pedro e publicadas pela Vercel.
-const pedroHero = "/pedro/pedro-hero.jpg";
-const pedroStory = "/pedro/pedro-story.jpg";
+// Fotografia original de Pedro e sua mãe, recuperada da versão da campanha.
+const pedroHero = "/pedro2/pedro-foto.webp";
+const pedroStory = pedroHero;
 
 export const Route = createFileRoute("/pedro2")({
   head: () => ({
