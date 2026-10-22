@@ -100,6 +100,7 @@ function LiviaPage() {
     setError("");
     setCopied(false);
     setCharge(null);
+    setAnonymous(false);
     setStage("identity");
     trackedPaymentRef.current = false;
     setOpened(true);
