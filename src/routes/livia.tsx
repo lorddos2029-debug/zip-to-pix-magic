@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import QRCode from "react-qr-code";
 import { formatBRL } from "@/lib/pix";
 import { getCampaignAttribution } from "@/lib/campaign-attribution";
@@ -74,7 +74,6 @@ function LiviaPage() {
   const [anonymous, setAnonymous] = useState(false);
   const [name, setName] = useState("");
   const [cpf, setCpf] = useState("");
-  const [phone, setPhone] = useState("");
   const [charge, setCharge] = useState<UrusChargeResult | null>(null);
   const [stage, setStage] = useState<"identity" | "pix" | "paid">("identity");
   const [busy, setBusy] = useState(false);
@@ -83,6 +82,7 @@ function LiviaPage() {
   const checkoutEventRef = useRef("");
   const chargeEventRef = useRef("");
   const trackedPaymentRef = useRef(false);
+  const generatingRef = useRef(false);
   const orderInfoRef = useRef<Record<string, unknown> | null>(null);
 
   const makeCharge = useServerFn(createUrusCharge);
@@ -150,29 +150,25 @@ function LiviaPage() {
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [opened, busy]);
 
-  async function generatePix(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (busy) return;
+  async function generatePix(anonymousSelected: boolean) {
+    if (generatingRef.current) return;
     if (!Number.isFinite(selectedAmount) || selectedAmount < MINIMUM || selectedAmount > 1_000_000) {
       setError("Informe um valor entre R$ 20,00 e R$ 1.000.000,00.");
       return;
     }
-    if (!anonymous && name.trim().length < 3) {
+    if (!anonymousSelected && name.trim().length < 3) {
       setError("Informe seu nome completo ou selecione doação anônima.");
       return;
     }
-    if (!validCpf(cpf)) {
+    if (!anonymousSelected && !validCpf(cpf)) {
       setError("Informe um CPF válido.");
       return;
     }
-    if (phone.replace(/\D/g, "").length < 10) {
-      setError("Informe um telefone com DDD.");
-      return;
-    }
+    generatingRef.current = true;
     setBusy(true);
     setError("");
     const identity = technicalIdentity();
-    const donorName = anonymous ? identity.name : name.trim();
+    const donorName = anonymousSelected ? identity.name : name.trim();
     const amount = Number(selectedAmount.toFixed(2));
     const id = eventId();
     chargeEventRef.current = id;
@@ -184,8 +180,7 @@ function LiviaPage() {
           valor: amount,
           nome: donorName,
           email: identity.email,
-          cpf: cpf.replace(/\D/g, ""),
-          telefone: phone.replace(/\D/g, ""),
+          cpf: anonymousSelected ? undefined : cpf.replace(/\D/g, ""),
           descricao: "Doação - campanha Lívia",
           itens: items,
           ...getCampaignAttribution(),
@@ -203,8 +198,7 @@ function LiviaPage() {
         valor: Number(result.valor || amount),
         nome: donorName,
         email: identity.email,
-        cpf: cpf.replace(/\D/g, ""),
-        telefone: phone.replace(/\D/g, ""),
+        cpf: anonymousSelected ? undefined : cpf.replace(/\D/g, ""),
         fbp: cookie("_fbp") || undefined,
         fbc: fbc() || undefined,
         user_agent: navigator.userAgent,
@@ -216,6 +210,7 @@ function LiviaPage() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível gerar o Pix. Tente novamente.");
     } finally {
+      generatingRef.current = false;
       setBusy(false);
     }
   }
@@ -354,28 +349,32 @@ function LiviaPage() {
                 className="rounded-full bg-slate-100 px-3 py-1 text-xl font-bold text-slate-500 hover:bg-slate-200">×</button>
             </div>
             {stage === "identity" && (
-              <form onSubmit={(event) => void generatePix(event)} className="mt-6 space-y-3">
+              <form onSubmit={(event) => { event.preventDefault(); void generatePix(anonymous); }} className="mt-6 space-y-3">
                 <p className="text-sm leading-6 text-slate-600">
-                  Os dados abaixo são necessários para gerar o Pix pela mesma API utilizada em /pix.
+                  Para doar anonimamente, marque a opção abaixo e o Pix será gerado automaticamente, sem CPF ou telefone.
                 </p>
                 <label className="flex items-center gap-2 rounded-lg bg-[#f0fdfa] p-3 text-sm font-semibold">
-                  <input type="checkbox" checked={anonymous} onChange={(e) => setAnonymous(e.target.checked)} />
+                  <input type="checkbox" disabled={busy} checked={anonymous} onChange={(e) => {
+                    const selected = e.target.checked;
+                    setAnonymous(selected);
+                    setError("");
+                    if (selected) void generatePix(true);
+                  }} />
                   Quero doar anonimamente
                 </label>
+                {anonymous && <p aria-live="polite" className="text-sm text-[#115e59]">{busy ? "Gerando seu Pix anônimo automaticamente..." : "Identificação anônima: nome e e-mail técnicos gerados para a cobrança. Nenhum CPF ou telefone fictício é enviado."}</p>}
                 {!anonymous && (
-                  <label className="block text-sm font-semibold">Nome completo
-                    <input autoComplete="name" maxLength={200} required value={name} onChange={(e) => setName(e.target.value)}
-                      className="mt-1 block w-full rounded-xl border border-slate-300 p-3 font-normal" placeholder="Seu nome completo" />
-                  </label>
+                  <>
+                    <label className="block text-sm font-semibold">Nome completo
+                      <input autoComplete="name" maxLength={200} required value={name} onChange={(e) => setName(e.target.value)}
+                        className="mt-1 block w-full rounded-xl border border-slate-300 p-3 font-normal" placeholder="Seu nome completo" />
+                    </label>
+                    <label className="block text-sm font-semibold">CPF
+                      <input inputMode="numeric" maxLength={14} required value={cpf} onChange={(e) => setCpf(e.target.value)}
+                        className="mt-1 block w-full rounded-xl border border-slate-300 p-3 font-normal" placeholder="000.000.000-00" />
+                    </label>
+                  </>
                 )}
-                <label className="block text-sm font-semibold">CPF
-                  <input inputMode="numeric" maxLength={14} required value={cpf} onChange={(e) => setCpf(e.target.value)}
-                    className="mt-1 block w-full rounded-xl border border-slate-300 p-3 font-normal" placeholder="000.000.000-00" />
-                </label>
-                <label className="block text-sm font-semibold">Telefone com DDD
-                  <input inputMode="tel" autoComplete="tel" maxLength={20} required value={phone} onChange={(e) => setPhone(e.target.value)}
-                    className="mt-1 block w-full rounded-xl border border-slate-300 p-3 font-normal" placeholder="(21) 99999-9999" />
-                </label>
                 {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>}
                 <div className="rounded-xl bg-[#f8fafc] p-3 text-xs leading-5 text-slate-700">
                   A cobrança será emitida para a conta configurada na UrusPay. Confira o nome
@@ -384,7 +383,7 @@ function LiviaPage() {
                 </div>
                 <button type="submit" disabled={busy}
                   className="w-full rounded-xl bg-[#0f766e] py-3.5 text-base font-extrabold text-white disabled:opacity-50">
-                  {busy ? "Gerando Pix..." : "Gerar Pix de " + formatBRL(selectedAmount)}
+                  {busy ? "Gerando Pix..." : anonymous ? "Tentar gerar Pix novamente" : "Gerar Pix de " + formatBRL(selectedAmount)}
                 </button>
               </form>
             )}
