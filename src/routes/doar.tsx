@@ -117,7 +117,7 @@ function DoarPortugalPage() {
       prepared = await apiCall("prepare", {
         donationCents: valorCents, extras, method: metodo,
         name: nome.trim(), email: email.trim(),
-        ...(metodo === "mbway" ? { phoneNumber: telefone.replace(/\\D/g, "") } : {}),
+        ...(metodo === "mbway" ? { phoneNumber: telefone.replace(/\D/g, "") } : {}),
       }) as typeof prepared;
       if (!prepared) throw new Error("Não foi possível preparar o donativo.");
       // O componente não recolhe dados privados. Se falhar, o token será null.
