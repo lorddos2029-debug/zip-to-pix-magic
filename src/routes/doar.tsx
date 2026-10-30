@@ -1,12 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatEUR } from "@/lib/pix";
+import { getCampaignAttribution } from "@/lib/campaign-attribution";
 
-/**
- * Checkout para Portugal. A criação real fica bloqueada até validar
- * o cliente VorkPay Connect, a persistência de encomendas e os webhooks.
- * Não usar Pix nem solicitar CPF nesta rota.
- */
+/** Checkout dedicado a Portugal. O SDK VorkPay é executado exclusivamente no servidor. */
 export const Route = createFileRoute("/doar")({
   head: () => ({
     meta: [
@@ -19,6 +16,21 @@ export const Route = createFileRoute("/doar")({
 });
 
 type Metodo = "mbway" | "multibanco";
+type Payment = { entity?: string; reference?: string; expiresAt?: string } | null;
+type CurrentOrder = { orderId: string; token: string; amountInCents: number; currency: "EUR";
+  method: Metodo; status: string; payment?: Payment; message?: string };
+type PaymentConfig = { enabled: boolean; environment: "live" | "test"; publicKey: string };
+type CaptureResult = { originToken?: string | null; trackingParameters?: Record<string, string> };
+type NSQWindow = Window & { NSQConnect?: { capture: (args: { publicKey: string; orderId: string; amountInCents: number; currency: "EUR" }) => Promise<CaptureResult> } };
+async function apiCall(action: string, data: unknown): Promise<Record<string, unknown>> {
+  const response = await fetch("/api/nsq-payments", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action, data }), credentials: "same-origin",
+  });
+  const result = await response.json() as Record<string, unknown>;
+  if (!response.ok) throw new Error(typeof result.error === "string" ? result.error : "Pagamento temporariamente indisponível.");
+  return result;
+}
 const SUGESTOES = [10, 20, 30, 50, 70, 100, 150, 200, 500];
 const EXTRAS = [
   { id: "cabaz", nome: "Cabaz alimentar", cents: 2500, image: "/pix/cesta.png" },
@@ -34,9 +46,42 @@ function DoarPortugalPage() {
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
   const [erro, setErro] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [config, setConfig] = useState<PaymentConfig | null>(null);
+  const [current, setCurrent] = useState<CurrentOrder | null>(null);
+  useEffect(() => {
+    let active = true;
+    void fetch("/api/nsq-payments", { cache: "no-store" }).then(async (res) => {
+      if (!res.ok) throw new Error("Integração indisponível");
+      return res.json() as Promise<PaymentConfig>;
+    }).then((value) => { if (active) setConfig(value); })
+      .catch(() => { if (active) setConfig({ enabled: false, environment: "test", publicKey: "" }); });
+    if (!document.querySelector('script[data-nsq-connect="1"]')) {
+      const script = document.createElement("script");
+      script.src = "https://www.nsqpay.com/sdk/nsq-connect.js";
+      script.async = true;
+      script.dataset.nsqConnect = "1";
+      document.head.appendChild(script);
+    }
+    return () => { active = false; };
+  }, []);
+  // Consulta apenas o estado da nossa própria encomenda autenticada em Redis.
+  // Não faz polling à API do processador nem pode aprovar pagamentos no navegador.
+  useEffect(() => {
+    if (!current || ["paid", "refunded", "failed", "cancelled", "uncertain"].includes(current.status)) return;
+    let attempts = 0;
+    const timer = window.setInterval(() => {
+      if (++attempts > 30) { window.clearInterval(timer); return; }
+      void apiCall("status", { orderId: current.orderId, token: current.token })
+        .then((value) => setCurrent((last) => last?.orderId === current.orderId
+          ? { ...last, status: String(value.status || last.status), payment: (value.payment as Payment) || last.payment }
+          : last)).catch(() => undefined);
+    }, 10000);
+    return () => window.clearInterval(timer);
+  }, [current?.orderId, current?.status]);
 
   const amount = Number(valor);
-  const validAmount = Number.isFinite(amount) && amount >= 1 && amount <= 10000 && Math.round(amount * 100) === amount * 100;
+  const validAmount = Number.isFinite(amount) && amount >= 1 && amount <= 5000 && Math.abs(Math.round(amount * 100) - amount * 100) < 0.00001;
   const valorCents = validAmount ? Math.round(amount * 100) : 0;
   const extrasCents = useMemo(
     () => EXTRAS.filter((extra) => extras.includes(extra.id)).reduce((sum, extra) => sum + extra.cents, 0),
@@ -48,7 +93,7 @@ function DoarPortugalPage() {
     setExtras((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
 
   const validate = () => {
-    if (!validAmount) return "Introduza um valor válido entre 1 € e 10 000 €.";
+    if (!validAmount || totalCents > 500000) return "Introduza um valor total válido entre 1 € e 5 000 €.";
     if (nome.trim().length < 3) return "Indique o seu nome completo.";
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return "Introduza um email válido.";
     if (metodo === "mbway" && !/^9\d{8}$/.test(telefone.replace(/\D/g, ""))) {
@@ -57,10 +102,79 @@ function DoarPortugalPage() {
     return "";
   };
 
-  const handleAttempt = () => {
+  const handleAttempt = async () => {
+    if (busy) return;
     const invalid = validate();
-    setErro(invalid || "A integração VorkPay Connect ainda não está validada neste servidor. Não foi gerada nenhuma cobrança. Por favor, tente novamente após a ativação oficial.");
+    if (invalid) { setErro(invalid); return; }
+    if (!config?.enabled || !config.publicKey) {
+      setErro("O processamento de pagamentos está temporariamente indisponível.");
+      return;
+    }
+    setBusy(true);
+    setErro("");
+    let prepared: { orderId: string; token: string; amountInCents: number; currency: "EUR" } | null = null;
+    try {
+      prepared = await apiCall("prepare", {
+        donationCents: valorCents, extras, method: metodo,
+        name: nome.trim(), email: email.trim(),
+        ...(metodo === "mbway" ? { phoneNumber: telefone.replace(/\\D/g, "") } : {}),
+      }) as typeof prepared;
+      if (!prepared) throw new Error("Não foi possível preparar o donativo.");
+      // O componente não recolhe dados privados. Se falhar, o token será null.
+      let capture: CaptureResult = { originToken: null, trackingParameters: {} };
+      try {
+        capture = (await (window as NSQWindow).NSQConnect?.capture({
+          publicKey: config.publicKey, orderId: prepared.orderId,
+          amountInCents: prepared.amountInCents, currency: "EUR",
+        })) || capture;
+      } catch { /* falhas de atribuição não bloqueiam um pagamento legítimo */ }
+      const tracking = { ...getCampaignAttribution(), ...(capture.trackingParameters || {}) };
+      const started = await apiCall("pay", {
+        orderId: prepared.orderId, token: prepared.token,
+        originToken: capture.originToken || null, trackingParameters: tracking,
+      });
+      setCurrent({ orderId: prepared.orderId, token: prepared.token,
+        amountInCents: prepared.amountInCents, currency: "EUR", method: metodo,
+        status: String(started.status || "uncertain"), payment: (started.payment as Payment) || null,
+        message: typeof started.message === "string" ? started.message : undefined });
+    } catch (error) {
+      if (prepared) {
+        setCurrent({ ...prepared, method: metodo, status: "uncertain",
+          message: "O estado desta encomenda não foi confirmado. Não tente gerar outro pagamento até obter confirmação." });
+      } else setErro(error instanceof Error ? error.message : "Falha de ligação ao servidor.");
+    } finally { setBusy(false); }
   };
+
+  if (current) return (
+    <main className="min-h-screen bg-[#f7f7f7] px-3 py-6 font-[Montserrat,Arial,sans-serif]">
+      <section className="mx-auto w-full max-w-[510px] rounded-2xl bg-white px-6 py-7 text-center shadow">
+        <a href="/" className="mx-auto block w-fit"><img src="/branding/juntos-por-vidas.webp" alt="Juntos por Vidas" className="mx-auto h-28 w-28 object-contain" /></a>
+        <h1 className="mt-3 text-2xl font-bold">{current.status === "paid" ? "Donativo confirmado!" : current.status === "refunded" ? "Donativo reembolsado" : "Pagamento do seu donativo"}</h1>
+        <p className="mt-3 text-lg font-bold text-[#178947]">{formatEUR(current.amountInCents / 100)}</p>
+        <p className="mt-2 text-sm text-[#555]">Método: {current.method === "mbway" ? "MB WAY" : "Multibanco"}</p>
+        {current.status === "paid" ? (
+          <p className="mt-5 text-sm text-[#16723a]">Pagamento confirmado pelo processador através do webhook seguro. Obrigado por ajudar!</p>
+        ) : current.status === "uncertain" ? (
+          <p role="alert" className="mt-5 rounded-xl bg-orange-50 p-4 text-sm text-orange-900">{current.message || "Estado do pagamento incerto. Não faça um segundo pagamento até confirmar o estado."}</p>
+        ) : current.status === "failed" || current.status === "cancelled" ? (
+          <p className="mt-5 text-sm text-red-700">Este pedido não foi concluído. Consulte o suporte antes de repetir o pagamento.</p>
+        ) : (
+          <p className="mt-5 text-sm text-[#666]">Aguardamos a confirmação segura do processador. Ainda não está marcado como pago.</p>
+        )}
+        {current.method === "mbway" && current.status === "pending" && <p className="mt-3 text-sm">Confirme o pedido de pagamento na aplicação MB WAY do seu telemóvel.</p>}
+        {current.method === "multibanco" && current.payment && (
+          <div className="mt-5 rounded-xl bg-[#e8f9e9] p-4 text-left text-sm">
+            {current.payment.entity && <p>Entidade: <strong>{current.payment.entity}</strong></p>}
+            {current.payment.reference && <p className="mt-2">Referência: <strong>{current.payment.reference}</strong></p>}
+            {current.payment.expiresAt && <p className="mt-2">Validade: <strong>{current.payment.expiresAt}</strong></p>}
+            <p className="mt-3">No Multibanco, use a entidade, referência e montante acima.</p>
+          </div>
+        )}
+        <p className="mt-6 break-all text-xs text-slate-500">Encomenda: {current.orderId}</p>
+        <a href="/" className="mt-6 inline-block rounded-xl border px-4 py-2 text-sm">Voltar ao início</a>
+      </section>
+    </main>
+  );
 
   return (
     <main className="min-h-screen bg-[#f7f7f7] px-3 py-6 font-[Montserrat,Arial,sans-serif] text-[#333]">
@@ -97,7 +211,7 @@ function DoarPortugalPage() {
 
         <div className="mt-5 rounded-2xl border border-[#eee] px-4 py-5">
           <label htmlFor="donation-amount" className="block text-sm font-semibold">O seu donativo (€)</label>
-          <input id="donation-amount" type="number" inputMode="decimal" min="1" max="10000" step="0.01"
+          <input id="donation-amount" type="number" inputMode="decimal" min="1" max="5000" step="0.01"
             value={valor} onChange={(event) => { setValor(event.target.value); setErro(""); }}
             className="mx-auto mt-3 block w-full rounded-xl border border-[#ddd] px-4 py-3 text-center text-xl font-bold focus:border-[#27ae60] focus:outline-none" />
           <p className="mt-3 text-xl font-extrabold text-[#168342]">Total: {total}</p>
@@ -139,12 +253,15 @@ function DoarPortugalPage() {
         </div>
 
         {erro && <p role="alert" className="mt-4 rounded-lg bg-[#fff3ec] px-3 py-3 text-left text-sm text-[#9c3c18]">{erro}</p>}
-        <button type="button" onClick={handleAttempt} className="mt-5 w-full rounded-xl bg-[#27ae60] px-5 py-4 text-base font-bold text-white hover:bg-[#219852]">
-          Prosseguir com {metodo === "mbway" ? "MB WAY" : "Multibanco"} — {total}
+        <button type="button" onClick={() => void handleAttempt()}
+          disabled={busy || !config?.enabled}
+          className="mt-5 w-full rounded-xl bg-[#27ae60] px-5 py-4 text-base font-bold text-white hover:bg-[#219852] disabled:cursor-not-allowed disabled:bg-gray-400">
+          {busy ? "A processar…" : !config?.enabled ? "Pagamentos temporariamente indisponíveis"
+            : `Prosseguir com ${metodo === "mbway" ? "MB WAY" : "Multibanco"} — ${total}`}
         </button>
         <p className="mt-3 text-xs leading-relaxed text-[#64748b]">
-          Integração em preparação. Nenhum pagamento é solicitado nesta versão.
-          A confirmação de pagamento dependerá exclusivamente do webhook validado no servidor.
+          O pagamento só é confirmado após webhook validado. As chaves privadas nunca são enviadas ao navegador.
+          {!config?.enabled && " A emissão de cobranças encontra-se desativada até à validação da integração."}
         </p>
       </section>
     </main>
