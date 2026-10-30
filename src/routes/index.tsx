@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import logo from "@/assets/uploads/6662.png";
-import footerLogo from "@/assets/uploads/6664.png";
+const logo = "/branding/juntos-por-vidas.webp";
 import willianHero from "@/assets/uploads/6663.png";
 
 export const Route = createFileRoute("/")({
@@ -43,8 +42,8 @@ const TABS: Array<{ id: Tab; label: string }> = [
 
 function Brand() {
   return (
-    <Link to="/" className="brand" aria-label="Vakinha">
-      <img src={logo} alt="Vakinha" className="brand-logo" />
+    <Link to="/" className="brand" aria-label="Juntos por Vidas">
+      <img src={logo} alt="Logo Juntos por Vidas" className="brand-logo" width={46} height={46} />
     </Link>
   );
 }
@@ -370,8 +369,9 @@ button { cursor: pointer; }
   text-decoration: none;
 }
 .brand-logo {
-  width: 118px;
-  height: auto;
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
   display: block;
 }
 .top-actions {
@@ -611,6 +611,10 @@ h1 {
 .footer .brand {
   margin-bottom: 20px;
   font-size: 17px;
+}
+.footer .brand-logo {
+  width: 86px;
+  height: 86px;
 }
 .footer p {
   margin: 0;
