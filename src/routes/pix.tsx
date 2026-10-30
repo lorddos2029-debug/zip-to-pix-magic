@@ -316,7 +316,7 @@ function PixPage() {
       <>
         <style>{pixCss}</style>
         <div className="container">
-          <img src="/pix/vakinha-logo.png" className="logo" alt="Vakinha" width={300} height={80} />
+          <img src="/branding/juntos-por-vidas.webp" className="logo" alt="Juntos por Vidas" width={112} height={112} />
           <div className="pago-check" aria-hidden="true">
             <svg viewBox="0 0 52 52" width="72" height="72">
               <circle className="pago-circle" cx="26" cy="26" r="25" fill="none" stroke="#27ae60" strokeWidth="2" />
@@ -337,7 +337,7 @@ function PixPage() {
       <>
         <style>{pixCss}</style>
         <div className="container">
-          <img src="/pix/vakinha-logo.png" className="logo" alt="Vakinha" width={300} height={80} />
+          <img src="/branding/juntos-por-vidas.webp" className="logo" alt="Juntos por Vidas" width={112} height={112} />
           <h1>Ajuda por uma vida..</h1>
           <p className="pix-sub">Pague com Pix para concluir sua doação 💚</p>
 
@@ -378,7 +378,7 @@ function PixPage() {
     <>
       <style>{pixCss}</style>
       <div className="container">
-        <img src="/pix/vakinha-logo.png" className="logo" alt="Vakinha" width={300} height={80} />
+        <img src="/branding/juntos-por-vidas.webp" className="logo" alt="Juntos por Vidas" width={112} height={112} />
         <h1>Sua Ajuda Faz toda a diferença</h1>
         <p style={{ fontSize: 14, color: "#666", textAlign: "center" }}>Qual valor você deseja doar?</p>
 
@@ -471,7 +471,7 @@ const pixCss = `
 * { box-sizing: border-box; }
 body { font-family: "Montserrat", sans-serif; background: #f7f7f7; margin: 0; padding: 10px; }
 .container { max-width: 500px; margin: 12px auto 28px; background: #fff; padding: 24px; border-radius: 16px; box-shadow: 0 4px 18px rgba(0,0,0,0.06); text-align: center; }
-.logo { width: 150px; max-width: 46%; height: auto; margin: 0 auto 20px; display: block; }
+.logo { width: 112px; max-width: 46%; height: 112px; object-fit: contain; margin: 0 auto 20px; display: block; }
 h1 { font-size: 22px; color: #333; margin-bottom: 5px; line-height: 1.2; text-align: center; }
 .grid-valores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 20px 0; }
 .btn-valor { height: 46px; background: #fff; border: 1.5px solid #ddd; padding: 10px; border-radius: 999px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; font-family: Montserrat, sans-serif; color: #333; }
