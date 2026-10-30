@@ -162,13 +162,21 @@ function DoarPortugalPage() {
           <p className="mt-5 text-sm text-[#666]">Aguardamos a confirmação segura do processador. Ainda não está marcado como pago.</p>
         )}
         {current.method === "mbway" && current.status === "pending" && <p className="mt-3 text-sm">Confirme o pedido de pagamento na aplicação MB WAY do seu telemóvel.</p>}
-        {current.method === "multibanco" && current.payment && (
-          <div className="mt-5 rounded-xl bg-[#e8f9e9] p-4 text-left text-sm">
-            {current.payment.entity && <p>Entidade: <strong>{current.payment.entity}</strong></p>}
-            {current.payment.reference && <p className="mt-2">Referência: <strong>{current.payment.reference}</strong></p>}
-            {current.payment.expiresAt && <p className="mt-2">Validade: <strong>{current.payment.expiresAt}</strong></p>}
-            <p className="mt-3">No Multibanco, use a entidade, referência e montante acima.</p>
-          </div>
+        {current.method === "multibanco" && current.status !== "paid" && current.status !== "refunded" && (
+          current.payment?.entity && current.payment?.reference ? (
+            <div className="mt-5 rounded-xl bg-[#e8f9e9] p-4 text-left text-sm">
+              <p>Entidade: <strong>{current.payment.entity}</strong></p>
+              <p className="mt-2">Referência: <strong>{current.payment.reference}</strong></p>
+              <p className="mt-2">Montante: <strong>{formatEUR(current.amountInCents / 100)}</strong></p>
+              {current.payment.expiresAt && <p className="mt-2">Validade: <strong>{current.payment.expiresAt}</strong></p>}
+              <p className="mt-3">No Multibanco ou no homebanking, escolha Pagamento de Serviços e introduza estes dados.</p>
+            </div>
+          ) : current.status === "pending" || current.status === "processing" ? (
+            <div role="status" className="mt-5 rounded-xl border border-amber-300 bg-amber-50 p-4 text-left text-sm text-amber-900">
+              <strong>Referência Multibanco ainda indisponível.</strong>
+              <p className="mt-2">O processador não devolveu a entidade e a referência necessárias para pagar. Não faça nenhum pagamento sem esses dados. Consulte o suporte com o número da encomenda abaixo.</p>
+            </div>
+          ) : null
         )}
         <p className="mt-6 break-all text-xs text-slate-500">Encomenda: {current.orderId}</p>
         <a href="/" className="mt-6 inline-block rounded-xl border px-4 py-2 text-sm">Voltar ao início</a>
