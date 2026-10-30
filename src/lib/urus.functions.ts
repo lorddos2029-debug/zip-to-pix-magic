@@ -18,6 +18,30 @@ function getClientIp(): string | undefined {
 
 const URUS_BASE = "https://uruspaypagamentos.com/api/v1";
 
+// A UrusPay processa Pix em BRL: doações em EUR devem ser convertidas no servidor.
+type EurBrlRate = { brlPerEur: number; date: string };
+let cachedEurBrl: { quote: EurBrlRate; expires: number } | null = null;
+const roundMoney = (amount: number) => Math.round((amount + Number.EPSILON) * 100) / 100;
+
+async function readEurBrlRate(): Promise<EurBrlRate> {
+  if (cachedEurBrl && cachedEurBrl.expires > Date.now()) return cachedEurBrl.quote;
+  const response = await fetch("https://api.frankfurter.dev/v2/rate/eur/brl", {
+    headers: { Accept: "application/json" },
+    signal: AbortSignal.timeout(8000),
+  });
+  const payload = (await response.json().catch(() => null)) as { rate?: unknown; date?: unknown } | null;
+  const rate = Number(payload?.rate);
+  const date = typeof payload?.date === "string" ? payload.date : "";
+  if (!response.ok || !Number.isFinite(rate) || rate < 1 || rate > 25 || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new Error("Não foi possível consultar a cotação EUR/BRL. Tente novamente mais tarde.");
+  }
+  const quote = { brlPerEur: rate, date };
+  cachedEurBrl = { quote, expires: Date.now() + 10 * 60 * 1000 };
+  return quote;
+}
+
+export const getEurBrlRate = createServerFn({ method: "GET" }).handler(readEurBrlRate);
+
 function getUrusApiKey(): string {
   const key = process.env["URUSPAY_API_KEY"]?.trim() || process.env["URUS_API_KEY"]?.trim();
   if (!key) {
@@ -35,6 +59,7 @@ const itemSchema = z.object({
 
 const chargeSchema = z.object({
   valor: z.number().min(1).max(1_000_000),
+  moeda: z.enum(["EUR", "BRL"]).optional(),
   nome: z.string().trim().min(1).max(200),
   email: z.string().trim().email().max(255),
   cpf: z.string().trim().max(14).optional(),
@@ -65,6 +90,10 @@ export interface UrusChargeResult {
   expira_em?: string | undefined;
   valor: number;
   status: string;
+  valor_eur?: number;
+  cotacao_eur_brl?: number;
+  cotacao_data?: string;
+  itens_brl?: UrusChargeInput["itens"];
   check_status_url?: string | undefined;
 }
 
@@ -72,6 +101,21 @@ export const createUrusCharge = createServerFn({ method: "POST" })
   .inputValidator((data: UrusChargeInput) => chargeSchema.parse(data))
   .handler(async ({ data }): Promise<UrusChargeResult> => {
     const apiKey = getUrusApiKey();
+
+    const quote = data.moeda === "EUR" ? await readEurBrlRate() : null;
+    const valorBrl = quote ? roundMoney(data.valor * quote.brlPerEur) : data.valor;
+    if (!Number.isFinite(valorBrl) || valorBrl < 1 || valorBrl > 1_000_000) {
+      throw new Error("Valor convertido fora do limite permitido para pagamento Pix.");
+    }
+    const itensBrl = data.itens?.map((item) => ({
+      ...item,
+      preco_unitario: quote ? roundMoney(item.preco_unitario * quote.brlPerEur) : item.preco_unitario,
+    }));
+    // Compensa os centavos de arredondamento entre itens e total.
+    if (quote && itensBrl?.length && itensBrl[0]?.quantidade === 1) {
+      const somaItens = itensBrl.reduce((sum, item) => sum + item.preco_unitario * item.quantidade, 0);
+      itensBrl[0].preco_unitario = roundMoney(itensBrl[0].preco_unitario + (valorBrl - somaItens));
+    }
 
     // A UrusPay envia a notificação a um endpoint fixo. Nunca inclua
     // os dados do doador na URL; os detalhes estão no armazenamento privado.
@@ -85,7 +129,8 @@ export const createUrusCharge = createServerFn({ method: "POST" })
     if (webhookUrl && (!webhookUrl.startsWith("https://") || webhookUrl.length > 220)) {
       webhookUrl = "";
     }
-    const chargeBody: Record<string, unknown> = { ...data, ip: data.ip ?? getClientIp() };
+    const chargeBody: Record<string, unknown> = { ...data, valor: valorBrl, itens: itensBrl, ip: data.ip ?? getClientIp() };
+    delete chargeBody["moeda"];
     if (webhookUrl) chargeBody["webhook_url"] = webhookUrl;
 
     const res = await fetch(URUS_BASE + "/charge", {
@@ -110,6 +155,12 @@ export const createUrusCharge = createServerFn({ method: "POST" })
       valor: Number(body["valor"] ?? data.valor),
       status: String(body["status"] ?? "pending"),
     };
+    if (quote) {
+      result.valor_eur = roundMoney(data.valor);
+      result.cotacao_eur_brl = quote.brlPerEur;
+      result.cotacao_data = quote.date;
+      result.itens_brl = itensBrl;
+    }
     if (typeof body["expira_em"] === "string") result.expira_em = body["expira_em"];
     if (typeof body["check_status_url"] === "string") result.check_status_url = body["check_status_url"];
 
@@ -129,7 +180,7 @@ export const createUrusCharge = createServerFn({ method: "POST" })
       cpf: data.cpf,
       telefone: data.telefone,
       ip: getClientIp(),
-      itens: data.itens,
+      itens: itensBrl,
       fbp: data.fbp,
       fbc: data.fbc,
       evento_id: data.evento_id,
@@ -163,7 +214,7 @@ export const createUrusCharge = createServerFn({ method: "POST" })
           cpf: data.cpf,
           telefone: data.telefone,
           ip: trackingOrder.ip,
-          itens: data.itens,
+          itens: itensBrl,
           utm: trackingOrder.utm,
         });
         if (response !== "enviado") console.error("[UTMify] Pix gerado:", response);
