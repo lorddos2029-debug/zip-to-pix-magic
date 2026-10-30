@@ -267,10 +267,11 @@ function DoarPortugalPage() {
           {busy ? "A processar…" : !config?.enabled ? "Pagamentos temporariamente indisponíveis"
             : `Prosseguir com ${metodo === "mbway" ? "MB WAY" : "Multibanco"} — ${total}`}
         </button>
-        <p className="mt-3 text-xs leading-relaxed text-[#64748b]">
-          O pagamento só é confirmado após webhook validado. As chaves privadas nunca são enviadas ao navegador.
-          {!config?.enabled && " A emissão de cobranças encontra-se desativada até à validação da integração."}
-        </p>
+        {!config?.enabled && (
+          <p className="mt-3 text-xs leading-relaxed text-[#64748b]">
+            Os pagamentos estão temporariamente indisponíveis.
+          </p>
+        )}
       </section>
     </main>
   );
