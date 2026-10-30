@@ -55,6 +55,8 @@ function DoarPortugalPage() {
   const [config, setConfig] = useState<PaymentConfig | null>(null);
   const [current, setCurrent] = useState<CurrentOrder | null>(null);
   const [restoring, setRestoring] = useState(true);
+  const [checkingReference, setCheckingReference] = useState(false);
+  const [referenceNotice, setReferenceNotice] = useState("");
   useEffect(() => {
     try {
       const stored = sessionStorage.getItem(ORDER_SESSION);
@@ -208,6 +210,23 @@ function DoarPortugalPage() {
           ) : null
         )}
         <p className="mt-6 break-all text-xs text-slate-500">Encomenda: {current.orderId}</p>
+        {current.method === "multibanco" && ["pending", "processing", "uncertain"].includes(current.status) &&
+          (!current.payment?.entity || !current.payment?.reference) && (
+          <div className="mt-4">
+            <button type="button" disabled={checkingReference} className="rounded-xl border px-4 py-2 text-sm disabled:opacity-50" onClick={async () => {
+              setCheckingReference(true);
+              setReferenceNotice("");
+              try {
+                const value = await apiCall("status", { orderId: current.orderId, token: current.token, refreshReference: true });
+                const payment = (value["payment"] as Payment) || null;
+                setCurrent((last) => last?.orderId === current.orderId ? { ...last, status: String(value["status"] || last.status), payment } : last);
+                if (!payment?.entity || !payment?.reference) setReferenceNotice("A referência continua indisponível. Esta consulta não criou outra cobrança. Contacte o suporte com a encomenda acima.");
+              } catch { setReferenceNotice("Não foi possível consultar agora. Não gere outro pagamento."); }
+              finally { setCheckingReference(false); }
+            }}>{checkingReference ? "A consultar…" : "Consultar referência existente"}</button>
+            {referenceNotice && <p role="status" className="mt-2 text-sm text-orange-900">{referenceNotice}</p>}
+          </div>
+        )}
         {["paid", "refunded"].includes(current.status) && (
           <button type="button" className="mt-5 rounded-xl border px-4 py-2 text-sm" onClick={() => {
             try { sessionStorage.removeItem(ORDER_SESSION); } catch { /* armazenamento indisponível */ }
