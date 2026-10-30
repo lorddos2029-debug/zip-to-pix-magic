@@ -119,9 +119,16 @@ const finishScript = [
   "return 'ok'",
 ].join("\n");
 function cleanPayment(record: Record<string, unknown>) {
+  // Respostas do método e da consulta podem envolver os dados numa chave
+  // "payment" ou "data". Recolher apenas campos efetivamente devolvidos.
+  const nested = (value: unknown): Record<string, unknown> | null =>
+    value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+  const candidates = [record, nested(record["payment"]), nested(record["data"]), nested(record["details"]),
+    nested(nested(record["data"])?.["payment"])].filter((x): x is Record<string, unknown> => x !== null);
   const payment: { entity?: string; reference?: string; expiresAt?: string } = {};
   for (const name of ["entity", "reference", "expiresAt"] as const) {
-    const value = record[name];
+    const value = candidates.map((candidate) => candidate[name])
+      .find((entry) => (typeof entry === "string" && entry.trim().length > 0) || typeof entry === "number");
     if (typeof value === "string" || typeof value === "number") payment[name] = String(value).slice(0, 100);
   }
   return payment;
@@ -149,10 +156,28 @@ export async function startPayment(input: unknown) {
     const nsq = await sdk();
     const result = await nsq.payments.create(paymentInput);
     transactionId = result.transactionId;
-    const payment = cleanPayment(result.payment);
+    let payment = cleanPayment(result.payment);
+    if (order.method === "multibanco" && (!payment.entity || !payment.reference)) {
+      // Consulta única e só de leitura ao pedido já criado. Não reemitir
+      // nem repetir a cobrança quando a resposta inicial vier sem referência.
+      try {
+        const details = await nsq.payments.get(transactionId);
+        payment = { ...cleanPayment(details), ...payment };
+      } catch (error) {
+        console.warn("[VorkPay] Referência multibanco ainda não disponível", {
+          code: error && typeof error === "object" && "code" in error ? String(error.code).slice(0, 60) : "lookup_failed",
+        });
+      }
+    }
     const saved = await redisCommand("EVAL", finishScript, 1, key(order.id), "pending", new Date().toISOString(), transactionId, JSON.stringify(payment), TTL);
     if (saved !== "ok") throw new Error("Foi gerada uma transação mas a referência não ficou guardada. Não repita a cobrança.");
-    return { ...safe({ ...order, status: "pending", payment }), message: "Aguarde a confirmação do pagamento." };
+    const missingReference = order.method === "multibanco" && (!payment.entity || !payment.reference);
+    if (missingReference) console.warn("[VorkPay] Multibanco pendente sem entidade/referência", { orderId: order.id });
+    return {
+      ...safe({ ...order, status: "pending", payment }),
+      message: missingReference ? "O processador ainda não disponibilizou a entidade e a referência. Não efetue pagamento sem estes dados."
+        : "Aguarde a confirmação do pagamento.",
+    };
   } catch (error) {
     const found = error && typeof error === "object" && "transactionId" in error && typeof error.transactionId === "string" ? error.transactionId : transactionId;
     await redisCommand("EVAL", finishScript, 1, key(order.id), "uncertain", new Date().toISOString(), found || "", "", TTL).catch(() => null);
