@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "start": "node .output/server/index.mjs"
+    "start": "node .output/server/index.mjs",
+    "prebuild": "node scripts/restore-nsq-sdk.mjs",
+    "predev": "node scripts/restore-nsq-sdk.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1",

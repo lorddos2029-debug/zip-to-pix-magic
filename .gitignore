@@ -33,3 +33,6 @@ dist-ssr
 
 # Dados privados de pedidos e sincronizacao UTMify (apenas VPS)
 .utmify-queue/
+
+# Generated from pinned verified VorkPay Connect SDK bundle
+src/vendor/nsqpay.mjs
