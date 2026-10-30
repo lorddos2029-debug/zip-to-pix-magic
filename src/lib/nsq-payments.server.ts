@@ -1,6 +1,7 @@
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { redisCommand } from "./utmify-queue.server";
+import { activationStatus, cleanPayment, webhookPayment } from "./nsq-contract";
 
 type Method = "mbway" | "multibanco";
 type Status = "prepared" | "initiating" | "pending" | "processing" | "uncertain" | "paid" | "refunded" | "failed" | "cancelled";
@@ -118,21 +119,6 @@ const finishScript = [
   "redis.call('SET',KEYS[1],cjson.encode(o),'EX',ARGV[5])",
   "return 'ok'",
 ].join("\n");
-function cleanPayment(record: Record<string, unknown>) {
-  // Respostas do método e da consulta podem envolver os dados numa chave
-  // "payment" ou "data". Recolher apenas campos efetivamente devolvidos.
-  const nested = (value: unknown): Record<string, unknown> | null =>
-    value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
-  const candidates = [record, nested(record["payment"]), nested(record["data"]), nested(record["details"]),
-    nested(nested(record["data"])?.["payment"])].filter((x): x is Record<string, unknown> => x !== null);
-  const payment: { entity?: string; reference?: string; expiresAt?: string } = {};
-  for (const name of ["entity", "reference", "expiresAt"] as const) {
-    const value = candidates.map((candidate) => candidate[name])
-      .find((entry) => (typeof entry === "string" && entry.trim().length > 0) || typeof entry === "number");
-    if (typeof value === "string" || typeof value === "number") payment[name] = String(value).slice(0, 100);
-  }
-  return payment;
-}
 const trackKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid", "gclid", "ttclid", "src", "sck"];
 export async function startPayment(input: unknown) {
   ensureReady();
@@ -169,13 +155,15 @@ export async function startPayment(input: unknown) {
         });
       }
     }
-    const saved = await redisCommand("EVAL", finishScript, 1, key(order.id), "pending", new Date().toISOString(), transactionId, JSON.stringify(payment), TTL);
+    const status = activationStatus(order.method, result.payment, payment);
+    const saved = await redisCommand("EVAL", finishScript, 1, key(order.id), status, new Date().toISOString(), transactionId, JSON.stringify(payment), TTL);
     if (saved !== "ok") throw new Error("Foi gerada uma transação mas a referência não ficou guardada. Não repita a cobrança.");
     const missingReference = order.method === "multibanco" && (!payment.entity || !payment.reference);
     if (missingReference) console.warn("[VorkPay] Multibanco pendente sem entidade/referência", { orderId: order.id });
     return {
-      ...safe({ ...order, status: "pending", payment }),
+      ...safe({ ...order, status, payment }),
       message: missingReference ? "O processador ainda não disponibilizou a entidade e a referência. Não efetue pagamento sem estes dados."
+        : status === "uncertain" ? "A ativação do pagamento não foi confirmada. Não gere outro pedido; consulte o suporte."
         : "Aguarde a confirmação do pagamento.",
     };
   } catch (error) {
@@ -205,20 +193,14 @@ export async function applyVerifiedWebhook(raw: string, headers: Headers) {
   ensureProviderConfigured();
   const nsq = await sdk();
   const verified = await nsq.webhooks.verify(raw, headers);
-  const event = verified.payload.event;
+  const event = verified.payload["event"];
   const statuses: Record<string, Status> = { "payment.success": "paid", "payment.refunded": "refunded",
     "payment.failed": "failed", "payment.cancelled": "cancelled", "payment.pending": "pending", "payment.processing": "processing" };
   if (typeof event !== "string" || !statuses[event]) return { ok: true, ignored: true };
-  const rawData = verified.payload.data;
+  const rawData = verified.payload["data"];
   if (!rawData || typeof rawData !== "object" || Array.isArray(rawData)) throw new Error("Payload do pagamento inválido.");
   const data = rawData as Record<string, unknown>;
-  const orderId = typeof data.orderId === "string" ? data.orderId : data.order_id;
-  const transactionId = typeof data.transactionId === "string" ? data.transactionId : data.id;
-  const amountInCents = data.amountInCents !== undefined ? Number(data.amountInCents) : Number(data.amount) * 100;
-  if (typeof orderId !== "string" || !/^PT-[a-f0-9-]{36}$/.test(orderId) || typeof transactionId !== "string" ||
-      !Number.isSafeInteger(amountInCents) || amountInCents < 1 || data.currency !== "EUR") {
-    throw new Error("Webhook assinado sem dados suficientes para conciliação.");
-  }
+  const { orderId, transactionId, amountInCents } = webhookPayment(data);
   const result = await redisCommand("EVAL", eventScript, 2, key(orderId), PREFIX+"event:"+hash(verified.deduplicationKey),
     transactionId, amountInCents, statuses[event], new Date().toISOString(), TTL);
   if (result === "missing" || result === "mismatch") throw new Error("Transação, valor ou encomenda divergentes.");
