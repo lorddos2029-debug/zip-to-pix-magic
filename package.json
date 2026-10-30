@@ -13,7 +13,7 @@
     "start": "node .output/server/index.mjs",
     "prebuild": "node scripts/restore-nsq-sdk.mjs",
     "predev": "node scripts/restore-nsq-sdk.mjs",
-    "test:nsq": "node scripts/restore-nsq-sdk.mjs && node scripts/test-nsq-sdk.mjs"
+    "test:nsq": "node scripts/restore-nsq-sdk.mjs && node scripts/test-nsq-sdk.mjs && node scripts/test-nsq-contract.mjs"
   },
   "overrides": {
     "rolldown": "1.2.1",

@@ -18,7 +18,12 @@ export const Route = createFileRoute("/doar")({
 type Metodo = "mbway" | "multibanco";
 type Payment = { entity?: string; reference?: string; expiresAt?: string } | null;
 type CurrentOrder = { orderId: string; token: string; amountInCents: number; currency: "EUR";
-  method: Metodo; status: string; payment?: Payment; message?: string };
+  method: Metodo; status: string; payment?: Payment | undefined; message?: string | undefined };
+const ORDER_SESSION = "jpv:portugal:active-order:v1";
+function rememberOrder(order: CurrentOrder) {
+  try { sessionStorage.setItem(ORDER_SESSION, JSON.stringify(order)); } catch { /* armazenamento indisponível */ }
+}
+type PreparedOrder = { orderId: string; token: string; amountInCents: number; currency: "EUR" };
 type PaymentConfig = { enabled: boolean; environment: "live" | "test"; publicKey: string };
 type CaptureResult = { originToken?: string | null; trackingParameters?: Record<string, string> };
 type NSQWindow = Window & { NSQConnect?: { capture: (args: { publicKey: string; orderId: string; amountInCents: number; currency: "EUR" }) => Promise<CaptureResult> } };
@@ -28,7 +33,7 @@ async function apiCall(action: string, data: unknown): Promise<Record<string, un
     body: JSON.stringify({ action, data }), credentials: "same-origin",
   });
   const result = await response.json() as Record<string, unknown>;
-  if (!response.ok) throw new Error(typeof result.error === "string" ? result.error : "Pagamento temporariamente indisponível.");
+  if (!response.ok) throw new Error(typeof result["error"] === "string" ? result["error"] : "Pagamento temporariamente indisponível.");
   return result;
 }
 const SUGESTOES = [10, 20, 30, 50, 70, 100, 150, 200, 500];
@@ -49,6 +54,28 @@ function DoarPortugalPage() {
   const [busy, setBusy] = useState(false);
   const [config, setConfig] = useState<PaymentConfig | null>(null);
   const [current, setCurrent] = useState<CurrentOrder | null>(null);
+  const [restoring, setRestoring] = useState(true);
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(ORDER_SESSION);
+      if (stored) {
+        const order = JSON.parse(stored) as CurrentOrder;
+        if (/^PT-[a-f0-9-]{36}$/.test(order.orderId) && /^[a-f0-9]{64}$/.test(order.token) &&
+            Number.isSafeInteger(order.amountInCents) && order.amountInCents > 0 && order.amountInCents <= 500000 &&
+            order.currency === "EUR" && ["mbway", "multibanco"].includes(order.method)) {
+          // Recarregar nunca inicia outro pagamento. O servidor volta a confirmar o estado.
+          setCurrent({ ...order, status: "uncertain", payment: null,
+            message: "A recuperar o estado da sua encomenda. Não gere outro pagamento." });
+          void apiCall("status", { orderId: order.orderId, token: order.token }).then((value) => {
+            setCurrent({ ...order, status: ["prepared", "initiating"].includes(String(value["status"])) ? "uncertain" : String(value["status"]),
+              payment: (value["payment"] as Payment) || null, message: "Consulte o suporte antes de repetir este pagamento." });
+          }).catch(() => undefined);
+        }
+      }
+    } catch { /* dados inválidos nunca autorizam acesso ao pedido */ }
+    setRestoring(false);
+  }, []);
+  useEffect(() => { if (current) rememberOrder(current); }, [current]);
   useEffect(() => {
     let active = true;
     void fetch("/api/nsq-payments", { cache: "no-store" }).then(async (res) => {
@@ -60,7 +87,7 @@ function DoarPortugalPage() {
       const script = document.createElement("script");
       script.src = "https://www.nsqpay.com/sdk/nsq-connect.js";
       script.async = true;
-      script.dataset.nsqConnect = "1";
+      script.dataset["nsqConnect"] = "1";
       document.head.appendChild(script);
     }
     return () => { active = false; };
@@ -68,13 +95,13 @@ function DoarPortugalPage() {
   // Consulta apenas o estado da nossa própria encomenda autenticada em Redis.
   // Não faz polling à API do processador nem pode aprovar pagamentos no navegador.
   useEffect(() => {
-    if (!current || ["paid", "refunded", "failed", "cancelled", "uncertain"].includes(current.status)) return;
+    if (!current || ["paid", "refunded", "failed", "cancelled"].includes(current.status)) return;
     let attempts = 0;
     const timer = window.setInterval(() => {
       if (++attempts > 30) { window.clearInterval(timer); return; }
       void apiCall("status", { orderId: current.orderId, token: current.token })
         .then((value) => setCurrent((last) => last?.orderId === current.orderId
-          ? { ...last, status: String(value.status || last.status), payment: (value.payment as Payment) || last.payment }
+          ? { ...last, status: ["prepared", "initiating"].includes(String(value["status"])) ? "uncertain" : String(value["status"] || last.status), payment: (value["payment"] as Payment) || last.payment }
           : last)).catch(() => undefined);
     }, 10000);
     return () => window.clearInterval(timer);
@@ -112,14 +139,16 @@ function DoarPortugalPage() {
     }
     setBusy(true);
     setErro("");
-    let prepared: { orderId: string; token: string; amountInCents: number; currency: "EUR" } | null = null;
+    let prepared: PreparedOrder | null = null;
     try {
       prepared = await apiCall("prepare", {
         donationCents: valorCents, extras, method: metodo,
         name: nome.trim(), email: email.trim(),
         ...(metodo === "mbway" ? { phoneNumber: telefone.replace(/\D/g, "") } : {}),
-      }) as typeof prepared;
+      }) as unknown as PreparedOrder;
       if (!prepared) throw new Error("Não foi possível preparar o donativo.");
+      // Guardar antes da ativação: mesmo um timeout ou recarregamento conserva o pedido.
+      rememberOrder({ ...prepared, method: metodo, status: "uncertain" });
       // O componente não recolhe dados privados. Se falhar, o token será null.
       let capture: CaptureResult = { originToken: null, trackingParameters: {} };
       try {
@@ -135,8 +164,8 @@ function DoarPortugalPage() {
       });
       setCurrent({ orderId: prepared.orderId, token: prepared.token,
         amountInCents: prepared.amountInCents, currency: "EUR", method: metodo,
-        status: String(started.status || "uncertain"), payment: (started.payment as Payment) || null,
-        message: typeof started.message === "string" ? started.message : undefined });
+        status: String(started["status"] || "uncertain"), payment: (started["payment"] as Payment) || null,
+        message: typeof started["message"] === "string" ? started["message"] : undefined });
     } catch (error) {
       if (prepared) {
         setCurrent({ ...prepared, method: metodo, status: "uncertain",
@@ -179,6 +208,12 @@ function DoarPortugalPage() {
           ) : null
         )}
         <p className="mt-6 break-all text-xs text-slate-500">Encomenda: {current.orderId}</p>
+        {["paid", "refunded"].includes(current.status) && (
+          <button type="button" className="mt-5 rounded-xl border px-4 py-2 text-sm" onClick={() => {
+            try { sessionStorage.removeItem(ORDER_SESSION); } catch { /* armazenamento indisponível */ }
+            setCurrent(null);
+          }}>Fazer outro donativo</button>
+        )}
         <a href="/" className="mt-6 inline-block rounded-xl border px-4 py-2 text-sm">Voltar ao início</a>
       </section>
     </main>
@@ -262,7 +297,7 @@ function DoarPortugalPage() {
 
         {erro && <p role="alert" className="mt-4 rounded-lg bg-[#fff3ec] px-3 py-3 text-left text-sm text-[#9c3c18]">{erro}</p>}
         <button type="button" onClick={() => void handleAttempt()}
-          disabled={busy || !config?.enabled}
+          disabled={restoring || busy || !config?.enabled}
           className="mt-5 w-full rounded-xl bg-[#27ae60] px-5 py-4 text-base font-bold text-white hover:bg-[#219852] disabled:cursor-not-allowed disabled:bg-gray-400">
           {busy ? "A processar…" : !config?.enabled ? "Pagamentos temporariamente indisponíveis"
             : `Prosseguir com ${metodo === "mbway" ? "MB WAY" : "Multibanco"} — ${total}`}
