@@ -35,11 +35,14 @@ const env = (): "live" | "test" => process.env["NSQPAY_ENVIRONMENT"] === "live" 
 export function publicConfig() {
   return { enabled: enabled(), environment: env(), publicKey: process.env["NSQPAY_PUBLIC_KEY"] || "" };
 }
-function ensureReady() {
-  if (!enabled()) throw new Error("Os pagamentos encontram-se temporariamente indisponíveis.");
+function ensureProviderConfigured() {
   for (const name of ["NSQPAY_SECRET_KEY", "NSQPAY_WEBHOOK_SECRET", "NSQPAY_STORE_URL", "NSQPAY_INSTALL_ID"]) {
     if (!process.env[name]?.trim()) throw new Error("Integração de pagamentos por configurar.");
   }
+}
+function ensureReady() {
+  if (!enabled()) throw new Error("Os pagamentos encontram-se temporariamente indisponíveis.");
+  ensureProviderConfigured();
 }
 async function sdk() {
   const { createNSQPay } = await import("../vendor/nsqpay.mjs");
@@ -172,7 +175,9 @@ const eventScript = [
   "return 'updated'",
 ].join("\n");
 export async function applyVerifiedWebhook(raw: string, headers: Headers) {
-  ensureReady();
+  // O webhook deve continuar a confirmar/reembolsar pedidos antigos mesmo quando
+  // o checkout estiver desativado. Nunca o bloquear pelo feature flag de cobranças.
+  ensureProviderConfigured();
   const nsq = await sdk();
   const verified = await nsq.webhooks.verify(raw, headers);
   const event = verified.payload.event;
