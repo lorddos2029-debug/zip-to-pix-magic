@@ -17,10 +17,21 @@ export const Route = createFileRoute("/api/nsq-webhook")({
           const result = await applyVerifiedWebhook(raw, request.headers);
           return json(result, 200);
         } catch (error) {
-          const invalid = error && typeof error === "object" && "code" in error && error.code === "INVALID_WEBHOOK";
-          console.error("[NSQ webhook]", invalid ? "Assinatura inválida" : "Falha de validação/persistência");
-          // Reenviar em erros transitórios; nunca confirmar antes do commit.
-          return json({ ok: false }, invalid ? 401 : 503);
+          const code = error && typeof error === "object" && "code" in error && typeof error.code === "string"
+            ? error.code : "UNKNOWN";
+          const invalid = code === "INVALID_WEBHOOK";
+          const detail = error instanceof Error ? error.message : "";
+          // Não imprimir segredo, payload, dados do cliente nem HMAC.
+          // O código distingue erro de assinatura de falha de persistência.
+          const classification = invalid ? "assinatura/formato inválido"
+            : detail.includes("por configurar") ? "configuração ausente"
+            : detail.includes("Transação, valor ou encomenda") ? "encomenda/transação divergente"
+            : detail.includes("dados suficientes") ? "evento financeiro incompleto"
+            : "erro transitório no processamento";
+          console.error("[NSQ webhook]", { code, classification });
+          // Resposta 2xx apenas após assinatura e, para eventos financeiros,
+          // gravação atómica. Assinatura inválida não é um erro temporário.
+          return json({ ok: false, error: invalid ? "invalid_signature" : "processing_failed" }, invalid ? 401 : 503);
         }
       },
     },
