@@ -25,6 +25,7 @@ const prepareSchema = z.object({
   phoneNumber: z.string().regex(/^9\d{8}$/).optional(),
 }).strict();
 const accessSchema = z.object({ orderId: z.string().regex(/^PT-[a-f0-9-]{36}$/), token: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
+const statusSchema = accessSchema.extend({ refreshReference: z.literal(true).optional() });
 const paySchema = accessSchema.extend({
   originToken: z.string().max(4096).nullable().optional(),
   trackingParameters: z.record(z.string(), z.string().max(500)).optional(),
@@ -93,11 +94,59 @@ export async function prepareOrder(input: unknown, ip?: string) {
   return { orderId: id, token, amountInCents, currency: "EUR" as const };
 }
 export async function orderStatus(input: unknown) {
-  const data = accessSchema.parse(input);
+  const data = statusSchema.parse(input);
   const order = await load(data.orderId);
   if (!order || !authorized(order, data.token)) throw new Error("Pedido não encontrado ou acesso não autorizado.");
+  if (data.refreshReference && order.method === "multibanco" && order.transactionId &&
+      ["pending", "processing", "uncertain"].includes(order.status) && (!order.payment?.entity || !order.payment?.reference)) {
+    // Only an explicit request checks the existing transaction. Never activate a method here.
+    const lock = PREFIX + "reference-check:" + order.id;
+    if (await redisCommand("SET", lock, "1", "EX", 30, "NX") !== "OK") return safe(order);
+    const budget = PREFIX + "reference-check-budget:" + order.id + ":" + Math.floor(Date.now() / 3600000);
+    const count = Number(await redisCommand("INCR", budget));
+    if (count === 1) await redisCommand("EXPIRE", budget, 3600);
+    if (count > 3) return safe(order);
+    try {
+      const nsq = await sdk();
+      const details = await nsq.payments.get(order.transactionId);
+      const association = webhookPayment(details);
+      if (association.orderId !== order.id || association.transactionId !== order.transactionId || association.amountInCents !== order.amountInCents) {
+        throw new Error("REFERENCE_ASSOCIATION_MISMATCH");
+      }
+      const payment = cleanPayment(details);
+      console.info("[VorkPay] Consulta de referência existente", {
+        orderId: order.id, transactionId: order.transactionId,
+        responseFields: Object.keys(details).filter((field) => /^[a-zA-Z][a-zA-Z0-9_]{0,39}$/.test(field)).slice(0, 25),
+        referenceAvailable: Boolean(payment.entity && payment.reference),
+      });
+      if (payment.entity && payment.reference) {
+        await redisCommand("EVAL", referenceScript, 1, key(order.id), order.transactionId, JSON.stringify(payment), new Date().toISOString());
+      }
+      // Return the persisted state; a lookup never confirms payment, even if status=paid.
+      const current = await load(order.id);
+      return safe(current || order);
+    } catch (error) {
+      console.warn("[VorkPay] Consulta de referência não concluída", {
+        orderId: order.id, transactionId: order.transactionId,
+        code: error && typeof error === "object" && "code" in error && typeof error.code === "string" && /^[A-Z_]{1,50}$/.test(error.code) ? error.code : "LOOKUP_UNAVAILABLE",
+      });
+    }
+  }
   return safe(order);
 }
+const referenceScript = [
+  "local raw=redis.call('GET',KEYS[1])",
+  "if not raw then return 'missing' end",
+  "local o=cjson.decode(raw)",
+  "if o.transactionId ~= ARGV[1] then return 'mismatch' end",
+  "if o.status ~= 'pending' and o.status ~= 'processing' and o.status ~= 'uncertain' then return 'unchanged' end",
+  "local p=cjson.decode(ARGV[2])",
+  "if not p.entity or not p.reference then return 'unchanged' end",
+  "o.payment=p; o.updatedAt=ARGV[3]",
+  "if o.status == 'uncertain' then o.status='pending' end",
+  "redis.call('SET',KEYS[1],cjson.encode(o),'KEEPTTL')",
+  "return 'updated'",
+].join("\n");
 const beginScript = [
   "local raw = redis.call('GET',KEYS[1])",
   "if not raw then return 'missing' end",

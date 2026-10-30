@@ -1,7 +1,7 @@
 /** Contract regressions: all fixtures are local, with no payment API calls. */
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { createHmac } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import ts from "typescript";
 import { cleanPayment, webhookPayment, activationStatus } from "../src/lib/nsq-contract.ts";
 
@@ -52,7 +52,7 @@ source = source.replace('"./utmify-queue.server"', JSON.stringify(redisModule))
   .replace('"../vendor/nsqpay.mjs"', JSON.stringify(new URL("../src/vendor/nsqpay.mjs", import.meta.url).href))
   .replace('"zod"', JSON.stringify(import.meta.resolve("zod")));
 const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
-const { applyVerifiedWebhook } = await import("data:text/javascript;base64," + Buffer.from(compiled).toString("base64"));
+const { applyVerifiedWebhook, orderStatus } = await import("data:text/javascript;base64," + Buffer.from(compiled).toString("base64"));
 const raw = JSON.stringify({ event: "payment.success", data: event });
 const headers = { "X-VorkPay-Signature": "sha256=" + createHmac("sha256", secret).update(raw).digest("hex") };
 assert.deepEqual(await applyVerifiedWebhook(raw, new Headers(headers)), { ok: true, duplicate: false });
@@ -71,4 +71,46 @@ assert.deepEqual(await applyVerifiedWebhook(webhookTest, new Headers({
   "X-VorkPay-Signature": "sha256=" + createHmac("sha256", secret).update(webhookTest).digest("hex"),
 })), { ok: true, ignored: true });
 assert.equal(calls.length, beforeInvalid, "Connectivity tests must never change orders");
+
+const token = "1".repeat(64);
+const storedOrder = { id: orderId, accessHash: createHash("sha256").update(token).digest("hex"),
+  status: "uncertain", amountInCents: 1999, currency: "EUR", method: "multibanco", transactionId: "txn_28185" };
+let currentOrder = { ...storedOrder };
+let remoteReads = 0;
+const referenceWrites = [];
+globalThis.nsqTestRedis = async (command, ...args) => {
+  if (command === "GET") return JSON.stringify(currentOrder);
+  if (command === "SET") return "OK";
+  if (command === "INCR") return 1;
+  if (command === "EXPIRE") return 1;
+  if (command === "EVAL") {
+    referenceWrites.push(args);
+    assert.equal(args[3], "txn_28185");
+    assert.deepEqual(JSON.parse(args[4]), bank);
+    return "updated";
+  }
+  throw new Error("Unexpected storage command");
+};
+globalThis.fetch = async (url, options) => {
+  assert.equal(new URL(url).pathname, "/api/v1/payments/status");
+  assert.equal(new URL(url).searchParams.get("transactionId"), "txn_28185");
+  assert.equal(options.method, "GET", "Recovery must never initiate or activate payment");
+  remoteReads++;
+  return Response.json({ transactionId: "txn_28185", externalOrderId: orderId, amount: 19.99, currency: "EUR", status: "paid", mb: bank });
+};
+await orderStatus({ orderId, token });
+assert.equal(remoteReads, 0, "Normal checkout polling must stay local");
+await assert.rejects(orderStatus({ orderId, token: "2".repeat(64), refreshReference: true }));
+assert.equal(remoteReads, 0, "Unauthorized requests must never query provider");
+const recovered = await orderStatus({ orderId, token, refreshReference: true });
+assert.equal(remoteReads, 1);
+assert.equal(referenceWrites.length, 1);
+assert.notEqual(recovered.status, "paid", "A provider status lookup cannot confirm payment");
+currentOrder = { ...storedOrder, status: "paid" };
+await orderStatus({ orderId, token, refreshReference: true });
+assert.equal(remoteReads, 1, "Terminal orders must not requery activation data");
+currentOrder = { ...storedOrder };
+globalThis.nsqTestRedis = async (command) => command === "GET" ? JSON.stringify(currentOrder) : null;
+await orderStatus({ orderId, token, refreshReference: true });
+assert.equal(remoteReads, 1, "Rate-limited reference checks must not query the provider");
 console.log("VorkPay contract regressions passed (reference, webhook identifiers, cents, activation).");
