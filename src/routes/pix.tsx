@@ -1,3 +1,4 @@
+import logo from "@/assets/uploads/6666.png";
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
@@ -316,7 +317,7 @@ function PixPage() {
       <>
         <style>{pixCss}</style>
         <div className="container">
-          <img src="/branding/juntos-por-vidas.webp" className="logo" alt="Juntos por Vidas" width={112} height={112} />
+          <img src={logo} className="logo" alt="Logo" width={112} height={112} />
           <div className="pago-check" aria-hidden="true">
             <svg viewBox="0 0 52 52" width="72" height="72">
               <circle className="pago-circle" cx="26" cy="26" r="25" fill="none" stroke="#27ae60" strokeWidth="2" />
@@ -337,7 +338,7 @@ function PixPage() {
       <>
         <style>{pixCss}</style>
         <div className="container">
-          <img src="/branding/juntos-por-vidas.webp" className="logo" alt="Juntos por Vidas" width={112} height={112} />
+          <img src={logo} className="logo" alt="Logo" width={112} height={112} />
           <h1>Ajuda por uma vida..</h1>
           <p className="pix-sub">Pague com Pix para concluir sua doação 💚</p>
 
