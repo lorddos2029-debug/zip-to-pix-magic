@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-const logo = "/branding/6662.png";
+const logo = "/uploads/6662.png";
 import willianHero from "@/assets/uploads/6663.png";
 
 export const Route = createFileRoute("/")({
