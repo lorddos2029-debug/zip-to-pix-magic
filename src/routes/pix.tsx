@@ -379,7 +379,7 @@ function PixPage() {
     <>
       <style>{pixCss}</style>
       <div className="container">
-        <img src="/branding/juntos-por-vidas.webp" className="logo" alt="Juntos por Vidas" width={112} height={112} />
+        <img src={logo} className="logo" alt="Logo" width={112} height={112} />
         <h1>Sua Ajuda Faz toda a diferença</h1>
         <p style={{ fontSize: 14, color: "#666", textAlign: "center" }}>Qual valor você deseja doar?</p>
 
