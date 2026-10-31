@@ -369,8 +369,8 @@ button { cursor: pointer; }
   text-decoration: none;
 }
 .brand-logo {
-  width: 46px;
-  height: 46px;
+  width: 90px;
+  height: 90px;
   object-fit: contain;
   display: block;
 }
