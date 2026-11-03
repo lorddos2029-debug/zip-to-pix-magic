@@ -132,7 +132,11 @@ function DaviCampaign() {
         </div>
         <p className="fundraised-label">Arrecadado (informado)</p>
         <div className="raised">R$ 225.083,79 <span>de R$ 230.000,00</span></div>
-        <p className="stats-note">Valores fornecidos para esta página, sem verificação independente. Não são atualizados automaticamente.</p>
+        <p className="stats-note">Valores e contadores fornecidos para esta página, sem verificação independente. Não são atualizados automaticamente.</p>
+        <div className="davi-social-stats" aria-label="Números informados da campanha">
+          <div><span>Corações Recebidos</span><strong>72.615</strong></div>
+          <div><span>Apoiadores</span><strong>14.221</strong></div>
+        </div>
         <div className="stats-box">
           <div><span>Objetivo relatado</span><strong>Reabilitação e despesas de saúde</strong></div>
           <div><span>Informações financeiras</span><strong>Consultar a família</strong></div>
@@ -164,7 +168,7 @@ function DaviCampaign() {
     <div className="bottom-bar">
       <div className="safe-line">♡ CONHEÇA E COMPARTILHE ESTA HISTÓRIA</div>
       <div className="bottom-actions">
-        <a href={familyUrl} className="donate-button" target="_blank" rel="noopener noreferrer">Consultar canais da família</a>
+        <a href={familyUrl} className="donate-button" target="_blank" rel="noopener noreferrer" aria-label="Quero ajudar: consultar os canais da família">Quero Ajudar</a>
         <button type="button" className="share-button" onClick={() => void share()}>{copied ? "Link copiado!" : "Compartilhar"}</button>
       </div>
     </div>
@@ -540,6 +544,10 @@ h1 {
   background: #111;
 }
 
+.davi-social-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.davi-social-stats > div { border: 1px solid #e5f0e8; border-radius: 12px; padding: 14px 10px; text-align: center; }
+.davi-social-stats span { display: block; color: #696969; font-size: 12px; font-weight: 600; margin-bottom: 7px; }
+.davi-social-stats strong { display: block; color: #07984b; font-size: 22px; font-weight: 800; }
 .davi-goals { padding-left: 24px; margin-bottom: 22px; color: #3b3b3b; font-size: 14px; line-height: 1.8; }
 .davi-goals li { padding-bottom: 4px; }
 .story a,.empty-tab a { color: #07984b; }
