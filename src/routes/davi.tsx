@@ -127,19 +127,13 @@ function DaviCampaign() {
       <h1>{title}</h1><p className="campaign-id">Campanha: Davi Lucas</p>
 
       <section className="stats" aria-label="Informações da campanha">
-        <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={goal} aria-valuenow={received} aria-label="Progresso de arrecadação informado">
+        <div className="progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={goal} aria-valuenow={received} aria-label="Progresso da arrecadação">
           <div className="progress-value" style={{ width: "97.86%" }} />
         </div>
-        <p className="fundraised-label">Arrecadado (informado)</p>
         <div className="raised">R$ 225.083,79 <span>de R$ 230.000,00</span></div>
-        <p className="stats-note">Valores e contadores fornecidos para esta página, sem verificação independente. Não são atualizados automaticamente.</p>
-        <div className="davi-social-stats" aria-label="Números informados da campanha">
+        <div className="stats-box">
           <div><span>Corações Recebidos</span><strong>72.615</strong></div>
           <div><span>Apoiadores</span><strong>14.221</strong></div>
-        </div>
-        <div className="stats-box">
-          <div><span>Objetivo relatado</span><strong>Reabilitação e despesas de saúde</strong></div>
-          <div><span>Informações financeiras</span><strong>Consultar a família</strong></div>
         </div>
       </section>
 
@@ -153,14 +147,45 @@ function DaviCampaign() {
           {section.items && <ul className="davi-goals">{section.items.map(item => <li key={item}>{item}</li>)}</ul>}
         </section>)}
         <p className="legal">Página informativa independente, não oficial da família. O relato e a arrecadação foram fornecidos para publicação e podem não refletir o estado atual da campanha. Esta página não processa doações. Confirme o destinatário diretamente com a família antes de contribuir.</p>
-      </article> : <section className="empty-tab">
-        {tab === "atualizacoes" && <p>Não há atualizações verificadas nesta página. Consulte <a href={familyUrl} target="_blank" rel="noopener noreferrer">o perfil informado pela família</a>.</p>}
-        {tab === "quem" && <p>Não há dados verificados sobre apoiadores disponíveis nesta página.</p>}
-        {tab === "perguntas" && <div>
-          <p><strong>Para que serve o apoio?</strong></p>
-          <p>Segundo o relato, para despesas hospitalares, reabilitação e avaliação neurológica no exterior.</p>
-          <p><strong>Onde posso confirmar os meios de contribuição?</strong></p>
-          <p>Diretamente nos canais divulgados pela família, antes de fazer uma doação.</p>
+      </article> : <section className="reference-tabs-panel" role="tabpanel" aria-label={tabs.find(t => t.id === tab)?.label}>
+        {tab === "atualizacoes" && <div className="reference-updates">
+          <h2 className="reference-panel-title">Atualizações sobre o Davi</h2>
+          <p className="reference-panel-intro">Confira os principais acontecimentos relatados na história de Davi.</p>
+          {[
+            { year: "2023", title: "Primeira campanha de apoio", description: "A primeira vaquinha ajudou a financiar o início dos tratamentos e cirurgias importantes para Davi." },
+            { year: "2024", title: "Novas etapas de reabilitação", description: "A família organizou outra campanha para buscar um tratamento voltado à mobilidade de Davi." },
+            { year: "2025", title: "Internação e despesas médicas", description: "Segundo o relato, Davi voltou à UTI devido a uma complicação. Recursos previstos para uma viagem de tratamento precisaram ser usados em despesas hospitalares." },
+            { year: "2026", title: "Continuidade da luta", description: "A família relata que busca quitar despesas e avaliar possibilidades de tratamento neurológico nos Estados Unidos." },
+          ].map(item => <div className="reference-update" key={item.year}>
+            <div className="reference-date"><strong>{item.year}</strong></div>
+            <div><strong>{item.title}</strong><p>{item.description}</p></div>
+          </div>)}
+          <p className="reference-legal">Os marcos acima foram adaptados do relato fornecido para esta página; não são notícias ou atualizações verificadas em tempo real. Para informações recentes, consulte <a href={familyUrl} target="_blank" rel="noopener noreferrer">os canais da família</a>.</p>
+        </div>}
+
+        {tab === "quem" && <div className="reference-supporters">
+          <h2 className="reference-panel-title">Quem ajudou</h2>
+          <div className="reference-supporter">
+            <span className="reference-avatar" aria-hidden="true">♥</span>
+            <div className="reference-supporter-info">
+              <strong className="reference-supporter-name">Apoiadores do Davi</strong>
+              <span className="reference-supporter-subtitle">Total informado da campanha</span>
+            </div>
+            <div className="reference-supporter-amount"><strong>14.221</strong><span>apoiadores</span></div>
+          </div>
+          <p className="reference-legal">Ainda não há nomes, valores individuais ou horários de doações confirmados para publicar nesta seção. Para conferir os apoiadores reais, consulte a campanha oficial com a família.</p>
+        </div>}
+
+        {tab === "perguntas" && <div className="reference-questions">
+          {[
+            { question: "Qual é o objetivo da campanha do Davi?", answer: "Segundo o relato, apoiar a reabilitação, quitar despesas hospitalares e custear avaliações de tratamento neurológico nos Estados Unidos, além de viagem e estadia." },
+            { question: "Por que Davi precisa de acompanhamento neurológico?", answer: "As agressões sofridas provocaram graves sequelas cerebrais, e ele necessita de cuidados e reabilitação contínuos." },
+            { question: "Por que a família considera tratamento nos Estados Unidos?", answer: "A família afirma que a evolução no tratamento atual estagnou e busca avaliar outras opções. Qualquer tratamento deve ser indicado por profissionais de saúde habilitados." },
+            { question: "Qual é a meta da arrecadação?", answer: "A meta informada para esta página é de R$ 230.000,00. Os valores exibidos nesta página não são atualizados automaticamente." },
+            { question: "Como posso ajudar o Davi?", answer: "Pelo botão Quero Ajudar, você pode consultar o canal divulgado da família e confirmar por lá os meios oficiais de contribuição. Também pode compartilhar a história." },
+            { question: "Como acompanhar atualizações e os apoiadores?", answer: "Consulte os canais oficiais da família. Esta página apresenta um resumo do relato e não recebe dados individuais de contribuições em tempo real." },
+            { question: "Não posso doar agora. Como ajudo?", answer: "Compartilhe a história do Davi para que mais pessoas possam conhecer a situação e verificar como ajudar pelos canais oficiais." },
+          ].map(({question,answer}) => <div className="reference-question" key={question}><strong>{question}</strong><p>{answer}</p></div>)}
         </div>}
       </section>}
       <footer className="footer"><Brand /><p>Conheça a história de Davi. Antes de qualquer contribuição, confirme os dados e a destinação nos canais da família.</p></footer>
@@ -176,6 +201,39 @@ function DaviCampaign() {
 }
 
 const styles = `
+.reference-tabs-panel { padding: 16px 0 28px; font-family: Inter, Arial, sans-serif; }
+.reference-update { display: flex; align-items: center; gap: 13px; padding: 14px 13px; border: 1px solid #ececec; border-radius: 15px; }
+.reference-date { width: 44px; min-width: 44px; height: 46px; border-radius: 14px; background: #eaf7ed; color: #14bf60; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.reference-date strong { font-size: 16px; line-height: 19px; }
+.reference-date span { color: #909090; font-size: 10px; margin-top: 3px; }
+.reference-update > div:last-child > strong { display: block; color: #202020; font-size: 13px; margin-bottom: 8px; }
+.reference-update p { margin: 0; color: #8b8b8b; font-size: 13px; line-height: 1.6; }
+.reference-legal { color: #919191; font-size: 11px; line-height: 1.6; margin: 20px 0 0; }
+.reference-supporters { margin-top: -16px; }
+.reference-supporter { display: flex; align-items: center; min-height: 64px; gap: 12px; padding: 12px 4px; border-bottom: 1px solid #eeeeee; }
+.reference-supporter:last-child { border-bottom: none; }
+.reference-avatar { height: 36px; width: 36px; min-width: 36px; display: grid; place-items: center; border-radius: 50%; background: #e9f7ed; color: #08c661; font-weight: 700; font-size: 13px; }
+.reference-supporter-name { color: #1e1e1e; font-size: 13px; }
+.reference-supporter-amount { margin-left: auto; display: grid; gap: 4px; text-align: right; }
+.reference-supporter-amount strong { color: #05bf58; font-size: 13px; }
+.reference-supporter-amount span { color: #999; font-size: 11px; }
+.reference-questions { display: grid; gap: 12px; }
+.reference-question { padding: 17px 14px 15px; border: 1px solid #ededed; border-radius: 15px; }
+.reference-question strong { color: #111; font-size: 13px; line-height: 1.6; }
+.reference-question p { margin: 8px 0 0; color: #898989; font-size: 13px; line-height: 1.8; }
+
+
+.reference-panel-title { margin: 4px 0 14px; color: #222; font-size: 17px; font-weight: 700; }
+.reference-panel-intro { font-size: 13px; color: #858585; line-height: 1.6; margin: 0 0 16px; }
+.reference-updates { display: grid; gap: 14px; }
+.reference-date { font-size: 10px; }
+.reference-date strong { font-size: 12px; }
+.reference-supporters { margin-top: 0; }
+.reference-supporter-info { display: grid; gap: 4px; }
+.reference-supporter-subtitle { font-size: 11px; color: #909090; }
+.reference-supporter { align-items: center; }
+.reference-legal a { color: #07984b; }
+
 :root {
   --green: #20c96b;
   --green-dark: #07984b;
@@ -544,10 +602,6 @@ h1 {
   background: #111;
 }
 
-.davi-social-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
-.davi-social-stats > div { border: 1px solid #e5f0e8; border-radius: 12px; padding: 14px 10px; text-align: center; }
-.davi-social-stats span { display: block; color: #696969; font-size: 12px; font-weight: 600; margin-bottom: 7px; }
-.davi-social-stats strong { display: block; color: #07984b; font-size: 22px; font-weight: 800; }
 .davi-goals { padding-left: 24px; margin-bottom: 22px; color: #3b3b3b; font-size: 14px; line-height: 1.8; }
 .davi-goals li { padding-bottom: 4px; }
 .story a,.empty-tab a { color: #07984b; }
