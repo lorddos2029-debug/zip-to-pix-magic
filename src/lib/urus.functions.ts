@@ -133,26 +133,66 @@ export const createUrusCharge = createServerFn({ method: "POST" })
     delete chargeBody["moeda"];
     if (webhookUrl) chargeBody["webhook_url"] = webhookUrl;
 
-    const res = await fetch(URUS_BASE + "/charge", {
-      method: "POST",
-      headers: {
-        Authorization: "Bearer " + apiKey,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(chargeBody),
-    });
+    // Uma tentativa apenas: repetir automaticamente um POST de cobrança pode criar Pix duplicado.
+    let res: Response;
+    try {
+      res = await fetch(URUS_BASE + "/charge", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer " + apiKey,
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(chargeBody),
+        signal: AbortSignal.timeout(20000),
+      });
+    } catch (error) {
+      const timeout = error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
+      console.error("[Pix] Falha de comunicação com a UrusPay:", timeout ? "timeout" : "erro de rede");
+      throw new Error(timeout
+        ? "O gateway demorou para responder. Verifique se a cobrança já foi criada antes de tentar novamente."
+        : "Não foi possível conectar ao gateway de pagamento. Tente novamente mais tarde.");
+    }
 
-    const body = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+    const payload = (await res.json().catch(() => null)) as unknown;
+    const body = payload && typeof payload === "object" && !Array.isArray(payload)
+      ? payload as Record<string, unknown> : null;
     if (!res.ok || !body || body["ok"] !== true) {
-      const msg = typeof body?.["message"] === "string" ? (body["message"] as string) : "Não foi possível gerar o Pix. Tente novamente.";
-      throw new Error(msg);
+      // Não registre o payload nem dados do doador: algumas APIs incluem campos sensíveis.
+      console.error("[Pix] UrusPay rejeitou a criação:", {
+        httpStatus: res.status,
+        ok: body?.["ok"] === true,
+        errorCode: typeof body?.["code"] === "string" ? String(body["code"]).slice(0, 40) : undefined,
+      });
+      const message = [body?.["message"], body?.["error"], body?.["detail"]]
+        .find(value => typeof value === "string" && value.trim().length > 0);
+      const safeProviderMessage = typeof message === "string" && message.length <= 240 &&
+        !/https?:\/\/|bearer |api[_ -]?key|token|senha|secret|authorization|[a-f0-9]{40,}/i.test(message)
+        ? message.trim() : "";
+      if (res.status === 401 || res.status === 403) {
+        throw new Error("O gateway recusou a autenticação. Verifique a chave API e as permissões da UrusPay.");
+      }
+      if (res.status === 429) throw new Error("O gateway atingiu o limite de requisições. Aguarde antes de tentar novamente.");
+      if (res.status >= 500) throw new Error("O gateway está temporariamente indisponível (HTTP " + res.status + "). Verifique o painel da UrusPay.");
+      if (safeProviderMessage) throw new Error(safeProviderMessage);
+      throw new Error("O gateway recusou a geração do Pix (HTTP " + res.status + "). Verifique a integração e a conta UrusPay.");
+    }
+
+    const vendaId = Number(body["venda_id"]);
+    const pixCode = typeof body["pix_code"] === "string" ? body["pix_code"].trim() : "";
+    if (!Number.isSafeInteger(vendaId) || vendaId <= 0 || !pixCode) {
+      console.error("[Pix] Resposta incompleta da UrusPay:", {
+        hasVendaId: Number.isSafeInteger(vendaId) && vendaId > 0,
+        hasPixCode: Boolean(pixCode),
+      });
+      throw new Error("O gateway não retornou um código Pix válido. Confira no painel da UrusPay se a cobrança foi criada antes de tentar novamente.");
     }
 
     const result: UrusChargeResult = {
-      venda_id: Number(body["venda_id"]),
-      pix_code: String(body["pix_code"] ?? ""),
-      qr_code_url: String(body["qr_code_url"] ?? ""),
-      valor: Number(body["valor"] ?? data.valor),
+      venda_id: vendaId,
+      pix_code: pixCode,
+      qr_code_url: typeof body["qr_code_url"] === "string" ? body["qr_code_url"] : "",
+      valor: Number(body["valor"] ?? valorBrl),
       status: String(body["status"] ?? "pending"),
     };
     if (quote) {
