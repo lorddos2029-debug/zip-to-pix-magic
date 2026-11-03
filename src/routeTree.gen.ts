@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AnaRouteImport } from './routes/ana'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DaviRouteImport } from './routes/davi'
 import { Route as KaueRouteImport } from './routes/kaue'
 import { Route as MiguelRouteImport } from './routes/miguel'
 import { Route as PedroRouteImport } from './routes/pedro'
@@ -26,6 +27,11 @@ const AnaRoute = AnaRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DaviRoute = DaviRouteImport.update({
+  id: '/davi',
+  path: '/davi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KaueRoute = KaueRouteImport.update({
@@ -61,6 +67,7 @@ const PixRoute = PixRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/davi': typeof DaviRoute
   '/kaue': typeof KaueRoute
   '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/davi': typeof DaviRoute
   '/kaue': typeof KaueRoute
   '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/davi': typeof DaviRoute
   '/kaue': typeof KaueRoute
   '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
@@ -92,15 +101,16 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ana' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
+  fullPaths: '/' | '/ana' | '/davi' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ana' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
-  id: '__root__' | '/' | '/ana' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
+  to: '/' | '/ana' | '/davi' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
+  id: '__root__' | '/' | '/ana' | '/davi' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AnaRoute: typeof AnaRoute
   IndexRoute: typeof IndexRoute
+  DaviRoute: typeof DaviRoute
   KaueRoute: typeof KaueRoute
   MiguelRoute: typeof MiguelRoute
   PedroRoute: typeof PedroRoute
@@ -123,6 +133,13 @@ declare module '@tanstack/react-router' {
       path: '/ana'
       fullPath: '/ana'
       preLoaderRoute: typeof AnaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/davi': {
+      id: '/davi'
+      path: '/davi'
+      fullPath: '/davi'
+      preLoaderRoute: typeof DaviRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kaue': {
@@ -173,6 +190,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   AnaRoute: AnaRoute,
   IndexRoute: IndexRoute,
+  DaviRoute: DaviRoute,
   KaueRoute: KaueRoute,
   MiguelRoute: MiguelRoute,
   PedroRoute: PedroRoute,
