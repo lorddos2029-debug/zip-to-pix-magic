@@ -146,7 +146,7 @@ function DaviCampaign() {
           {section.paragraphs.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
           {section.items && <ul className="davi-goals">{section.items.map(item => <li key={item}>{item}</li>)}</ul>}
         </section>)}
-        <p className="legal">Página informativa independente, não oficial da família. O relato e a arrecadação foram fornecidos para publicação e podem não refletir o estado atual da campanha. Esta página não processa doações. Confirme o destinatário diretamente com a família antes de contribuir.</p>
+        <p className="legal">Página informativa independente, não oficial da família. O relato e a arrecadação foram fornecidos para publicação e podem não refletir o estado atual da campanha. O botão Quero Ajudar leva ao checkout de doações por Pix do site. Confira o destinatário e a finalidade da arrecadação antes de contribuir.</p>
       </article> : <section className="reference-tabs-panel" role="tabpanel" aria-label={tabs.find(t => t.id === tab)?.label}>
         {tab === "atualizacoes" && <div className="reference-updates">
           <h2 className="reference-panel-title">Atualizações sobre o Davi</h2>
@@ -182,7 +182,7 @@ function DaviCampaign() {
             { question: "Por que Davi precisa de acompanhamento neurológico?", answer: "As agressões sofridas provocaram graves sequelas cerebrais, e ele necessita de cuidados e reabilitação contínuos." },
             { question: "Por que a família considera tratamento nos Estados Unidos?", answer: "A família afirma que a evolução no tratamento atual estagnou e busca avaliar outras opções. Qualquer tratamento deve ser indicado por profissionais de saúde habilitados." },
             { question: "Qual é a meta da arrecadação?", answer: "A meta informada para esta página é de R$ 230.000,00. Os valores exibidos nesta página não são atualizados automaticamente." },
-            { question: "Como posso ajudar o Davi?", answer: "Pelo botão Quero Ajudar, você pode consultar o canal divulgado da família e confirmar por lá os meios oficiais de contribuição. Também pode compartilhar a história." },
+            { question: "Como posso ajudar o Davi?", answer: "Pelo botão Quero Ajudar, você será direcionado ao checkout de doações por Pix deste site. Confira os dados de pagamento e o destinatário antes de concluir. Também pode compartilhar a história." },
             { question: "Como acompanhar atualizações e os apoiadores?", answer: "Consulte os canais oficiais da família. Esta página apresenta um resumo do relato e não recebe dados individuais de contribuições em tempo real." },
             { question: "Não posso doar agora. Como ajudo?", answer: "Compartilhe a história do Davi para que mais pessoas possam conhecer a situação e verificar como ajudar pelos canais oficiais." },
           ].map(({question,answer}) => <div className="reference-question" key={question}><strong>{question}</strong><p>{answer}</p></div>)}
@@ -193,7 +193,7 @@ function DaviCampaign() {
     <div className="bottom-bar">
       <div className="safe-line">♡ CONHEÇA E COMPARTILHE ESTA HISTÓRIA</div>
       <div className="bottom-actions">
-        <a href={familyUrl} className="donate-button" target="_blank" rel="noopener noreferrer" aria-label="Quero ajudar: consultar os canais da família">Quero Ajudar</a>
+        <Link to="/pix" className="donate-button">Quero Ajudar</Link>
         <button type="button" className="share-button" onClick={() => void share()}>{copied ? "Link copiado!" : "Compartilhar"}</button>
       </div>
     </div>
