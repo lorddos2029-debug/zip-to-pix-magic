@@ -163,17 +163,17 @@ function DaviCampaign() {
           <p className="reference-legal">Os marcos acima foram adaptados do relato fornecido para esta página; não são notícias ou atualizações verificadas em tempo real. Para informações recentes, consulte <a href={familyUrl} target="_blank" rel="noopener noreferrer">os canais da família</a>.</p>
         </div>}
 
-        {tab === "quem" && <div className="reference-supporters">
-          <h2 className="reference-panel-title">Quem ajudou</h2>
+        {tab === "quem" && <div className="reference-supporters" aria-label="Engajamento informado da campanha">
+          <div className="reference-supporter">
+            <span className="reference-avatar" aria-hidden="true">A</span>
+            <strong className="reference-supporter-name">Apoiadores</strong>
+            <div className="reference-supporter-amount"><strong>14.221</strong><span>pessoas</span></div>
+          </div>
           <div className="reference-supporter">
             <span className="reference-avatar" aria-hidden="true">♥</span>
-            <div className="reference-supporter-info">
-              <strong className="reference-supporter-name">Apoiadores do Davi</strong>
-              <span className="reference-supporter-subtitle">Total informado da campanha</span>
-            </div>
-            <div className="reference-supporter-amount"><strong>14.221</strong><span>apoiadores</span></div>
+            <strong className="reference-supporter-name">Corações Recebidos</strong>
+            <div className="reference-supporter-amount"><strong>72.615</strong><span>reações</span></div>
           </div>
-          <p className="reference-legal">Ainda não há nomes, valores individuais ou horários de doações confirmados para publicar nesta seção. Para conferir os apoiadores reais, consulte a campanha oficial com a família.</p>
         </div>}
 
         {tab === "perguntas" && <div className="reference-questions">
