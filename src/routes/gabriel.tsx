@@ -254,7 +254,7 @@ function GabrielCampaign() {
         {tab === "perguntas" && <div className="reference-questions">
           {questions.map(([question, answer]) => <div className="reference-question" key={question}><strong>{question}</strong><p>{answer}</p></div>)}
         </div>}
-      </section>
+      </section>}
 
       <footer className="footer"><Brand />
         <p>Juntos por Vidas — divulgação da história de Gabriel. Antes de contribuir, confira o destinatário e o valor no seu aplicativo bancário.</p>
