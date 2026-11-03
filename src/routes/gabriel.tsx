@@ -212,7 +212,7 @@ function GabrielCampaign() {
         <p className="gabriel-target">De R$ 40.000,00 | 247 doadores</p>
         <div className="stats-box">
           <div><span>Corações Recebidos</span><strong>72.615</strong></div>
-          <div><span>Apoiadores</span><strong>14.221</strong></div>
+          <div><span>Apoiadores</span><strong>7.221</strong></div>
         </div>
       </section>
 
@@ -234,22 +234,21 @@ function GabrielCampaign() {
           </div>)}
           <p className="reference-legal">Estes são marcos da história relatada pela família, não um feed de atualizações em tempo real.</p>
         </div>}
-        {tab === "quem" && <div className="reference-supporters">
-          <div className="reference-supporter">
-            <span className="reference-avatar" aria-hidden="true">D</span>
-            <strong className="reference-supporter-name">Doadores</strong>
-            <div className="reference-supporter-amount"><strong>247</strong><span>doadores informados</span></div>
-          </div>
-          <div className="reference-supporter">
-            <span className="reference-avatar" aria-hidden="true">A</span>
-            <strong className="reference-supporter-name">Apoiadores</strong>
-            <div className="reference-supporter-amount"><strong>14.221</strong><span>apoiadores informados</span></div>
-          </div>
-          <div className="reference-supporter">
-            <span className="reference-avatar" aria-hidden="true">♥</span>
-            <strong className="reference-supporter-name">Corações Recebidos</strong>
-            <div className="reference-supporter-amount"><strong>72.615</strong><span>reações informadas</span></div>
-          </div>
+        {tab === "quem" && <div className="reference-supporters" aria-label="Resumo do apoio à campanha">
+          {[
+            { avatar: "D", label: "Doadores", value: "247", description: "doadores informados" },
+            { avatar: "A", label: "Apoiadores", value: "7.221", description: "apoiadores informados" },
+            { avatar: "♥", label: "Corações Recebidos", value: "72.615", description: "reações informadas" },
+          ].map((supporter) => (
+            <div className="reference-supporter" key={supporter.label}>
+              <span className="reference-avatar" aria-hidden="true">{supporter.avatar}</span>
+              <strong className="reference-supporter-name">{supporter.label}</strong>
+              <div className="reference-supporter-amount">
+                <strong>{supporter.value}</strong>
+                <span>{supporter.description}</span>
+              </div>
+            </div>
+          ))}
         </div>}
         {tab === "perguntas" && <div className="reference-questions">
           {questions.map(([question, answer]) => <div className="reference-question" key={question}><strong>{question}</strong><p>{answer}</p></div>)}
@@ -257,7 +256,7 @@ function GabrielCampaign() {
       </section>}
 
       <footer className="footer"><Brand />
-        <p>Juntos por Vidas — divulgação da história de Gabriel. Antes de contribuir, confira o destinatário e o valor no seu aplicativo bancário.</p>
+        <p>Campanha de apoio ao <strong>Gabriel e sua família</strong>.</p>
       </footer>
     </main>
     <div className="bottom-bar">
