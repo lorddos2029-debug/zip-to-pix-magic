@@ -146,7 +146,6 @@ function DaviCampaign() {
           {section.paragraphs.map((paragraph, i) => <p key={i}>{paragraph}</p>)}
           {section.items && <ul className="davi-goals">{section.items.map(item => <li key={item}>{item}</li>)}</ul>}
         </section>)}
-        <p className="legal">Página informativa independente, não oficial da família. O relato e a arrecadação foram fornecidos para publicação e podem não refletir o estado atual da campanha. O botão Quero Ajudar leva ao checkout de doações por Pix do site. Confira o destinatário e a finalidade da arrecadação antes de contribuir.</p>
       </article> : <section className="reference-tabs-panel" role="tabpanel" aria-label={tabs.find(t => t.id === tab)?.label}>
         {tab === "atualizacoes" && <div className="reference-updates">
           <h2 className="reference-panel-title">Atualizações sobre o Davi</h2>
