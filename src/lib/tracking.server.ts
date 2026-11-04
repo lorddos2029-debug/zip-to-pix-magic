@@ -60,39 +60,69 @@ export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
     ],
   };
 
-  try {
-    const res = await fetch(
-      `https://graph.facebook.com/${FB_VERSION}/${pixelId}/events`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + token,
+  // Falhas transitórias de rede e HTTP 429/5xx merecem uma segunda tentativa.
+  // Mantemos o MESMO event_id nos dois envios para deduplicação na Meta.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await fetch(
+        `https://graph.facebook.com/${FB_VERSION}/${pixelId}/events`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token,
+          },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(9000),
         },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(15000),
-      },
-    );
-    const payload = (await res.json().catch(() => null)) as Record<string, unknown> | null;
-    // HTTP 200 apenas indica que a solicitação foi aceita. Verificamos
-    // também o recibo do evento, sem confundir com atribuição no Ads Manager.
-    if (res.ok && Number(payload?.["events_received"]) === 1) return "enviado";
-    const error = payload?.["error"] && typeof payload["error"] === "object"
-      ? payload["error"] as Record<string, unknown> : null;
-    const code = typeof error?.["code"] === "number" ? error["code"] : undefined;
-    const subcode = typeof error?.["error_subcode"] === "number" ? error["error_subcode"] : undefined;
-    console.error("[Meta CAPI] Evento não recebido:", {
-      event: p.eventName,
-      httpStatus: res.status,
-      eventsReceived: payload?.["events_received"] ?? 0,
-      code,
-      subcode,
-    });
-    return `erro: meta_http_${res.status}${code ? "_code_" + code : ""}`;
-  } catch (error) {
-    console.error("[Meta CAPI] Falha de comunicação:", error instanceof Error ? error.name : "desconhecida");
-    return "erro: rede";
+      );
+      const payload = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+      if (res.ok && Number(payload?.["events_received"]) === 1) {
+        if (p.eventName === "Purchase") {
+          // Registra apenas presença dos sinais: nunca seus valores ou dados pessoais.
+          console.info("[Meta CAPI] Purchase recebido:", {
+            hasFbc: Boolean(p.fbc),
+            hasFbp: Boolean(p.fbp),
+            hasIp: Boolean(p.ip),
+            hasUserAgent: Boolean(p.userAgent),
+            hasExternalId: Boolean(p.cpf),
+            // Receber o evento NÃO implica atribuição à campanha.
+          });
+        }
+        return "enviado";
+      }
+      const error = payload?.["error"] && typeof payload["error"] === "object"
+        ? payload["error"] as Record<string, unknown> : null;
+      const code = typeof error?.["code"] === "number" ? error["code"] : undefined;
+      const subcode = typeof error?.["error_subcode"] === "number" ? error["error_subcode"] : undefined;
+      const temporary = res.status === 429 || res.status >= 500 || (res.ok && Number(payload?.["events_received"]) !== 1);
+      console.error("[Meta CAPI] Evento não recebido:", {
+        event: p.eventName,
+        httpStatus: res.status,
+        eventsReceived: payload?.["events_received"] ?? 0,
+        code,
+        subcode,
+        attempt,
+      });
+      if (temporary && attempt === 1) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        continue;
+      }
+      return `erro: meta_http_${res.status}${code ? "_code_" + code : ""}`;
+    } catch (error) {
+      console.error("[Meta CAPI] Falha de comunicação:", {
+        event: p.eventName,
+        reason: error instanceof Error ? error.name : "desconhecida",
+        attempt,
+      });
+      if (attempt === 1) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        continue;
+      }
+      return "erro: rede";
+    }
   }
+  return "erro: retentativas_esgotadas";
 }
 
 function utmifyDate(d: Date): string {
