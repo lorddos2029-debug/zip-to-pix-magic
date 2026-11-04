@@ -10,6 +10,19 @@ export const Route = createFileRoute("/api/reconcile-pix")({
           return Response.json({ ok: false }, { status: 401 });
         }
         try {
+          // Reprocessamento pontual, protegido pelo CRON_SECRET, para recuperar
+          // uma venda aprovada cuja conversão não tenha sido entregue à Meta.
+          // O conciliador valida a transação no gateway e usa o estado
+          // persistido para impedir Purchase duplicado.
+          const replay = new URL(request.url).searchParams.get("order_id");
+          if (replay !== null) {
+            if (!/^[0-9]{1,12}$/.test(replay) || !Number.isSafeInteger(Number(replay)) || Number(replay) <= 0) {
+              return Response.json({ ok: false, error: "ID inválido." }, { status: 400 });
+            }
+            const { reconcilePixOrder } = await import("../../lib/pix-reconcile.server");
+            const status = await reconcilePixOrder(Number(replay));
+            return Response.json({ ok: true, ...status }, { headers: { "Cache-Control": "no-store" } });
+          }
           const { listQueuedUtmifyOrders, getQueuedUtmifyOrder, deferQueuedPixOrder, clearExpiredQueuedPixOrder } = await import("../../lib/utmify-queue.server");
           const { reconcilePixOrder } = await import("../../lib/pix-reconcile.server");
           const orders = await listQueuedUtmifyOrders(40);
