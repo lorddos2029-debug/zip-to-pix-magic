@@ -287,9 +287,25 @@ export const checkUrusStatus = createServerFn({ method: "POST" })
     const payment = nested ? { ...body, ...nested } : body;
     const status = String(payment["status"] ?? "pending");
     const normalized = status.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    return {
-      pago: payment["pago"] === true || payment["paid"] === true ||
-        ["paid", "approved", "completed", "concluido", "aprovado", "pago", "succeeded"].includes(normalized),
-      status,
-    };
+    const pago = payment["pago"] === true || payment["paid"] === true ||
+      ["paid", "approved", "completed", "concluido", "aprovado", "pago", "succeeded"].includes(normalized);
+    if (pago) {
+      // A página pode ser fechada logo depois de receber "pago": processe
+      // no servidor antes de responder, sem depender de outra chamada no browser.
+      // O conciliador usa lock + estado persistente para não duplicar Purchases.
+      try {
+        const { reconcilePixOrder } = await import("./pix-reconcile.server");
+        const tracking = await reconcilePixOrder(data.venda_id);
+        console.info("[Pix] Venda " + data.venda_id + " conciliada", {
+          facebook: tracking.facebook,
+          utmify: tracking.utmify,
+        });
+      } catch (error) {
+        console.error("[Pix] Venda " + data.venda_id + " paga, reconciliação pendente:",
+          error instanceof Error ? error.name : "erro");
+        // A confirmação financeira vem do gateway. A fila/cron recupera
+        // eventuais falhas temporárias de comunicação com Meta e UTMify.
+      }
+    }
+    return { pago, status };
   });
