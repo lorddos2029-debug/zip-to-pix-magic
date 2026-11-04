@@ -58,3 +58,21 @@ export function trackMetaInitiateCheckout(eventId: string): void {
     { eventID: eventId },
   );
 }
+
+
+/**
+ * Purchase no navegador somente após a confirmação de pagamento da UrusPay.
+ * Use exatamente o mesmo event_id que o backend envia à Meta CAPI.
+ */
+export function trackMetaPurchase(eventId: string, valor: number): boolean {
+  if (typeof window === "undefined" || !eventId || !Number.isFinite(valor) || valor <= 0) return false;
+  ensureMetaPixel();
+  if (typeof window.fbq !== "function") return false;
+  window.fbq(
+    "track",
+    "Purchase",
+    { value: Number(valor.toFixed(2)), currency: "BRL" },
+    { eventID: eventId },
+  );
+  return true;
+}
