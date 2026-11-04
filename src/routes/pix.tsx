@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { formatBRL } from "@/lib/pix";
 import { checkUrusStatus, createUrusCharge, type UrusChargeResult } from "@/lib/urus.functions";
 import { trackDonation, trackPixPageOpen } from "@/lib/tracking.functions";
-import { getCampaignAttribution } from "@/lib/campaign-attribution";
+import { getCampaignAttribution, getSavedFacebookFbc } from "@/lib/campaign-attribution";
 import { trackMetaInitiateCheckout } from "@/lib/meta-pixel";
 
 export const Route = createFileRoute("/pix")({
@@ -61,10 +61,9 @@ function getCookie(name: string): string {
 function getFbc(): string {
   const cookie = getCookie("_fbc");
   if (cookie) return cookie;
-  if (typeof window === "undefined") return "";
-  const fbclid = new URLSearchParams(window.location.search).get("fbclid");
-  if (!fbclid) return "";
-  return `fb.1.${Date.now()}.${fbclid}`;
+  // Recupera o fbclid real da landing page quando a navegação SPA para /pix
+  // remove os parâmetros da URL e o Pixel não conseguiu criar o cookie.
+  return getSavedFacebookFbc();
 }
 
 function gerarEventoId(): string {
