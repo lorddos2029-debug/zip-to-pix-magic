@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { TrackedPixLink } from "@/components/TrackedPixLink";
 import { useState } from "react";
 import logo from "@/assets/uploads/6662.png";
 
@@ -192,7 +193,7 @@ function DaviCampaign() {
     <div className="bottom-bar">
       <div className="safe-line">♡ CONHEÇA E COMPARTILHE ESTA HISTÓRIA</div>
       <div className="bottom-actions">
-        <Link to="/pix" className="donate-button">Quero Ajudar</Link>
+        <TrackedPixLink className="donate-button">Quero Ajudar</TrackedPixLink>
         <button type="button" className="share-button" onClick={() => void share()}>{copied ? "Link copiado!" : "Compartilhar"}</button>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { TrackedPixLink } from "@/components/TrackedPixLink";
 import { Heart, MapPin, Menu, Search, Share2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -77,7 +78,7 @@ function CampaignTabs({ active, onChange }: { active: MiguelTab; onChange: (tab:
 }
 
 function DonationBar({ onShare }: { onShare: () => void }) {
-  return <div className="miguel-bottom fixed inset-x-0 bottom-0 z-50 bg-[var(--miguel-surface)]"><div className="flex items-center justify-center gap-2 bg-[var(--miguel-primary-soft)] py-2 text-xs font-black uppercase text-[var(--miguel-primary-strong)]"><ShieldCheck className="size-5" /> Doação Protegida</div><div className="mx-auto flex max-w-[38rem] gap-3 p-3"><Button asChild className="h-12 flex-1 bg-[var(--miguel-primary)] text-base font-bold text-primary-foreground hover:bg-[var(--miguel-primary-strong)]"><Link to="/pix">Quero Ajudar</Link></Button><Button variant="outline" className="h-12 flex-1 text-base font-bold" onClick={onShare}>Compartilhar</Button></div></div>;
+  return <div className="miguel-bottom fixed inset-x-0 bottom-0 z-50 bg-[var(--miguel-surface)]"><div className="flex items-center justify-center gap-2 bg-[var(--miguel-primary-soft)] py-2 text-xs font-black uppercase text-[var(--miguel-primary-strong)]"><ShieldCheck className="size-5" /> Doação Protegida</div><div className="mx-auto flex max-w-[38rem] gap-3 p-3"><Button asChild className="h-12 flex-1 bg-[var(--miguel-primary)] text-base font-bold text-primary-foreground hover:bg-[var(--miguel-primary-strong)]"><TrackedPixLink>Quero Ajudar</TrackedPixLink></Button><Button variant="outline" className="h-12 flex-1 text-base font-bold" onClick={onShare}>Compartilhar</Button></div></div>;
 }
 
 function MiguelCampaign() {

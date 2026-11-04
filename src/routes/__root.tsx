@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -137,12 +138,13 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const currentUrl = useLocation({ select: location => location.href });
 
   useEffect(() => {
-    // Captura os UTMs da página de campanha ANTES do visitante abrir /pix.
+    // Captura tags UTM de toda landing e das navegações internas do site.
     getCampaignAttribution();
     ensureMetaPixel();
-  }, []);
+  }, [currentUrl]);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { TrackedPixLink } from "@/components/TrackedPixLink";
 import { useState } from "react";
 import logo from "@/assets/uploads/6662.png";
 const majuHero = "https://project--ad3668de-550b-4720-b142-feb5f8ca7887.lovable.app/__l5e/assets-v1/d6977ce6-3fd2-4f8c-920b-1661907a5e27/maju-foto.png";
@@ -236,7 +237,7 @@ function MariaCampaign() {
       <div className="bottom-bar">
         <div className="safe-line">♡ CONTRIBUA COM SEGURANÇA</div>
         <div className="bottom-actions">
-          <Link to="/pix" className="donate-button">Quero Ajudar</Link>
+          <TrackedPixLink className="donate-button">Quero Ajudar</TrackedPixLink>
           <button type="button" className="share-button" onClick={share}>Compartilhar</button>
         </div>
       </div>

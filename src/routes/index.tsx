@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { TrackedPixLink } from "@/components/TrackedPixLink";
 import { useState } from "react";
 import logo from "@/assets/uploads/6662.png";
 import willianHero from "@/assets/uploads/6663.png";
@@ -285,7 +286,7 @@ function WillianCampaign() {
       <div className="bottom-bar">
         <div className="safe-line">♡ CONTRIBUA COM SEGURANÇA</div>
         <div className="bottom-actions">
-          <Link to="/pix" className="donate-button">Quero Ajudar</Link>
+          <TrackedPixLink className="donate-button">Quero Ajudar</TrackedPixLink>
           <button type="button" className="share-button" onClick={share}>Compartilhar</button>
         </div>
       </div>

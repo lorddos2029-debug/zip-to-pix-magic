@@ -50,6 +50,34 @@ export function getSavedFacebookFbc(): string {
 
 type AttributionData = Record<string, string>;
 
+// Origem da página de entrada; não equivale ao nome da campanha Meta Ads.
+const LANDING_ROUTES = new Set([
+  "/", "/ana", "/davi", "/gabriel", "/joana", "/kaue",
+  "/maria", "/melissa", "/miguel", "/pedro", "/pedro2", "/pietro",
+  "/livia", "/fabinho",
+]);
+function landingOrigin(): string {
+  if (typeof window === "undefined") return "";
+  const pathname = window.location.pathname;
+  const path = pathname.length > 1 && pathname.endsWith("/")
+    ? pathname.slice(0, -1) : pathname;
+  if (!LANDING_ROUTES.has(path)) return "";
+  return path === "/" ? "pagina_willian" : "pagina_" + path.slice(1);
+}
+
+/** URL do checkout com a atribuição real recebida na landing page. */
+export function getTrackedPixHref(): string {
+  if (typeof window === "undefined") return "/pix";
+  const tracked = getCampaignAttribution();
+  const query = new URLSearchParams();
+  for (const key of UTM_FIELDS) {
+    if (tracked[key]) query.set(key, tracked[key]);
+  }
+  const suffix = query.toString();
+  return suffix ? "/pix?" + suffix : "/pix";
+}
+
+
 export function getCampaignAttribution(): AttributionData {
   if (typeof window === "undefined") return {};
   captureFacebookClick();
@@ -60,6 +88,9 @@ export function getCampaignAttribution(): AttributionData {
     const raw = search.get(key)?.trim();
     if (raw) incoming[key] = raw.slice(0, 200);
   }
+  // Informa o caminho da página de entrada se nenhuma tag src foi recebida.
+  // Não cria nomes fictícios de anúncios ou campanhas.
+  if (!incoming["src"] && landingOrigin()) incoming["src"] = landingOrigin();
 
   // Nova visita marcada substitui todos os parâmetros anteriores para não
   // misturar campanhas distintas na mesma aba.
