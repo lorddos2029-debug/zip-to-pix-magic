@@ -9,7 +9,7 @@ import { formatBRL } from "@/lib/pix";
 import { checkUrusStatus, createUrusCharge, type UrusChargeResult } from "@/lib/urus.functions";
 import { trackDonation, trackPixPageOpen } from "@/lib/tracking.functions";
 import { getCampaignAttribution, getSavedFacebookFbc } from "@/lib/campaign-attribution";
-import { trackMetaInitiateCheckout } from "@/lib/meta-pixel";
+import { trackMetaInitiateCheckout, trackMetaPurchase } from "@/lib/meta-pixel";
 
 export const Route = createFileRoute("/pix")({
   head: () => ({
@@ -191,15 +191,26 @@ function PixPage() {
         if (r.pago && !purchaseTrackedRef.current) {
           purchaseTrackedRef.current = true;
           window.clearInterval(timer);
-          window.fbq?.("track", "Purchase", {
-            value: cobranca.valor,
-            currency: "BRL",
-          }, { eventID: eventoIdRef.current });
+          // Mesmo event_id que foi persistido junto à cobrança e enviado
+          // via CAPI pelo conciliador. Pix gerado ou pendente NÃO é Purchase.
+          const eventId = eventoIdRef.current || "pix_purchase_" + cobranca.venda_id;
+          const browserSent = trackMetaPurchase(eventId, cobranca.valor);
+          if (!browserSent) {
+            console.warn("[Meta] Purchase não enfileirado no navegador; CAPI/conciliador segue como origem principal.");
+          }
           const base = trackDataRef.current;
           if (base) {
+            // A confirmação do gateway foi consultada no servidor. Esta
+            // chamada revalida o pagamento e recupera eventual falha de CAPI.
             void track({
-              data: { ...base, stage: "paid", evento_id: eventoIdRef.current },
-            } as Parameters<typeof track>[0]).catch(() => undefined);
+              data: { ...base, stage: "paid", evento_id: eventId },
+            } as Parameters<typeof track>[0]).then(({ facebook }) => {
+              if (facebook.startsWith("erro") || facebook === "sem_credencial") {
+                console.warn("[Meta] Purchase CAPI pendente:", facebook);
+              }
+            }).catch(() => {
+              console.warn("[Meta] Reconciliação CAPI temporariamente indisponível.");
+            });
           }
           setEtapa("pago");
         }
