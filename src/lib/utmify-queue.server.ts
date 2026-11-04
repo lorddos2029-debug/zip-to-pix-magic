@@ -93,7 +93,12 @@ export async function getQueuedUtmifyOrder(orderId: number): Promise<QueuedUtmif
 export async function listQueuedUtmifyOrders(limit = 40): Promise<number[]> {
   assertStorage();
   if (redisEnabled()) {
-    const result = await redisCommand("ZRANGE", pendingKey, 0, Math.max(0, Math.min(100, limit) - 1));
+    // Apenas pedidos cuja próxima tentativa já venceu. Um pedido pendente
+    // adiado para amanhã não deve tomar vagas de um Purchase recém-aprovado.
+    const result = await redisCommand(
+      "ZRANGEBYSCORE", pendingKey, "-inf", Date.now(),
+      "LIMIT", 0, Math.max(1, Math.min(100, limit)),
+    );
     return (Array.isArray(result) ? result : []).map(Number).filter(isValidId);
   }
   await mkdir(directory(), { recursive: true });
