@@ -14,11 +14,29 @@ export interface PixSyncResult {
   facebook: string;
 }
 
+/** A confirmação de pagamento sempre vem da consulta autenticada à UrusPay. */
+const unwrapPayment = (raw: Record<string, unknown>): Record<string, unknown> => {
+  for (const field of ["data", "venda", "payment", "transaction"]) {
+    const child = raw[field];
+    if (child && typeof child === "object" && !Array.isArray(child)) {
+      return { ...raw, ...child as Record<string, unknown> };
+    }
+  }
+  return raw;
+};
+
+const confirmedPaid = (payment: Record<string, unknown>): boolean => {
+  const normalized = String(payment["status"] || "").trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return payment["pago"] === true || payment["paid"] === true ||
+    ["paid", "approved", "completed", "concluido", "aprovado", "pago", "succeeded"].includes(normalized);
+};
+
 const providerPaidTime = (p: Record<string, unknown>): number | undefined => {
   const raw = [p["pago_em"], p["paid_at"], p["approved_at"]].find(v => typeof v === "string" && v.trim()) as string | undefined;
   if (!raw) return undefined;
   const normalized = raw.trim().replace(" ", "T");
-  const aware = /(?:Z|[+-]\\d{2}:\\d{2})$/i.test(normalized) ? normalized : normalized + "-03:00";
+  const aware = /(?:Z|[+-]\d{2}:\d{2})$/i.test(normalized) ? normalized : normalized + "-03:00";
   const seconds = Math.floor(Date.parse(aware) / 1000);
   return Number.isFinite(seconds) ? seconds : undefined;
 };
@@ -37,10 +55,12 @@ export async function reconcilePixOrder(orderId: number): Promise<PixSyncResult>
       signal: AbortSignal.timeout(12000),
     });
     if (!response.ok) throw new Error("UrusPay não confirmou consulta: HTTP " + response.status);
-    const payment = await response.json() as Record<string, unknown>;
-    if (payment["ok"] === false) throw new Error("Consulta UrusPay recusada.");
-    const paid = payment["pago"] === true || payment["paid"] === true ||
-      String(payment["status"] || "").toLowerCase() === "paid";
+    const raw = await response.json() as Record<string, unknown>;
+    if (!raw || typeof raw !== "object" || raw["ok"] === false) {
+      throw new Error("Consulta UrusPay recusada.");
+    }
+    const payment = unwrapPayment(raw);
+    const paid = confirmedPaid(payment);
 
     if (!paid) {
       const utmify = await sendWaitingForOrder(orderId);
@@ -94,8 +114,12 @@ export async function reconcilePixOrder(orderId: number): Promise<PixSyncResult>
         sourceUrl: current.source_url,
         eventTime: providerPaidTime(payment),
       });
-      if (facebook === "enviado") await markUtmifyOrderFlags(orderId, { synced_meta_paid: true });
-      else console.error("[Meta CAPI] Venda " + orderId + ": " + facebook);
+      if (facebook === "enviado") {
+        await markUtmifyOrderFlags(orderId, { synced_meta_paid: true });
+        console.info("[Meta CAPI] Purchase aceito para venda " + orderId);
+      } else {
+        console.error("[Meta CAPI] Venda " + orderId + ": " + facebook);
+      }
     }
     return { order_id: orderId, paid: true, utmify, facebook };
   });
