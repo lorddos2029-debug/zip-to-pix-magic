@@ -73,54 +73,70 @@ export async function reconcilePixOrder(orderId: number): Promise<PixSyncResult>
       throw new Error("Valor confirmado na UrusPay difere do pedido persistido.");
     }
 
-    // Se a primeira tentativa de pendente falhou, recupere antes do envio paid.
-    if (!order.synced_pending) await sendWaitingForOrder(orderId);
     const current = await getQueuedUtmifyOrder(orderId) || order;
 
-    let utmify = current.synced_paid ? "ja_enviado" : "pendente";
-    if (!current.synced_paid) {
-      const approvedDate = String(payment["pago_em"] || payment["paid_at"] || payment["approved_at"] || "").trim();
-      utmify = await sendUtmifyOrder({
-        orderId: String(orderId),
-        status: "paid",
-        createdAt: current.created_at,
-        approvedDate: approvedDate || undefined,
-        valor: current.valor,
-        nome: current.nome,
-        email: current.email,
-        cpf: current.cpf,
-        telefone: current.telefone,
-        ip: current.ip,
-        itens: current.itens,
-        utm: current.utm,
-      });
-      if (utmify === "enviado") await markUtmifyOrderFlags(orderId, { synced_paid: true });
-      else console.error("[UTMify] Venda " + orderId + ": " + utmify);
-    }
-
+    // Priorize Purchase na Meta depois da confirmação financeira. A UTMify
+    // e a Meta são canais independentes: falha de um não deve bloquear o outro.
     let facebook = current.synced_meta_paid ? "ja_enviado" : "pendente";
     if (!current.synced_meta_paid) {
-      facebook = await sendFacebookEvent({
-        eventName: "Purchase",
-        eventId: current.evento_id || "pix_purchase_" + orderId,
-        value: current.valor,
-        email: current.email,
-        phone: current.telefone,
-        cpf: current.cpf,
-        fbp: current.fbp,
-        fbc: current.fbc,
-        ip: current.ip,
-        userAgent: current.user_agent,
-        sourceUrl: current.source_url,
-        eventTime: providerPaidTime(payment),
-      });
-      if (facebook === "enviado") {
-        await markUtmifyOrderFlags(orderId, { synced_meta_paid: true });
-        console.info("[Meta CAPI] Purchase aceito para venda " + orderId);
-      } else {
-        console.error("[Meta CAPI] Venda " + orderId + ": " + facebook);
+      try {
+        facebook = await sendFacebookEvent({
+          eventName: "Purchase",
+          // O mesmo ID foi enviado pelo navegador ao gerar a cobrança.
+          // Reenvios usam sempre esse ID para deduplicação.
+          eventId: current.evento_id || "pix_purchase_" + orderId,
+          value: current.valor,
+          email: current.email,
+          phone: current.telefone,
+          cpf: current.cpf,
+          fbp: current.fbp,
+          fbc: current.fbc,
+          ip: current.ip,
+          userAgent: current.user_agent,
+          sourceUrl: current.source_url,
+          eventTime: providerPaidTime(payment),
+        });
+        if (facebook === "enviado") {
+          await markUtmifyOrderFlags(orderId, { synced_meta_paid: true });
+          console.info("[Meta CAPI] Purchase aceito para venda " + orderId);
+        } else {
+          console.error("[Meta CAPI] Venda " + orderId + ": " + facebook);
+        }
+      } catch {
+        facebook = "erro: persistencia_meta";
+        console.error("[Meta CAPI] Falha temporária ao registrar Purchase da venda " + orderId);
       }
     }
+
+    // A UTMify continua recebendo waiting_payment e paid com o mesmo orderId.
+    // Eventuais problemas na UTMify não cancelam a tentativa de Purchase na Meta.
+    let utmify = current.synced_paid ? "ja_enviado" : "pendente";
+    if (!current.synced_paid) {
+      try {
+        if (!current.synced_pending) await sendWaitingForOrder(orderId);
+        const approvedDate = String(payment["pago_em"] || payment["paid_at"] || payment["approved_at"] || "").trim();
+        utmify = await sendUtmifyOrder({
+          orderId: String(orderId),
+          status: "paid",
+          createdAt: current.created_at,
+          approvedDate: approvedDate || undefined,
+          valor: current.valor,
+          nome: current.nome,
+          email: current.email,
+          cpf: current.cpf,
+          telefone: current.telefone,
+          ip: current.ip,
+          itens: current.itens,
+          utm: current.utm,
+        });
+        if (utmify === "enviado") await markUtmifyOrderFlags(orderId, { synced_paid: true });
+        else console.error("[UTMify] Venda " + orderId + ": " + utmify);
+      } catch {
+        utmify = "erro: persistencia_utmify";
+        console.error("[UTMify] Falha temporária ao sincronizar venda " + orderId);
+      }
+    }
+
     return { order_id: orderId, paid: true, utmify, facebook };
   });
 
