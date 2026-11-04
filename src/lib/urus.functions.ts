@@ -119,13 +119,10 @@ export const createUrusCharge = createServerFn({ method: "POST" })
 
     // A UrusPay envia a notificação a um endpoint fixo. Nunca inclua
     // os dados do doador na URL; os detalhes estão no armazenamento privado.
-    let webhookUrl = process.env["URUSPAY_WEBHOOK_URL"]?.trim() || "";
-    if (!webhookUrl) {
-      try {
-        const origin = new URL(getRequest().url).origin;
-        if (origin.startsWith("https://")) webhookUrl = origin + "/api/pix-webhook";
-      } catch {}
-    }
+    // Em produção, o GET do servidor pode usar uma URL interna da Vercel;
+    // o provedor deve notificar a URL pública canônica da aplicação.
+    let webhookUrl = process.env["URUSPAY_WEBHOOK_URL"]?.trim() ||
+      "https://juntos-por-vidas.online/api/pix-webhook";
     if (webhookUrl && (!webhookUrl.startsWith("https://") || webhookUrl.length > 220)) {
       webhookUrl = "";
     }
@@ -284,6 +281,15 @@ export const checkUrusStatus = createServerFn({ method: "POST" })
     const body = (await res.json().catch(() => null)) as Record<string, unknown> | null;
     if (!res.ok || !body) return { pago: false, status: "pending" };
 
-    const status = String(body["status"] ?? "pending");
-    return { pago: body["pago"] === true || status === "paid", status };
+    const nested = ["data", "venda", "payment", "transaction"]
+      .map(key => body[key])
+      .find(value => value && typeof value === "object" && !Array.isArray(value)) as Record<string, unknown> | undefined;
+    const payment = nested ? { ...body, ...nested } : body;
+    const status = String(payment["status"] ?? "pending");
+    const normalized = status.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return {
+      pago: payment["pago"] === true || payment["paid"] === true ||
+        ["paid", "approved", "completed", "concluido", "aprovado", "pago", "succeeded"].includes(normalized),
+      status,
+    };
   });
