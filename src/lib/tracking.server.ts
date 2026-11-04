@@ -3,7 +3,7 @@
  * Nunca importar diretamente em componentes — use tracking.functions.ts.
  */
 
-const FB_VERSION = "v21.0";
+const FB_VERSION = "v25.0";
 const UTMIFY_URL = "https://api.utmify.com.br/api-credentials/orders";
 
 async function sha256(value: string): Promise<string> {
@@ -35,7 +35,7 @@ export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
   if (!token) return "sem_credencial";
 
   const userData: Record<string, unknown> = {};
-  if (p.email) userData["em"] = [await sha256(p.email)];
+  if (p.email && !/@example\.(?:com|org|net)$/i.test(p.email.trim())) userData["em"] = [await sha256(p.email)];
   if (p.phone) { const digits = p.phone.replace(/\D/g, ""); userData["ph"] = [await sha256(digits.startsWith("55") ? digits : "55" + digits)]; }
   if (p.cpf) userData["external_id"] = [await sha256(p.cpf.replace(/\D/g, ""))];
   if (p.fbp) userData["fbp"] = p.fbp;
@@ -51,7 +51,7 @@ export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
         event_time: Number.isSafeInteger(p.eventTime) && Number(p.eventTime) > Math.floor(Date.now() / 1000) - 7 * 86400 && Number(p.eventTime) <= Math.floor(Date.now() / 1000) ? p.eventTime : Math.floor(Date.now() / 1000),
         event_id: p.eventId,
         action_source: "website",
-        event_source_url: p.sourceUrl,
+        event_source_url: p.sourceUrl || "https://juntos-por-vidas.online/pix",
         user_data: userData,
         custom_data: typeof p.value === "number" && Number.isFinite(p.value)
           ? { value: Number(p.value.toFixed(2)), currency: "BRL" }
@@ -62,11 +62,35 @@ export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
 
   try {
     const res = await fetch(
-      `https://graph.facebook.com/${FB_VERSION}/${pixelId}/events?access_token=${encodeURIComponent(token)}`,
-      { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) },
+      `https://graph.facebook.com/${FB_VERSION}/${pixelId}/events`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(15000),
+      },
     );
-    return res.ok ? "enviado" : `erro: ${res.status}`;
-  } catch {
+    const payload = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+    // HTTP 200 apenas indica que a solicitação foi aceita. Verificamos
+    // também o recibo do evento, sem confundir com atribuição no Ads Manager.
+    if (res.ok && Number(payload?.["events_received"]) === 1) return "enviado";
+    const error = payload?.["error"] && typeof payload["error"] === "object"
+      ? payload["error"] as Record<string, unknown> : null;
+    const code = typeof error?.["code"] === "number" ? error["code"] : undefined;
+    const subcode = typeof error?.["error_subcode"] === "number" ? error["error_subcode"] : undefined;
+    console.error("[Meta CAPI] Evento não recebido:", {
+      event: p.eventName,
+      httpStatus: res.status,
+      eventsReceived: payload?.["events_received"] ?? 0,
+      code,
+      subcode,
+    });
+    return `erro: meta_http_${res.status}${code ? "_code_" + code : ""}`;
+  } catch (error) {
+    console.error("[Meta CAPI] Falha de comunicação:", error instanceof Error ? error.name : "desconhecida");
     return "erro: rede";
   }
 }
