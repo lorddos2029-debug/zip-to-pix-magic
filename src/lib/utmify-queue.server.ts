@@ -151,6 +151,8 @@ export async function withUtmifyOrderLock<T>(orderId: number, action: () => Prom
 export async function sendWaitingForOrder(orderId: number): Promise<string> {
   const order = await getQueuedUtmifyOrder(orderId);
   if (!order) return "sem_pedido_persistido";
+  // Não volte a venda para waiting_payment depois de ter enviado paid.
+  if (order.synced_paid) return "ja_pago";
   if (order.synced_pending) return "ja_enviado";
   const { sendUtmifyOrder } = await import("./tracking.server");
   const result = await sendUtmifyOrder({
@@ -166,8 +168,10 @@ export async function sendWaitingForOrder(orderId: number): Promise<string> {
     itens: order.itens,
     utm: order.utm,
   });
-  if (result === "enviado") await markUtmifyOrderFlags(orderId, { synced_pending: true });
-  else console.error("[UTMify] Pix " + orderId + " gerado: " + result);
+  if (result === "enviado") {
+    await markUtmifyOrderFlags(orderId, { synced_pending: true });
+    console.info("[UTMify] Pix registrado como pendente:", { orderId });
+  } else console.error("[UTMify] Pix " + orderId + " gerado: " + result);
   return result;
 }
 
