@@ -32,7 +32,12 @@ export const Route = createFileRoute("/api/reconcile-pix")({
               return { order_id: id, paid: false, utmify: "expirado", facebook: "expirado" };
             }
             const result = await reconcilePixOrder(id);
-            if (!result.paid) await deferQueuedPixOrder(id);
+            // Uma conciliação simultânea retorna "processando". Não adie
+            // esse pedido por 24h; deixe-o disponível na próxima tentativa.
+            if (!result.paid && result.facebook !== "processando" &&
+                result.utmify !== "processando") {
+              await deferQueuedPixOrder(id);
+            }
             return result;
           }));
           const processed = results.filter(r => r.status === "fulfilled").length;
