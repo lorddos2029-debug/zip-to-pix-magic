@@ -129,15 +129,17 @@ function utmifyDate(d: Date): string {
   return d.toISOString().slice(0, 19).replace("T", " ");
 }
 
-function normalizeUtmifyDate(input: string | undefined): string {
-  if (!input) return utmifyDate(new Date());
-  const value = input.trim();
-  if (!value) return utmifyDate(new Date());
-  // Horários sem fuso do gateway UrusPay são locais do Brasil.
-  const normalized = value.replace(" ", "T");
-  const hasZone = /(?:Z|[+-]\\d{2}:\\d{2})$/i.test(normalized);
-  const date = new Date(hasZone ? normalized : normalized + "-03:00");
-  return Number.isNaN(date.getTime()) ? utmifyDate(new Date()) : utmifyDate(date);
+/**
+ * As cobranças do nosso servidor (incluindo registros anteriores) guardam
+ * created_at em UTC, às vezes sem sufixo Z. Datas de pagamento sem fuso
+ * vindas do gateway são tratadas como horário de Brasília.
+ */
+function normalizeUtmifyDate(input: string | undefined, naiveZone: "UTC" | "BR" = "UTC"): string {
+  if (!input?.trim()) return utmifyDate(new Date());
+  const normalized = input.trim().replace(" ", "T");
+  const explicitZone = /(?:Z|[+-]\d{2}:\d{2})$/i.test(normalized);
+  const parsed = new Date(explicitZone ? normalized : normalized + (naiveZone === "BR" ? "-03:00" : "Z"));
+  return Number.isNaN(parsed.getTime()) ? utmifyDate(new Date()) : utmifyDate(parsed);
 }
 
 export interface UtmifyPayload {
@@ -166,8 +168,8 @@ export async function sendUtmifyOrder(p: UtmifyPayload): Promise<string> {
     platform: "UrusPay",
     paymentMethod: "pix",
     status: p.status,
-    createdAt: normalizeUtmifyDate(p.createdAt),
-    approvedDate: p.status === "paid" ? normalizeUtmifyDate(p.approvedDate) : null,
+    createdAt: normalizeUtmifyDate(p.createdAt, "UTC"),
+    approvedDate: p.status === "paid" ? normalizeUtmifyDate(p.approvedDate, "BR") : null,
     refundedAt: null,
     customer: {
       name: p.nome,
@@ -215,26 +217,52 @@ export async function sendUtmifyOrder(p: UtmifyPayload): Promise<string> {
     isTest: false,
   };
 
-  try {
-    const res = await fetch(UTMIFY_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-token": token },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) return "enviado";
-    const rejected = await res.json().catch(() => ({})) as Record<string, unknown>;
-    const errorCode = String(rejected["message"] || rejected["error"] || "validação recusada");
-    const details = rejected["details"] || rejected["errors"] || rejected["issues"] || rejected["data"] || rejected["validationErrors"] || null;
-    const message = errorCode + " " + (details ? JSON.stringify(details) : "campos=" + Object.keys(rejected).join(","));
-    const sanitized = message
-      .replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9.-]+/g, "[email]")
-      .replace(/\\b\\d{11,14}\\b/g, "[documento]")
-      .slice(0, 1200);
-    console.error("[UTMify] HTTP " + res.status + ": " + sanitized);
-    return "erro: " + res.status + " " + sanitized;
-  } catch {
-    return "erro: rede";
+  // A mesma orderId permite reenvio idempotente no endpoint da UTMify.
+  // Repetimos apenas erros transitórios. Nunca altere o status financeiro sem
+  // consultar a UrusPay no reconciliador.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await fetch(UTMIFY_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-api-token": token },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(10000),
+      });
+      const response = (await res.json().catch(() => null)) as Record<string, unknown> | null;
+      const accepted = res.ok && response?.["success"] !== false &&
+        response?.["ok"] !== false && !response?.["error"];
+      if (accepted) return "enviado";
+
+      // Não exponha dados do comprador em logs de erros de validação.
+      const temporary = res.status === 429 || res.status >= 500;
+      const errorCode = response && typeof response["code"] === "number" ? Number(response["code"]) : undefined;
+      console.error("[UTMify] Rejeição de pedido:", {
+        orderId: p.orderId,
+        status: p.status,
+        httpStatus: res.status,
+        errorCode,
+        attempt,
+      });
+      if (temporary && attempt === 1) {
+        await new Promise(resolve => setTimeout(resolve, 450));
+        continue;
+      }
+      return "erro: utmify_http_" + res.status + (errorCode ? "_code_" + errorCode : "");
+    } catch (error) {
+      console.error("[UTMify] Falha de comunicação:", {
+        orderId: p.orderId,
+        status: p.status,
+        reason: error instanceof Error ? error.name : "desconhecido",
+        attempt,
+      });
+      if (attempt === 1) {
+        await new Promise(resolve => setTimeout(resolve, 450));
+        continue;
+      }
+      return "erro: utmify_rede";
+    }
   }
+  return "erro: utmify_tentativas_esgotadas";
 }
 
 export { utmifyDate };
