@@ -201,7 +201,9 @@ export const createUrusCharge = createServerFn({ method: "POST" })
     if (typeof body["expira_em"] === "string") result.expira_em = body["expira_em"];
     if (typeof body["check_status_url"] === "string") result.check_status_url = body["check_status_url"];
 
-    result.created_at = new Date().toISOString().slice(0, 19).replace("T", " ");
+    // Armazene fuso UTC explicitamente para que a UTMify não interprete
+    // erroneamente a data de criação como horário de Brasília.
+    result.created_at = new Date().toISOString();
     // Fila durável na Vercel (Upstash) ou disco quando executado na VPS.
     // Envia o pedido waiting_payment do servidor assim que o Pix é criado.
     const sourceUrl = (() => {
@@ -232,9 +234,15 @@ export const createUrusCharge = createServerFn({ method: "POST" })
       ),
     };
     try {
-      const { queueUtmifyOrder, sendWaitingForOrder } = await import("./utmify-queue.server");
+      const { queueUtmifyOrder, sendWaitingForOrder, withUtmifyOrderLock } = await import("./utmify-queue.server");
       await queueUtmifyOrder(trackingOrder);
-      await sendWaitingForOrder(result.venda_id);
+      // Serialize a primeira notificação waiting_payment com reconciliações
+      // concorrentes do webhook. Caso contrário, a mensagem pendente poderia
+      // chegar à UTMify após a aprovação e voltar o pedido para "aguardando".
+      const waitingResult = await withUtmifyOrderLock(result.venda_id, () => sendWaitingForOrder(result.venda_id));
+      if (waitingResult === null) {
+        console.warn("[Pix] Venda gerada; envio pendente agendado na fila:", { orderId: result.venda_id });
+      }
     } catch (error) {
       console.error("[Pix] Falha na fila persistente da Vercel:", error instanceof Error ? error.message : "erro");
       // Mesmo sem armazenamento configurado, a venda gerada pode ser enviada
