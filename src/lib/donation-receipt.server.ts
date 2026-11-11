@@ -85,6 +85,8 @@ export async function createDonationReceipt(receipt: DonationReceipt): Promise<U
     false,
     muted,
   );
+  draw("Rua da Alegria, nº 123, 2º Esquerdo, 4000-032 Porto, Portugal", 83, 9, false, muted);
+  draw("NIF Empresarial: 245443371", 67, 9, true, muted);
   draw("Juntos por Vidas | Comprovante emitido automaticamente", 48, 9, false, muted);
   return pdf.save();
 }
