@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { getTrackedPixHref } from "@/lib/campaign-attribution";
 import { useEffect, useState } from "react";
-const logo = "/willian/juntos-por-vidas.png";
+const logo = "/willian/juntos-por-vidas-logo.png";
 import willianHero from "@/assets/uploads/6663.png";
 
 export const Route = createFileRoute("/willian")({
@@ -44,7 +44,7 @@ const TABS: Array<{ id: Tab; label: string }> = [
 function Brand() {
   return (
     <Link to="/" className="brand" aria-label="Juntos por Vidas">
-      <img src={logo} alt="Logo Juntos por Vidas" className="brand-logo" width={46} height={46} />
+      <img src={logo} alt="Logo Juntos por Vidas" className="brand-logo" width={90} height={90} />
     </Link>
   );
 }
@@ -409,14 +409,14 @@ button { cursor: pointer; }
   position: sticky;
   top: 0;
   z-index: 40;
-  height: 56px;
+  height: 104px;
   background: #fff;
   border-bottom: 1px solid #ededed;
 }
 .topbar-inner {
   width: 100%;
   max-width: 520px;
-  height: 56px;
+  height: 104px;
   margin: 0 auto;
   padding: 0 14px;
   display: flex;
@@ -474,7 +474,7 @@ button { cursor: pointer; }
   max-width: 520px;
   margin: 0 auto;
   background: #fff;
-  min-height: calc(100vh - 56px);
+  min-height: calc(100vh - 104px);
   padding: 14px 14px 0;
 }
 
