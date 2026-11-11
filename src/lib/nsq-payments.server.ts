@@ -12,7 +12,7 @@ type Order = {
   method: Method; customer: { name: string; email: string; country: "PT"; phone?: string };
   phoneNumber?: string; items: Item[]; transactionId?: string;
   payment?: { entity?: string; reference?: string; expiresAt?: string };
-  createdAt: string; updatedAt: string; paidAt?: string;
+  createdAt: string; updatedAt: string; paidAt?: string; providerInstallId?: string;
 };
 const PREFIX = "jpv:nsq:v1:";
 const TTL = 60 * 60 * 24 * 30;
@@ -47,15 +47,34 @@ function ensureReady() {
   if (!enabled()) throw new Error("Os pagamentos encontram-se temporariamente indisponíveis.");
   ensureProviderConfigured();
 }
-async function sdk() {
-  const { createNSQPay } = await import("../vendor/nsqpay.mjs");
-  return createNSQPay({
+type ProviderConfig = { secretKey: string; webhookSecret: string; storeUrl: string; installId: string; environment: "live" | "test" };
+function currentProvider(): ProviderConfig {
+  return {
     secretKey: process.env["NSQPAY_SECRET_KEY"]!,
     webhookSecret: process.env["NSQPAY_WEBHOOK_SECRET"]!,
     storeUrl: process.env["NSQPAY_STORE_URL"]!,
     installId: process.env["NSQPAY_INSTALL_ID"]!,
     environment: env(),
-  });
+  };
+}
+function legacyProvider(): ProviderConfig | null {
+  const raw = process.env["NSQPAY_LEGACY_CONFIG"];
+  if (!raw) return null;
+  const value = JSON.parse(raw) as ProviderConfig;
+  if (![value.secretKey, value.webhookSecret, value.storeUrl, value.installId].every((v) => typeof v === "string" && v.length > 0) ||
+      !["live", "test"].includes(value.environment)) throw new Error("Integração anterior por configurar.");
+  return value;
+}
+function orderProvider(order: Order): ProviderConfig {
+  const current = currentProvider(), legacy = legacyProvider();
+  const installId = order.providerInstallId || legacy?.installId || current.installId;
+  if (installId === current.installId) return current;
+  if (legacy && installId === legacy.installId) return legacy;
+  throw new Error("Conta da encomenda indisponível; contacte o suporte.");
+}
+async function sdk(config = currentProvider()) {
+  const { createNSQPay } = await import("../vendor/nsqpay.mjs");
+  return createNSQPay(config);
 }
 function authorized(order: Order, token: string) {
   const a = Buffer.from(order.accessHash, "hex");
@@ -89,7 +108,8 @@ export async function prepareOrder(input: unknown, ip?: string) {
   const customer: Order["customer"] = { name: data.name, email: data.email, country: "PT" };
   if (data.phoneNumber) customer.phone = data.phoneNumber;
   const order: Order = { id, accessHash: hash(token), status: "prepared", amountInCents, currency: "EUR",
-    method: data.method, customer, items, createdAt: now, updatedAt: now };
+    method: data.method, customer, items, createdAt: now, updatedAt: now,
+    providerInstallId: currentProvider().installId };
   if (data.phoneNumber) order.phoneNumber = data.phoneNumber;
   if (await redisCommand("SET", key(id), JSON.stringify(order), "EX", TTL, "NX") !== "OK") throw new Error("Não foi possível criar a encomenda.");
   return { orderId: id, token, amountInCents, currency: "EUR" as const };
@@ -108,7 +128,7 @@ export async function orderStatus(input: unknown) {
     if (count === 1) await redisCommand("EXPIRE", budget, 3600);
     if (count > 3) return safe(order);
     try {
-      const nsq = await sdk();
+      const nsq = await sdk(orderProvider(order));
       const details = await nsq.payments.get(order.transactionId);
       const association = webhookPayment(details);
       if (association.orderId !== order.id || association.transactionId !== order.transactionId || association.amountInCents !== order.amountInCents) {
@@ -175,6 +195,7 @@ export async function startPayment(input: unknown) {
   const data = paySchema.parse(input);
   const order = await load(data.orderId);
   if (!order || !authorized(order, data.token)) throw new Error("Pedido não encontrado ou acesso não autorizado.");
+  const provider = orderProvider(order);
   const begin = await redisCommand("EVAL", beginScript, 1, key(order.id), order.accessHash, new Date().toISOString(), TTL);
   if (begin !== "ok") throw new Error("Pedido já iniciado; consulte o estado antes de repetir.");
   let transactionId = "";
@@ -189,7 +210,7 @@ export async function startPayment(input: unknown) {
       customer: order.customer, items: order.items, originToken: data.originToken ?? null, trackingParameters,
       ...(order.method === "mbway" && order.phoneNumber ? { phoneNumber: order.phoneNumber } : {}),
     };
-    const nsq = await sdk();
+    const nsq = await sdk(provider);
     const result = await nsq.payments.create(paymentInput);
     transactionId = result.transactionId;
     let payment = cleanPayment(result.payment);
@@ -227,6 +248,7 @@ const eventScript = [
   "local raw=redis.call('GET',KEYS[1])",
   "if not raw then return 'missing' end",
   "local o=cjson.decode(raw)",
+  "if (o.providerInstallId or ARGV[7]) ~= ARGV[6] then return 'mismatch' end",
   "if o.transactionId ~= ARGV[1] or tonumber(o.amountInCents) ~= tonumber(ARGV[2]) or o.currency ~= 'EUR' then return 'mismatch' end",
   "if redis.call('EXISTS',KEYS[2]) == 1 then return 'duplicate' end",
   "local newStatus=ARGV[3]",
@@ -242,8 +264,19 @@ export async function applyVerifiedWebhook(raw: string, headers: Headers) {
   // O webhook deve continuar a confirmar/reembolsar pedidos antigos mesmo quando
   // o checkout estiver desativado. Nunca o bloquear pelo feature flag de cobranças.
   ensureProviderConfigured();
-  const nsq = await sdk();
-  const verified = await nsq.webhooks.verify(raw, headers);
+  let provider = currentProvider();
+  const nsq = await sdk(provider);
+  let verified;
+  try {
+    verified = await nsq.webhooks.verify(raw, headers);
+  } catch (error) {
+    const legacy = legacyProvider();
+    if (!legacy || !error || typeof error !== "object" || !("code" in error) || error.code !== "INVALID_WEBHOOK") throw error;
+    // Each SDK independently verifies the full signature, timestamp and environment.
+    // The atomic write below also binds the event to the order's original account.
+    provider = legacy;
+    verified = await (await sdk(legacy)).webhooks.verify(raw, headers);
+  }
   const event = verified.payload["event"];
   const statuses: Record<string, Status> = { "payment.success": "paid", "payment.refunded": "refunded",
     "payment.failed": "failed", "payment.cancelled": "cancelled", "payment.pending": "pending", "payment.processing": "processing" };
@@ -253,7 +286,8 @@ export async function applyVerifiedWebhook(raw: string, headers: Headers) {
   const data = rawData as Record<string, unknown>;
   const { orderId, transactionId, amountInCents } = webhookPayment(data);
   const result = await redisCommand("EVAL", eventScript, 2, key(orderId), PREFIX+"event:"+hash(verified.deduplicationKey),
-    transactionId, amountInCents, statuses[event], new Date().toISOString(), TTL);
+    transactionId, amountInCents, statuses[event], new Date().toISOString(), TTL,
+    provider.installId, legacyProvider()?.installId || currentProvider().installId);
   if (result === "missing" || result === "mismatch") throw new Error("Transação, valor ou encomenda divergentes.");
   if (result !== "updated" && result !== "duplicate") throw new Error("Não foi possível aplicar o pagamento.");
   if (event === "payment.success") {

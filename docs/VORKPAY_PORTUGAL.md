@@ -1,74 +1,46 @@
-# Integração VorkPay Connect — Portugal
+# VorkPay — checkout Portugal
 
-## Ambientes e estado verificado
+A página /doar aceita EUR por MB WAY e Multibanco. A API e o SDK ficam no servidor; o navegador recebe apenas a chave pública e usa o componente oficial de origem.
 
-- Repositório: **lorddos2029-debug/zip-to-pix-magic**, branch \`main\`.
-- Destino Vercel: equipa \`lojas5\`, projeto **a** (\`prj_wkyy6uOpPH6y3F0nRyTZVEi0siyY\`).
-- Domínio da loja: \`https://www.juntos-por-vidas.online\`.
-- Página de Portugal: **/doar**, EUR, MB WAY e Multibanco, sem CPF.
-- O Pix do Brasil continua em **/pix**, em BRL, separado para não confundir a moeda cobrada.
-- SDK NSQ Connect 1.0 fornecido pelo proprietário em \`nsq-connect-v1.zip\` instalado como bundle de código-fonte comprimido, verificado pelo SHA-256 \`253c5892b4260c6a5349132713bd1038469376c62ab7a58d51459ed779d0b8b0\`. O \`prebuild\` e o \`predev\` reconstroem o módulo completo \`src/vendor/nsqpay.mjs\`; nunca é carregado no browser.
-- **A emissão real continua bloqueada por \`NSQPAY_PAYMENTS_ENABLED=false\`.** As chaves live fornecidas estão configuradas como variáveis de servidor no projeto correto, mas ainda não houve transação real, validação com a administração da VorkPay ou registo confirmado do webhook.
-- Não marcar como pago com a criação de um pedido, redirect nem eventos do navegador.
+## Configuração de produção
 
-## Ambiente Vercel (produção)
+Projeto Vercel: a, domínio https://www.juntos-por-vidas.online.
 
-Configurar as seguintes variáveis **só no servidor**:
+- NSQPAY_SECRET_KEY: chave da conta atual, variável sensível.
+- NSQPAY_WEBHOOK_SECRET: segredo do endpoint ativo (não confundir com o segredo geral da conta), variável sensível.
+- NSQPAY_PUBLIC_KEY: chave pública da mesma conta.
+- NSQPAY_INSTALL_ID: identificador do pacote descarregado da mesma conta.
+- NSQPAY_STORE_URL: https://www.juntos-por-vidas.online.
+- NSQPAY_ENVIRONMENT: live.
+- NSQPAY_PAYMENTS_ENABLED: true; controla apenas criação de pagamentos, nunca callbacks de pedidos existentes.
+- NSQPAY_LEGACY_CONFIG: JSON sensível com secretKey, webhookSecret, storeUrl, installId e environment da conta anterior. Mantém consultas e callbacks dos pagamentos antigos.
+- UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN: persistência atómica existente.
 
-| Variável | Uso |
-| --- | --- |
-| \`NSQPAY_SECRET_KEY\` | chave secreta de live; guardada de forma cifrada |
-| \`NSQPAY_WEBHOOK_SECRET\` | segredo de assinatura; guardado de forma cifrada |
-| \`NSQPAY_PUBLIC_KEY\` | chave pública usada pelo componente no browser |
-| \`NSQPAY_STORE_URL\` | \`https://www.juntos-por-vidas.online\` |
-| \`NSQPAY_INSTALL_ID\` | identificador de instalação do pacote |
-| \`NSQPAY_ENVIRONMENT\` | \`live\` para as credenciais de produção; usar \`test\` apenas com uma chave \`nsq_sk_test_v2_...\` |
-| \`NSQPAY_PAYMENTS_ENABLED\` | \`false\` até os ensaios serem aprovados |
-| \`UPSTASH_REDIS_REST_URL\` | armazenamento atómico das encomendas, existente neste projeto |
-| \`UPSTASH_REDIS_REST_TOKEN\` | acesso ao Redis, existente neste projeto |
+Nunca incluir segredos no repositório, frontend ou logs.
 
-Não guardar credenciais no repositório, bundles de frontend, documentação ou logs. Como as chaves live foram partilhadas numa conversa, **rotacioná-las no VorkPay antes da ativação**.
+## Migração de conta — 11/11/2026
 
-## Fluxo do checkout
+Documentação oficial revista: https://vorkpay.com/docs/connect e https://vorkpay.com/docs/api-reference.
+O SDK descarregado da nova conta tem o mesmo SHA-256 do módulo instalado: 253c5892b4260c6a5349132713bd1038469376c62ab7a58d51459ed779d0b8b0.
+O prebuild restaura e verifica esse módulo; o bundle do navegador não o importa.
 
-1. \`GET /api/nsq-payments\` verifica se a integração foi habilitada e entrega apenas chave pública e ambiente.
-2. \`POST /api/nsq-payments\` com \`action:"prepare"\` valida nome, email, número MB WAY de nove dígitos (se aplicável), doação em cêntimos e extras. Os extras e preços são definidos no servidor. Total máximo: 500000 cêntimos.
-3. O backend cria \`orderId\` estável, token de acesso aleatório e hash do token no Redis. Restringe o número de pedidos por IP.
-4. No browser, o componente oficial \`https://www.nsqpay.com/sdk/nsq-connect.js\` tenta \`NSQConnect.capture({publicKey,orderId,amountInCents,currency:"EUR"})\`. Se falhar, \`originToken:null\`; preserve apenas parâmetros de campanha reais.
-5. \`POST /api/nsq-payments\` com \`action:"pay"\` autoriza o token, bloqueia concorrência com Lua atómico e chama \`nsq.payments.create\` exclusivamente no servidor. Aceita só o método e valor do pedido guardado.
-6. Guarda \`transactionId\` e detalhes sanitizados \`entity\`, \`reference\` e \`expiresAt\`. Resultado inicial é **pending**, nunca paid. Em erro incerto, bloqueia reenvios automáticos.
-7. \`POST /api/nsq-webhook\` lê corpo bruto, chama \`nsq.webhooks.verify\`, valida encomenda, transactionId, moeda EUR e centavos, deduplica e atualiza pedido numa transação Lua atómica. Responde 2xx só após persistir; 5xx em falha transitória.
-8. A página consulta **apenas o armazenamento autenticado da própria loja** por um período limitado; não há polling permanente à API do processador. O status \`paid\` só aparece depois de \`payment.success\` verificado. \`payment.refunded\` permanece reembolsado mesmo quando eventos atrasados chegam.
-9. UTMify para pagamentos PT deve ser configurada no painel VorkPay Connect > UTMify. Não inventar parâmetros ou disparar Purchase prematuramente.
+Novos pedidos guardam providerInstallId. Pedidos antigos sem esse campo pertencem à configuração legacy. Consultas e ativações usam a conta associada ao pedido. O webhook aceita assinaturas de ambas as contas, mas a transação Redis exige que a conta assinante corresponda à conta do pedido, além de conferir transactionId, montante e moeda. Assinaturas modernas inválidas não recuam para o formato antigo.
 
-## URL do webhook
+Não revogar a configuração anterior enquanto existirem pagamentos pendentes ou possíveis reembolsos. Uma nova migração precisa preservar todas as contas ainda em uso; a configuração atual suporta a conta corrente e uma anterior.
 
-Registar no **painel da mesma conta VorkPay Connect**:
+## Fluxo e confirmação
 
-\`https://www.juntos-por-vidas.online/api/nsq-webhook\`
+1. POST /api/nsq-payments, action prepare: valida nome, email, telefone MB WAY, donativo e extras; calcula o total no servidor e cria pedido/token persistidos.
+2. O componente https://www.nsqpay.com/sdk/nsq-connect.js captura origem e campanhas reais para o mesmo pedido, valor e moeda.
+3. action pay: autoriza o token, bloqueia repetição concorrente e usa o SDK para init + ativação. Um timeout nunca autoriza criar outra cobrança.
+4. POST https://www.juntos-por-vidas.online/api/nsq-webhook: verifica o corpo bruto, assinatura e associação financeira; persiste estado e deduplicação atomicamente.
+5. Apenas payment.success verificado confirma a doação. A rotina idempotente existente envia email Resend e recibo PDF; pendência e criação de referência não enviam confirmação.
+6. O checkout consulta o estado local autorizado. Consultas pontuais ao processador recuperam referências, sem marcar como pago.
 
-O endpoint existir no código não configura a entrega de webhooks na conta do provedor. Confirmar assinatura, eventos e entrega na administração antes de habilitar pagamentos.
+## Validação
 
-## Testes executados
+npm run test:nsq cobre ambos os métodos com transporte simulado, eventos, assinaturas inválidas, falha de rede, autorização, referências e isolamento entre contas durante a migração.
+A consulta autenticada da nova conta a uma referência inexistente retornou 404 Transaction not found, sem criar pagamentos.
+O teste de conectividade do painel envia webhook.test: verifica a entrega HTTPS e assinatura, sem alterar pedidos ou emitir recibos.
 
-Localmente contra o SDK fornecido, com API simulada e **sem chamadas reais**:
-
-- MB WAY: início e geração simulados, OK.
-- Multibanco: início e geração simulados, OK.
-- \`payment.success\`, \`payment.refunded\`, \`payment.failed\`, \`payment.cancelled\`: verificação de assinatura, OK.
-- Assinatura adulterada: rejeitada, OK.
-- Falha de rede: o SDK devolveu \`NETWORK_ERROR\`, OK.
-- Telemóvel com indicativo: rejeitado pelo SDK, OK.
-
-Comando repetível no repositório: \`npm run test:nsq\`.
-
-## Ainda obrigatório antes de live operacional
-
-- Rotacionar chaves e atualizar valores na Vercel.
-- Registar e testar o webhook real no painel VorkPay; confirmar o formato dos dados, especialmente \`orderId\`, \`transactionId\`, \`amountInCents\` (ou \`amount\`) e \`currency\`.
-- Testar a deduplicação e mutações atómicas contra o Redis do projeto, reembolso, autorização por token de outro comprador e entrega repetida/fora de ordem.
-- Confirmar o componente \`nsq-connect.js\` e parâmetros de origem no domínio público HTTPS.
-- Testar em ambiente \`test\` com chave de teste do painel, depois confirmar uma venda **autorizada** em \`live\`, verificando a conta beneficiária e a conciliação com a administração.
-- Somente então mudar \`NSQPAY_PAYMENTS_ENABLED=true\` no projeto \`a\` e redeploy.
-
-Não executar cobranças reais automaticamente durante testes.
+Os testes simulados e webhook.test não comprovam liquidação bancária. A confirmação ponta a ponta de uma doação real depende de pagamento autorizado pelo doador. Não executar cobranças reais automaticamente durante testes.

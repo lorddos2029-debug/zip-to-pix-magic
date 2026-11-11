@@ -128,3 +128,57 @@ globalThis.nsqTestRedis = async (command) => command === "GET" ? JSON.stringify(
 await orderStatus({ orderId, token, refreshReference: true });
 assert.equal(remoteReads, 1, "Rate-limited reference checks must not query the provider");
 console.log("VorkPay contract regressions passed (reference, webhook identifiers, cents, activation).");
+
+// Account migration: pending orders keep their original credentials and signatures.
+const legacySecret = "legacy_webhook_fixture_only";
+const legacyConfig = { secretKey: "nsq_sk_live_legacy_fixture", webhookSecret: legacySecret,
+  storeUrl: "https://example.invalid", installId: "inst_previous", environment: "live" };
+process.env.NSQPAY_LEGACY_CONFIG = JSON.stringify(legacyConfig);
+currentOrder = { ...storedOrder, status: "paid", customer: { name: "Teste", email: "test@example.com" } };
+let migrationWrites = 0;
+globalThis.nsqTestRedis = async (command, ...args) => {
+  if (command === "GET") return JSON.stringify(currentOrder);
+  if (command === "EVAL") {
+    assert.match(args[0], /o\.providerInstallId or ARGV\[7\]/);
+    migrationWrites++;
+    // Mirror the account comparison performed atomically with the financial checks.
+    return (currentOrder.providerInstallId || args[10]) === args[9] ? "updated" : "mismatch";
+  }
+  if (command === "SET") return "OK";
+  if (command === "INCR" || command === "EXPIRE") return 1;
+  throw new Error("Unexpected command");
+};
+const signed = (body, signingKey) => new Headers({ "X-VorkPay-Signature": "sha256=" + createHmac("sha256", signingKey).update(body).digest("hex") });
+await applyVerifiedWebhook(raw, signed(raw, legacySecret));
+await assert.rejects(applyVerifiedWebhook(raw, signed(raw, secret)), /divergentes/, "New account cannot confirm an old order");
+currentOrder.providerInstallId = "inst_local";
+await applyVerifiedWebhook(raw, signed(raw, secret));
+await assert.rejects(applyVerifiedWebhook(raw, signed(raw, legacySecret)), /divergentes/, "Old account cannot confirm a new order");
+const beforeBadSignature = migrationWrites;
+await assert.rejects(applyVerifiedWebhook(raw, signed(raw, "unrelated_secret")));
+assert.equal(migrationWrites, beforeBadSignature);
+// New-format invalid signatures cannot fall back to a valid old-format HMAC.
+const badModern = signed(raw, legacySecret);
+badModern.set("X-NSQPAY-Signature", "v1=" + "0".repeat(64));
+badModern.set("X-NSQPAY-Timestamp", String(Math.floor(Date.now() / 1000)));
+badModern.set("X-NSQPAY-Event-Id", "event_migration");
+badModern.set("X-NSQPAY-Environment", "live");
+await assert.rejects(applyVerifiedWebhook(raw, badModern));
+assert.equal(migrationWrites, beforeBadSignature);
+
+let expectedKey;
+const lookupCredentials = [];
+globalThis.fetch = async (url, options) => {
+  assert.equal(options.method, "GET");
+  lookupCredentials.push(new Headers(options.headers).get("authorization"));
+  return Response.json({ transactionId: "txn_28185", externalOrderId: orderId, amount: 19.99, currency: "EUR", status: "pending" });
+};
+currentOrder = { ...storedOrder };
+expectedKey = legacyConfig.secretKey;
+await orderStatus({ orderId, token, refreshReference: true });
+currentOrder.providerInstallId = "inst_local";
+expectedKey = process.env.NSQPAY_SECRET_KEY;
+await orderStatus({ orderId, token, refreshReference: true });
+assert.deepEqual(lookupCredentials, ["Bearer " + legacyConfig.secretKey, "Bearer " + process.env.NSQPAY_SECRET_KEY]);
+delete process.env.NSQPAY_LEGACY_CONFIG;
+console.log("VorkPay migration passed: account-scoped signatures and original-account lookups.");
