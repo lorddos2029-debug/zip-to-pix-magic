@@ -246,7 +246,7 @@ function DoarPortugalPage() {
           <img src="/branding/juntos-por-vidas.webp" width="112" height="112" className="mx-auto h-28 w-28 object-contain" alt="Juntos por Vidas" />
         </a>
         <h1 className="text-[23px] font-bold leading-tight">A sua ajuda faz a diferença</h1>
-        <p className="mt-2 text-sm text-[#666]">Escolha o montante do donativo em euros (€)</p>
+        <p className="mt-2 text-sm text-[#666]">Escolha o montante do donativo</p>
 
         <div className="mt-5 grid grid-cols-3 gap-2">
           {SUGESTOES.map((suggestion) => (
