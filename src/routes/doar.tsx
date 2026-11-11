@@ -37,7 +37,7 @@ async function apiCall(action: string, data: unknown): Promise<Record<string, un
   if (!response.ok) throw new Error(typeof result["error"] === "string" ? result["error"] : "Pagamento temporariamente indisponível.");
   return result;
 }
-const SUGESTOES = [10, 20, 30, 50, 70, 100, 150, 200, 500];
+const SUGESTOES = [11, 21, 31, 51, 71, 101, 151, 201, 501];
 const EXTRAS = [
   { id: "cabaz", nome: "Cabaz alimentar", cents: 2500, image: "/pix/cesta.png" },
   { id: "energia", nome: "Apoio energético", cents: 2990, image: "/pix/gas.png" },
@@ -46,7 +46,7 @@ const EXTRAS = [
 
 function DoarPortugalPage() {
   const [metodo, setMetodo] = useState<Metodo>("mbway");
-  const [valor, setValor] = useState("20");
+  const [valor, setValor] = useState("21");
   const [extras, setExtras] = useState<string[]>([]);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
