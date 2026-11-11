@@ -20,6 +20,7 @@ export interface QueuedUtmifyOrder {
   synced_pending?: boolean;
   synced_paid?: boolean;
   synced_meta_paid?: boolean;
+  synced_email_paid?: boolean;
 }
 
 const prefix = "pix-ready:tracking:";
@@ -111,14 +112,14 @@ export async function listQueuedUtmifyOrders(limit = 40): Promise<number[]> {
 
 export async function markUtmifyOrderFlags(
   orderId: number,
-  patch: Pick<QueuedUtmifyOrder, "synced_pending" | "synced_paid" | "synced_meta_paid">,
+  patch: Pick<QueuedUtmifyOrder, "synced_pending" | "synced_paid" | "synced_meta_paid" | "synced_email_paid">,
 ): Promise<void> {
   const current = await getQueuedUtmifyOrder(orderId);
   if (!current) return;
   const updated = { ...current, ...patch };
   if (redisEnabled()) {
     await redisCommand("SET", prefix + orderId, JSON.stringify(updated), "EX", 2592000);
-    if (updated.synced_paid && updated.synced_meta_paid) {
+    if (updated.synced_paid && updated.synced_meta_paid && updated.synced_email_paid) {
       await redisCommand("ZREM", pendingKey, String(orderId));
     }
     return;

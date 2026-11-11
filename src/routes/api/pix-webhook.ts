@@ -43,7 +43,7 @@ export const Route = createFileRoute("/api/pix-webhook")({
             utmify: status.utmify,
             facebook: status.facebook,
           });
-          if (processing || utmifyPending) {
+          if (processing || utmifyPending || status.email === "retry") {
             return Response.json({
               ok: false,
               retry: true,

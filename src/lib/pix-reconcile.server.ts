@@ -4,6 +4,7 @@
  */
 import { getQueuedUtmifyOrder, markUtmifyOrderFlags, sendWaitingForOrder, withUtmifyOrderLock } from "./utmify-queue.server";
 import { sendFacebookEvent, sendUtmifyOrder } from "./tracking.server";
+import { sendDonationConfirmation } from "./donation-email.server";
 
 const URUS_BASE = "https://uruspaypagamentos.com/api/v1";
 
@@ -12,6 +13,7 @@ export interface PixSyncResult {
   paid: boolean;
   utmify: string;
   facebook: string;
+  email?: string;
 }
 
 /** A confirmação de pagamento sempre vem da consulta autenticada à UrusPay. */
@@ -74,6 +76,19 @@ export async function reconcilePixOrder(orderId: number): Promise<PixSyncResult>
     }
 
     const current = await getQueuedUtmifyOrder(orderId) || order;
+    let email = current.synced_email_paid ? "already_sent" : "pending";
+    if (!current.synced_email_paid) {
+      try {
+        email = await sendDonationConfirmation({ orderId: "pix-" + orderId,
+          email: current.email, name: current.nome, amountInCents: Math.round(current.valor * 100),
+          currency: "BRL", method: "pix",
+          confirmedAt: new Date((providerPaidTime(payment) || Math.floor(Date.now() / 1000)) * 1000).toISOString() });
+        await markUtmifyOrderFlags(orderId, { synced_email_paid: true });
+      } catch {
+        email = "retry";
+        console.error("[Resend] Confirmação pendente para venda " + orderId);
+      }
+    }
 
     // Priorize Purchase na Meta depois da confirmação financeira. A UTMify
     // e a Meta são canais independentes: falha de um não deve bloquear o outro.
@@ -137,7 +152,7 @@ export async function reconcilePixOrder(orderId: number): Promise<PixSyncResult>
       }
     }
 
-    return { order_id: orderId, paid: true, utmify, facebook };
+    return { order_id: orderId, paid: true, utmify, facebook, email };
   });
 
   return result ?? { order_id: orderId, paid: false, utmify: "processando", facebook: "processando" };

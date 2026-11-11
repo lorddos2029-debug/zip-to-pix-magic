@@ -44,10 +44,16 @@ Object.assign(process.env, {
 });
 const calls = [];
 let storageResult = "updated";
-globalThis.nsqTestRedis = async (...args) => { calls.push(args); return storageResult; };
+const emailCalls = [];
+globalThis.nsqTestEmail = async (receipt) => { emailCalls.push(receipt); return "sent"; };
+globalThis.nsqTestRedis = async (...args) => {
+  if (args[0] === "GET") return JSON.stringify({ id: orderId, status: "paid", amountInCents: 1999, currency: "EUR", method: "multibanco", customer: { name: "Teste", email: "test@example.com" }, updatedAt: "2026-11-11T12:00:00Z" });
+  calls.push(args); return storageResult;
+};
+const emailModule = "data:text/javascript," + encodeURIComponent("export const sendDonationConfirmation = (...args) => globalThis.nsqTestEmail(...args)");
 const redisModule = "data:text/javascript," + encodeURIComponent("export const redisCommand = (...args) => globalThis.nsqTestRedis(...args)");
 let source = await readFile(new URL("../src/lib/nsq-payments.server.ts", import.meta.url), "utf8");
-source = source.replace('"./utmify-queue.server"', JSON.stringify(redisModule))
+source = source.replace('"./donation-email.server"', JSON.stringify(emailModule)).replace('"./utmify-queue.server"', JSON.stringify(redisModule))
   .replace('"./nsq-contract"', JSON.stringify(new URL("../src/lib/nsq-contract.ts", import.meta.url).href))
   .replace('"../vendor/nsqpay.mjs"', JSON.stringify(new URL("../src/vendor/nsqpay.mjs", import.meta.url).href))
   .replace('"zod"', JSON.stringify(import.meta.resolve("zod")));
@@ -57,10 +63,13 @@ const raw = JSON.stringify({ event: "payment.success", data: event });
 const headers = { "X-VorkPay-Signature": "sha256=" + createHmac("sha256", secret).update(raw).digest("hex") };
 assert.deepEqual(await applyVerifiedWebhook(raw, new Headers(headers)), { ok: true, duplicate: false });
 assert.equal(calls.length, 1);
+assert.equal(emailCalls.length, 1);
+assert.equal(emailCalls[0].amountInCents, 1999);
 assert.equal(calls[0][3], "jpv:nsq:v1:order:" + orderId);
 assert.deepEqual(calls[0].slice(5, 8), ["txn_28185", 1999, "paid"]);
 storageResult = "duplicate";
 assert.deepEqual(await applyVerifiedWebhook(raw, new Headers(headers)), { ok: true, duplicate: true });
+assert.equal(emailCalls.length, 2, "Duplicate signed events retry the idempotent email service");
 storageResult = "mismatch";
 await assert.rejects(applyVerifiedWebhook(raw, new Headers(headers)), /divergentes/);
 const beforeInvalid = calls.length;
@@ -72,6 +81,11 @@ assert.deepEqual(await applyVerifiedWebhook(webhookTest, new Headers({
 })), { ok: true, ignored: true });
 assert.equal(calls.length, beforeInvalid, "Connectivity tests must never change orders");
 
+const beforePendingEmail = emailCalls.length;
+storageResult = "updated";
+const pendingRaw = JSON.stringify({ event: "payment.pending", data: event });
+await applyVerifiedWebhook(pendingRaw, new Headers({ "X-VorkPay-Signature": "sha256=" + createHmac("sha256", secret).update(pendingRaw).digest("hex") }));
+assert.equal(emailCalls.length, beforePendingEmail, "Pending events never send a paid receipt");
 const token = "1".repeat(64);
 const storedOrder = { id: orderId, accessHash: createHash("sha256").update(token).digest("hex"),
   status: "uncertain", amountInCents: 1999, currency: "EUR", method: "multibanco", transactionId: "txn_28185" };

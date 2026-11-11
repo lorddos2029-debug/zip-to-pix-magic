@@ -2,6 +2,7 @@ import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypt
 import { z } from "zod";
 import { redisCommand } from "./utmify-queue.server";
 import { activationStatus, cleanPayment, webhookPayment } from "./nsq-contract";
+import { sendDonationConfirmation } from "./donation-email.server";
 
 type Method = "mbway" | "multibanco";
 type Status = "prepared" | "initiating" | "pending" | "processing" | "uncertain" | "paid" | "refunded" | "failed" | "cancelled";
@@ -11,7 +12,7 @@ type Order = {
   method: Method; customer: { name: string; email: string; country: "PT"; phone?: string };
   phoneNumber?: string; items: Item[]; transactionId?: string;
   payment?: { entity?: string; reference?: string; expiresAt?: string };
-  createdAt: string; updatedAt: string;
+  createdAt: string; updatedAt: string; paidAt?: string;
 };
 const PREFIX = "jpv:nsq:v1:";
 const TTL = 60 * 60 * 24 * 30;
@@ -232,6 +233,7 @@ const eventScript = [
   "if o.status == 'refunded' then newStatus='refunded'",
   "elseif o.status == 'paid' and newStatus ~= 'refunded' then newStatus='paid' end",
   "o.status=newStatus; o.updatedAt=ARGV[4]",
+  "if newStatus == 'paid' and not o.paidAt then o.paidAt=ARGV[4] end",
   "redis.call('SET',KEYS[1],cjson.encode(o),'EX',ARGV[5])",
   "redis.call('SET',KEYS[2],'1','EX',ARGV[5])",
   "return 'updated'",
@@ -254,5 +256,14 @@ export async function applyVerifiedWebhook(raw: string, headers: Headers) {
     transactionId, amountInCents, statuses[event], new Date().toISOString(), TTL);
   if (result === "missing" || result === "mismatch") throw new Error("Transação, valor ou encomenda divergentes.");
   if (result !== "updated" && result !== "duplicate") throw new Error("Não foi possível aplicar o pagamento.");
+  if (event === "payment.success") {
+    const order = await load(orderId);
+    if (order?.status === "paid") {
+      // Includes duplicate signed events so a temporary email failure can be retried.
+      await sendDonationConfirmation({ orderId: order.id, email: order.customer.email,
+        name: order.customer.name, amountInCents: order.amountInCents,
+        currency: order.currency, method: order.method, confirmedAt: order.paidAt || order.updatedAt });
+    }
+  }
   return { ok: true, duplicate: result === "duplicate" };
 }
