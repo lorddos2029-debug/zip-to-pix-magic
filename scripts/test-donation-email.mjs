@@ -12,7 +12,8 @@ async function loadTs(path, overrides, extra = {}) {
     { env: { RESEND_API_KEY: "test-key", RESEND_FROM_EMAIL: "Juntos por Vidas <doacoes@juntos-por-vidas.online>" } }, extra.fetch ?? globalThis.fetch);
   return exports;
 }
-const pdf = await loadTs("../src/lib/donation-receipt.server.ts", {});
+const brand = await loadTs("../src/lib/donation-brand.server.ts", {});
+const pdf = await loadTs("../src/lib/donation-receipt.server.ts", { "./donation-brand.server": brand });
 const values = new Map();
 async function redisCommand(command, ...args) {
   if (command === "GET") return values.get(args[0]) ?? null;
@@ -31,7 +32,7 @@ const requests = [];
 let fail = false;
 let hold;
 const module = await loadTs("../src/lib/donation-email.server.ts", {
-  "./utmify-queue.server": { redisCommand }, "./donation-receipt.server": pdf,
+  "./utmify-queue.server": { redisCommand }, "./donation-receipt.server": pdf, "./donation-brand.server": brand,
 }, { fetch: async (url, options) => {
   assert.equal(url, "https://api.resend.com/emails");
   requests.push(options);
@@ -45,7 +46,9 @@ assert.equal(await module.sendDonationConfirmation(receipt), "sent");
 assert.equal(await module.sendDonationConfirmation(receipt), "already_sent");
 assert.equal(requests.length, 1, "Duplicate webhook must not send twice");
 const payload = JSON.parse(requests[0].body);
-assert.equal(payload.attachments.length, 1);
+assert.equal(payload.attachments.length, 2);
+assert.equal(payload.attachments[1].content_id, "juntos-por-vidas-logo");
+assert.match(payload.html, /src="cid:juntos-por-vidas-logo"/);
 const attachment = Buffer.from(payload.attachments[0].content, "base64");
 assert.equal(attachment.subarray(0, 5).toString(), "%PDF-");
 const parsed = await require("pdf-lib").PDFDocument.load(attachment);

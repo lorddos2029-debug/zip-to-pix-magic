@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import type { DonationReceipt } from "./donation-email.server";
+import { donationLogoBase64 } from "./donation-brand.server";
 
 /** Payment acknowledgement only; never a tax invoice or tax-deductibility certificate. */
 export async function createDonationReceipt(receipt: DonationReceipt): Promise<Uint8Array> {
@@ -27,12 +28,15 @@ export async function createDonationReceipt(receipt: DonationReceipt): Promise<U
         }
       })
       .join("");
-  const draw = (text: string, y: number, size = 11, strong = false, color = ink) => {
-    page.drawText(safe(text), { x: 48, y, size, font: strong ? bold : regular, color });
+  const draw = (text: string, y: number, size = 11, strong = false, color = ink, x = 48) => {
+    page.drawText(safe(text), { x, y, size, font: strong ? bold : regular, color });
   };
   page.drawRectangle({ x: 0, y: 805, width: 595.28, height: 37, color: green });
-  draw("JUNTOS POR VIDAS", 754, 18, true, green);
-  draw("juntos-por-vidas.online", 732, 10, false, muted);
+  const logo = await pdf.embedPng(donationLogoBase64);
+  page.drawImage(logo, { x: 48, y: 709, width: 88, height: 88 });
+  draw("JUNTOS POR VIDAS", 760, 18, true, green, 154);
+  draw("Transformando solidariedade em esperança.", 740, 10, false, muted, 154);
+  draw("juntos-por-vidas.online", 723, 10, false, muted, 154);
   draw("Recibo de doação", 675, 27, true);
   draw("SEM VALOR FISCAL", 648, 11, true, muted);
   const locale = receipt.currency === "EUR" ? "pt-PT" : "pt-BR";
@@ -48,8 +52,8 @@ export async function createDonationReceipt(receipt: DonationReceipt): Promise<U
   }).format(date);
   const method = { pix: "Pix", mbway: "MB WAY", multibanco: "Multibanco" }[receipt.method];
   page.drawRectangle({ x: 48, y: 543, width: 499, height: 73, color: rgb(0.92, 0.97, 0.94) });
-  draw("VALOR CONFIRMADO", 592, 10, true, green);
-  draw(amount, 562, 24, true, green);
+  draw("VALOR CONFIRMADO", 592, 10, true, green, 64);
+  draw(amount, 562, 24, true, green, 64);
   let y = 505;
   const field = (label: string, value: string) => {
     draw(label, y, 10, true, muted);

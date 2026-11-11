@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { redisCommand } from "./utmify-queue.server";
 import { createDonationReceipt } from "./donation-receipt.server";
+import { donationLogoBase64 } from "./donation-brand.server";
 
 export type DonationReceipt = {
   orderId: string;
@@ -18,7 +19,7 @@ type EmailPayload = {
   subject: string;
   text: string;
   html: string;
-  attachments: { filename: string; content: string }[];
+  attachments: { filename: string; content: string; content_id?: string }[];
 };
 type Attempt = { startedAt: number; payload: EmailPayload };
 const escapeHtml = (value: string) =>
@@ -77,7 +78,7 @@ export function buildDonationEmail(details: {
         : `<p style="margin:0 0 18px;font-size:16px;line-height:1.8;color:#37474f">${paragraph}</p>`,
     )
     .join("");
-  const html = `<!doctype html><html lang="pt"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Doação confirmada | Juntos por Vidas</title></head><body style="margin:0;padding:0;background:#f2f6f3;font-family:Arial,Helvetica,sans-serif"><div style="display:none;max-height:0;overflow:hidden;opacity:0">Sua doação foi confirmada. Obrigado por transformar solidariedade em esperança. Seu recibo está anexado.</div><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f2f6f3"><tr><td align="center" style="padding:28px 12px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #e0e9e2;border-radius:16px"><tr><td style="padding:36px 28px;text-align:center;background:#176442;border-radius:16px 16px 0 0"><div style="font-size:25px;font-weight:bold;letter-spacing:1px;color:#ffffff">❤️ JUNTOS POR VIDAS</div><p style="margin:12px 0 0;color:#e0f1e6;font-size:14px;line-height:1.6">Transformando solidariedade em esperança.</p></td></tr><tr><td style="padding:32px 28px"><h1 style="margin:0 0 24px;color:#176442;font-size:26px;line-height:1.4">✅ Sua doação foi confirmada com sucesso!</h1><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#edf7f0;border:1px solid #d6e9dc;border-radius:10px;margin-bottom:28px"><tr><td style="padding:20px;font-size:14px;color:#41564a;line-height:1.9;word-break:break-word">Valor confirmado<br><strong style="font-size:27px;color:#176442">${escapeHtml(details.amount)}</strong><br>Método: <strong>${escapeHtml(details.method)}</strong><br>Pedido: ${escapeHtml(details.orderId)}<br><span style="font-size:12px">Recibo em PDF anexado · Sem valor fiscal</span></td></tr></table>${body}</td></tr><tr><td style="padding:24px 28px;border-top:1px solid #e8eee9;text-align:center"><p style="margin:0 0 12px;color:#6d7e73;font-size:12px;line-height:1.7">${footer}</p><p style="margin:0;color:#6d7e73;font-size:12px;line-height:1.7">© ${year} Juntos por Vidas. Todos os direitos reservados.</p></td></tr></table></td></tr></table></body></html>`;
+  const html = `<!doctype html><html lang="pt"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Doação confirmada | Juntos por Vidas</title></head><body style="margin:0;padding:0;background:#f2f6f3;font-family:Arial,Helvetica,sans-serif"><div style="display:none;max-height:0;overflow:hidden;opacity:0">Sua doação foi confirmada. Obrigado por transformar solidariedade em esperança. Seu recibo está anexado.</div><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f2f6f3"><tr><td align="center" style="padding:28px 12px"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border:1px solid #e0e9e2;border-radius:16px"><tr><td style="padding:30px 28px;text-align:center;background:#ffffff;border-top:6px solid #176442;border-bottom:1px solid #e0e9e2;border-radius:16px 16px 0 0"><img src="cid:juntos-por-vidas-logo" alt="Juntos por Vidas" width="112" height="112" style="display:block;width:112px;height:112px;margin:0 auto 16px;border:0"><div style="font-size:22px;font-weight:bold;letter-spacing:1px;color:#176442">JUNTOS POR VIDAS</div><p style="margin:12px 0 0;color:#6d7e73;font-size:14px;line-height:1.6">Transformando solidariedade em esperança.</p></td></tr><tr><td style="padding:32px 28px"><div style="display:inline-block;padding:7px 12px;margin:0 0 16px;background:#edf7f0;color:#176442;border-radius:30px;font-size:12px;font-weight:bold;letter-spacing:1px">PAGAMENTO CONFIRMADO</div><h1 style="margin:0 0 24px;color:#176442;font-size:26px;line-height:1.4">Sua doação foi confirmada com sucesso!</h1><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#edf7f0;border:1px solid #d6e9dc;border-radius:10px;margin-bottom:28px"><tr><td style="padding:20px;font-size:14px;color:#41564a;line-height:1.9;word-break:break-word">Valor confirmado<br><strong style="font-size:27px;color:#176442">${escapeHtml(details.amount)}</strong><br>Método: <strong>${escapeHtml(details.method)}</strong><br>Pedido: ${escapeHtml(details.orderId)}<br><span style="font-size:12px">Seu recibo com a logo Juntos por Vidas está anexado em PDF.<br>Documento sem valor fiscal.</span></td></tr></table>${body}</td></tr><tr><td style="padding:24px 28px;border-top:1px solid #e8eee9;text-align:center"><p style="margin:0 0 12px;color:#6d7e73;font-size:12px;line-height:1.7">${footer}</p><p style="margin:0;color:#6d7e73;font-size:12px;line-height:1.7">© ${year} Juntos por Vidas. Todos os direitos reservados.</p></td></tr></table></td></tr></table></body></html>`;
   return { text, html };
 }
 
@@ -138,6 +139,11 @@ export async function sendDonationConfirmation(
                   filename:
                     "recibo-doacao-" + receipt.orderId.replace(/[^a-zA-Z0-9_-]/g, "_") + ".pdf",
                   content: Buffer.from(await createDonationReceipt(receipt)).toString("base64"),
+                },
+                {
+                  filename: "juntos-por-vidas.png",
+                  content: donationLogoBase64,
+                  content_id: "juntos-por-vidas-logo",
                 },
               ],
             },
