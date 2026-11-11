@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { formatEUR } from "@/lib/pix";
+const formatEUR = (amount: number) =>
+  amount.toLocaleString("pt-PT", { minimumFractionDigits: Number.isInteger(amount) ? 0 : 2, maximumFractionDigits: 2 }) + "€";
 import { getCampaignAttribution } from "@/lib/campaign-attribution";
 
 /** Checkout dedicado a Portugal. O SDK VorkPay é executado exclusivamente no servidor. */
