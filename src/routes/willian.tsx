@@ -190,7 +190,7 @@ function WillianCampaign() {
             />
 
             <p className="created">
-              <strong>Vaquinha criada em:</strong> 20/09/2026
+              <strong>Campanha criada em:</strong> 20/09/2026
             </p>
 
             <h2>Entenda</h2>
