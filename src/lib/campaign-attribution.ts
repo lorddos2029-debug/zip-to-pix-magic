@@ -54,7 +54,7 @@ type AttributionData = Record<string, string>;
 const LANDING_ROUTES = new Set([
   "/", "/ana", "/davi", "/gabriel", "/joana", "/kaue",
   "/maria", "/melissa", "/miguel", "/pedro", "/pedro2", "/pietro",
-  "/livia", "/fabinho",
+  "/livia", "/fabinho", "/willian",
 ]);
 function landingOrigin(): string {
   if (typeof window === "undefined") return "";

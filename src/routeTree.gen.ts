@@ -9,26 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AnaRouteImport } from './routes/ana'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnaRouteImport } from './routes/ana'
 import { Route as DaviRouteImport } from './routes/davi'
+import { Route as DoarRouteImport } from './routes/doar'
 import { Route as GabrielRouteImport } from './routes/gabriel'
 import { Route as IsabeleRouteImport } from './routes/isabele'
+import { Route as JoanaRouteImport } from './routes/joana'
 import { Route as KaueRouteImport } from './routes/kaue'
+import { Route as LiviaRouteImport } from './routes/livia'
+import { Route as MariaRouteImport } from './routes/maria'
+import { Route as MelissaRouteImport } from './routes/melissa'
 import { Route as MiguelRouteImport } from './routes/miguel'
 import { Route as PedroRouteImport } from './routes/pedro'
 import { Route as Pedro2RouteImport } from './routes/pedro2'
 import { Route as PietroRouteImport } from './routes/pietro'
 import { Route as PixRouteImport } from './routes/pix'
+import { Route as WillianRouteImport } from './routes/willian'
+import { Route as ApiNsqPaymentsRouteImport } from './routes/api/nsq-payments'
+import { Route as ApiNsqWebhookRouteImport } from './routes/api/nsq-webhook'
+import { Route as ApiPixWebhookRouteImport } from './routes/api/pix-webhook'
+import { Route as ApiReconcilePixRouteImport } from './routes/api/reconcile-pix'
 
-const AnaRoute = AnaRouteImport.update({
-  id: '/ana',
-  path: '/ana',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnaRoute = AnaRouteImport.update({
+  id: '/ana',
+  path: '/ana',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DaviRoute = DaviRouteImport.update({
@@ -36,9 +46,9 @@ const DaviRoute = DaviRouteImport.update({
   path: '/davi',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IsabeleRoute = IsabeleRouteImport.update({
-  id: '/isabele',
-  path: '/isabele',
+const DoarRoute = DoarRouteImport.update({
+  id: '/doar',
+  path: '/doar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GabrielRoute = GabrielRouteImport.update({
@@ -46,9 +56,34 @@ const GabrielRoute = GabrielRouteImport.update({
   path: '/gabriel',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IsabeleRoute = IsabeleRouteImport.update({
+  id: '/isabele',
+  path: '/isabele',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const JoanaRoute = JoanaRouteImport.update({
+  id: '/joana',
+  path: '/joana',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KaueRoute = KaueRouteImport.update({
   id: '/kaue',
   path: '/kaue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiviaRoute = LiviaRouteImport.update({
+  id: '/livia',
+  path: '/livia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MariaRoute = MariaRouteImport.update({
+  id: '/maria',
+  path: '/maria',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MelissaRoute = MelissaRouteImport.update({
+  id: '/melissa',
+  path: '/melissa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MiguelRoute = MiguelRouteImport.update({
@@ -76,67 +111,196 @@ const PixRoute = PixRouteImport.update({
   path: '/pix',
   getParentRoute: () => rootRouteImport,
 } as any)
+const WillianRoute = WillianRouteImport.update({
+  id: '/willian',
+  path: '/willian',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNsqPaymentsRoute = ApiNsqPaymentsRouteImport.update({
+  id: '/api/nsq-payments',
+  path: '/api/nsq-payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiNsqWebhookRoute = ApiNsqWebhookRouteImport.update({
+  id: '/api/nsq-webhook',
+  path: '/api/nsq-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPixWebhookRoute = ApiPixWebhookRouteImport.update({
+  id: '/api/pix-webhook',
+  path: '/api/pix-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiReconcilePixRoute = ApiReconcilePixRouteImport.update({
+  id: '/api/reconcile-pix',
+  path: '/api/reconcile-pix',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ana': typeof AnaRoute
   '/davi': typeof DaviRoute
-  '/isabele': typeof IsabeleRoute
+  '/doar': typeof DoarRoute
   '/gabriel': typeof GabrielRoute
+  '/isabele': typeof IsabeleRoute
+  '/joana': typeof JoanaRoute
   '/kaue': typeof KaueRoute
+  '/livia': typeof LiviaRoute
+  '/maria': typeof MariaRoute
+  '/melissa': typeof MelissaRoute
   '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
   '/pix': typeof PixRoute
-  '/ana': typeof AnaRoute
+  '/willian': typeof WillianRoute
+  '/api/nsq-payments': typeof ApiNsqPaymentsRoute
+  '/api/nsq-webhook': typeof ApiNsqWebhookRoute
+  '/api/pix-webhook': typeof ApiPixWebhookRoute
+  '/api/reconcile-pix': typeof ApiReconcilePixRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ana': typeof AnaRoute
   '/davi': typeof DaviRoute
-  '/isabele': typeof IsabeleRoute
+  '/doar': typeof DoarRoute
   '/gabriel': typeof GabrielRoute
+  '/isabele': typeof IsabeleRoute
+  '/joana': typeof JoanaRoute
   '/kaue': typeof KaueRoute
+  '/livia': typeof LiviaRoute
+  '/maria': typeof MariaRoute
+  '/melissa': typeof MelissaRoute
   '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
   '/pix': typeof PixRoute
-  '/ana': typeof AnaRoute
+  '/willian': typeof WillianRoute
+  '/api/nsq-payments': typeof ApiNsqPaymentsRoute
+  '/api/nsq-webhook': typeof ApiNsqWebhookRoute
+  '/api/pix-webhook': typeof ApiPixWebhookRoute
+  '/api/reconcile-pix': typeof ApiReconcilePixRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ana': typeof AnaRoute
   '/davi': typeof DaviRoute
-  '/isabele': typeof IsabeleRoute
+  '/doar': typeof DoarRoute
   '/gabriel': typeof GabrielRoute
+  '/isabele': typeof IsabeleRoute
+  '/joana': typeof JoanaRoute
   '/kaue': typeof KaueRoute
+  '/livia': typeof LiviaRoute
+  '/maria': typeof MariaRoute
+  '/melissa': typeof MelissaRoute
   '/miguel': typeof MiguelRoute
   '/pedro': typeof PedroRoute
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
   '/pix': typeof PixRoute
-  '/ana': typeof AnaRoute
+  '/willian': typeof WillianRoute
+  '/api/nsq-payments': typeof ApiNsqPaymentsRoute
+  '/api/nsq-webhook': typeof ApiNsqWebhookRoute
+  '/api/pix-webhook': typeof ApiPixWebhookRoute
+  '/api/reconcile-pix': typeof ApiReconcilePixRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ana' | '/davi' | '/gabriel' | '/isabele' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
+  fullPaths:
+    | '/'
+    | '/ana'
+    | '/davi'
+    | '/doar'
+    | '/gabriel'
+    | '/isabele'
+    | '/joana'
+    | '/kaue'
+    | '/livia'
+    | '/maria'
+    | '/melissa'
+    | '/miguel'
+    | '/pedro'
+    | '/pedro2'
+    | '/pietro'
+    | '/pix'
+    | '/willian'
+    | '/api/nsq-payments'
+    | '/api/nsq-webhook'
+    | '/api/pix-webhook'
+    | '/api/reconcile-pix'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ana' | '/davi' | '/gabriel' | '/isabele' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
-  id: '__root__' | '/' | '/ana' | '/davi' | '/gabriel' | '/isabele' | '/kaue' | '/miguel' | '/pedro' | '/pedro2' | '/pietro' | '/pix'
+  to:
+    | '/'
+    | '/ana'
+    | '/davi'
+    | '/doar'
+    | '/gabriel'
+    | '/isabele'
+    | '/joana'
+    | '/kaue'
+    | '/livia'
+    | '/maria'
+    | '/melissa'
+    | '/miguel'
+    | '/pedro'
+    | '/pedro2'
+    | '/pietro'
+    | '/pix'
+    | '/willian'
+    | '/api/nsq-payments'
+    | '/api/nsq-webhook'
+    | '/api/pix-webhook'
+    | '/api/reconcile-pix'
+  id:
+    | '__root__'
+    | '/'
+    | '/ana'
+    | '/davi'
+    | '/doar'
+    | '/gabriel'
+    | '/isabele'
+    | '/joana'
+    | '/kaue'
+    | '/livia'
+    | '/maria'
+    | '/melissa'
+    | '/miguel'
+    | '/pedro'
+    | '/pedro2'
+    | '/pietro'
+    | '/pix'
+    | '/willian'
+    | '/api/nsq-payments'
+    | '/api/nsq-webhook'
+    | '/api/pix-webhook'
+    | '/api/reconcile-pix'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AnaRoute: typeof AnaRoute
   IndexRoute: typeof IndexRoute
+  AnaRoute: typeof AnaRoute
   DaviRoute: typeof DaviRoute
+  DoarRoute: typeof DoarRoute
   GabrielRoute: typeof GabrielRoute
   IsabeleRoute: typeof IsabeleRoute
+  JoanaRoute: typeof JoanaRoute
   KaueRoute: typeof KaueRoute
+  LiviaRoute: typeof LiviaRoute
+  MariaRoute: typeof MariaRoute
+  MelissaRoute: typeof MelissaRoute
   MiguelRoute: typeof MiguelRoute
   PedroRoute: typeof PedroRoute
   Pedro2Route: typeof Pedro2Route
   PietroRoute: typeof PietroRoute
   PixRoute: typeof PixRoute
+  WillianRoute: typeof WillianRoute
+  ApiNsqPaymentsRoute: typeof ApiNsqPaymentsRoute
+  ApiNsqWebhookRoute: typeof ApiNsqWebhookRoute
+  ApiPixWebhookRoute: typeof ApiPixWebhookRoute
+  ApiReconcilePixRoute: typeof ApiReconcilePixRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -162,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DaviRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/doar': {
+      id: '/doar'
+      path: '/doar'
+      fullPath: '/doar'
+      preLoaderRoute: typeof DoarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/gabriel': {
       id: '/gabriel'
       path: '/gabriel'
@@ -176,11 +347,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IsabeleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/joana': {
+      id: '/joana'
+      path: '/joana'
+      fullPath: '/joana'
+      preLoaderRoute: typeof JoanaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/kaue': {
       id: '/kaue'
       path: '/kaue'
       fullPath: '/kaue'
       preLoaderRoute: typeof KaueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/livia': {
+      id: '/livia'
+      path: '/livia'
+      fullPath: '/livia'
+      preLoaderRoute: typeof LiviaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maria': {
+      id: '/maria'
+      path: '/maria'
+      fullPath: '/maria'
+      preLoaderRoute: typeof MariaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/melissa': {
+      id: '/melissa'
+      path: '/melissa'
+      fullPath: '/melissa'
+      preLoaderRoute: typeof MelissaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/miguel': {
@@ -218,21 +417,66 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PixRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/willian': {
+      id: '/willian'
+      path: '/willian'
+      fullPath: '/willian'
+      preLoaderRoute: typeof WillianRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/nsq-payments': {
+      id: '/api/nsq-payments'
+      path: '/api/nsq-payments'
+      fullPath: '/api/nsq-payments'
+      preLoaderRoute: typeof ApiNsqPaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/nsq-webhook': {
+      id: '/api/nsq-webhook'
+      path: '/api/nsq-webhook'
+      fullPath: '/api/nsq-webhook'
+      preLoaderRoute: typeof ApiNsqWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pix-webhook': {
+      id: '/api/pix-webhook'
+      path: '/api/pix-webhook'
+      fullPath: '/api/pix-webhook'
+      preLoaderRoute: typeof ApiPixWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/reconcile-pix': {
+      id: '/api/reconcile-pix'
+      path: '/api/reconcile-pix'
+      fullPath: '/api/reconcile-pix'
+      preLoaderRoute: typeof ApiReconcilePixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
-  AnaRoute: AnaRoute,
   IndexRoute: IndexRoute,
+  AnaRoute: AnaRoute,
   DaviRoute: DaviRoute,
+  DoarRoute: DoarRoute,
   GabrielRoute: GabrielRoute,
   IsabeleRoute: IsabeleRoute,
+  JoanaRoute: JoanaRoute,
   KaueRoute: KaueRoute,
+  LiviaRoute: LiviaRoute,
+  MariaRoute: MariaRoute,
+  MelissaRoute: MelissaRoute,
   MiguelRoute: MiguelRoute,
   PedroRoute: PedroRoute,
   Pedro2Route: Pedro2Route,
   PietroRoute: PietroRoute,
   PixRoute: PixRoute,
+  WillianRoute: WillianRoute,
+  ApiNsqPaymentsRoute: ApiNsqPaymentsRoute,
+  ApiNsqWebhookRoute: ApiNsqWebhookRoute,
+  ApiPixWebhookRoute: ApiPixWebhookRoute,
+  ApiReconcilePixRoute: ApiReconcilePixRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
