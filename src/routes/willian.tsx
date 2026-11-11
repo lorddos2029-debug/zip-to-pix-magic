@@ -143,7 +143,7 @@ function WillianCampaign() {
             <div className="progress-value" />
           </div>
           <div className="raised">
-            R$ 1.427,92 <span>de R$ 13.000,00</span>
+            1.427,92 € <span>de 13.000,00 €</span>
           </div>
 
           <div className="stats-box">
@@ -238,12 +238,6 @@ function WillianCampaign() {
                 ele e seu pai.
               </strong>
             </p>
-
-            <p className="legal">
-              AVISO LEGAL: O texto e as imagens incluídos nessa página são de única e exclusiva
-              responsabilidade do criador da vaquinha e não representam a opinião ou endosso da
-              plataforma.
-            </p>
           </article>
         ) : (
           <section
@@ -266,22 +260,17 @@ function WillianCampaign() {
                     </p>
                   </div>
                 </div>
-                <p className="reference-legal">
-                  AVISO LEGAL: O texto e as imagens incluídos nessa página são de única e exclusiva
-                  responsabilidade do criador da vaquinha e não representam a opinião ou endosso da
-                  plataforma.
-                </p>
               </>
             )}
             {tab === "quem" && (
               <div className="reference-supporters">
                 {[
-                  { name: "João", amount: "R$ 40,00", time: "há poucos minutos" },
-                  { name: "Eva", amount: "R$ 45,00", time: "há 22 minutos" },
-                  { name: "Bruno", amount: "R$ 45,00", time: "há 1 hora" },
-                  { name: "Liz", amount: "R$ 10,00", time: "há 2 horas" },
-                  { name: "Anônimo", amount: "R$ 100,00", time: "há 3 horas" },
-                  { name: "Márcia", amount: "R$ 50,00", time: "há 5 horas" },
+                  { name: "João", amount: "40,00 €", time: "há poucos minutos" },
+                  { name: "Eva", amount: "45,00 €", time: "há 22 minutos" },
+                  { name: "Bruno", amount: "45,00 €", time: "há 1 hora" },
+                  { name: "Liz", amount: "10,00 €", time: "há 2 horas" },
+                  { name: "Anônimo", amount: "100,00 €", time: "há 3 horas" },
+                  { name: "Márcia", amount: "50,00 €", time: "há 5 horas" },
                 ].map((supporter, index) => (
                   <div className="reference-supporter" key={index}>
                     <span className="reference-avatar" aria-hidden="true">
