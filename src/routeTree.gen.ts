@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AnaRouteImport } from './routes/ana'
 import { Route as DaviRouteImport } from './routes/davi'
 import { Route as DoarRouteImport } from './routes/doar'
+import { Route as GabiRouteImport } from './routes/gabi'
 import { Route as GabrielRouteImport } from './routes/gabriel'
 import { Route as IsabeleRouteImport } from './routes/isabele'
 import { Route as JoanaRouteImport } from './routes/joana'
@@ -49,6 +50,11 @@ const DaviRoute = DaviRouteImport.update({
 const DoarRoute = DoarRouteImport.update({
   id: '/doar',
   path: '/doar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GabiRoute = GabiRouteImport.update({
+  id: '/gabi',
+  path: '/gabi',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GabrielRoute = GabrielRouteImport.update({
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/ana': typeof AnaRoute
   '/davi': typeof DaviRoute
   '/doar': typeof DoarRoute
+  '/gabi': typeof GabiRoute
   '/gabriel': typeof GabrielRoute
   '/isabele': typeof IsabeleRoute
   '/joana': typeof JoanaRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/ana': typeof AnaRoute
   '/davi': typeof DaviRoute
   '/doar': typeof DoarRoute
+  '/gabi': typeof GabiRoute
   '/gabriel': typeof GabrielRoute
   '/isabele': typeof IsabeleRoute
   '/joana': typeof JoanaRoute
@@ -189,6 +197,7 @@ export interface FileRoutesById {
   '/ana': typeof AnaRoute
   '/davi': typeof DaviRoute
   '/doar': typeof DoarRoute
+  '/gabi': typeof GabiRoute
   '/gabriel': typeof GabrielRoute
   '/isabele': typeof IsabeleRoute
   '/joana': typeof JoanaRoute
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/ana'
     | '/davi'
     | '/doar'
+    | '/gabi'
     | '/gabriel'
     | '/isabele'
     | '/joana'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/ana'
     | '/davi'
     | '/doar'
+    | '/gabi'
     | '/gabriel'
     | '/isabele'
     | '/joana'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/ana'
     | '/davi'
     | '/doar'
+    | '/gabi'
     | '/gabriel'
     | '/isabele'
     | '/joana'
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   AnaRoute: typeof AnaRoute
   DaviRoute: typeof DaviRoute
   DoarRoute: typeof DoarRoute
+  GabiRoute: typeof GabiRoute
   GabrielRoute: typeof GabrielRoute
   IsabeleRoute: typeof IsabeleRoute
   JoanaRoute: typeof JoanaRoute
@@ -331,6 +344,13 @@ declare module '@tanstack/react-router' {
       path: '/doar'
       fullPath: '/doar'
       preLoaderRoute: typeof DoarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gabi': {
+      id: '/gabi'
+      path: '/gabi'
+      fullPath: '/gabi'
+      preLoaderRoute: typeof GabiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gabriel': {
@@ -460,6 +480,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnaRoute: AnaRoute,
   DaviRoute: DaviRoute,
   DoarRoute: DoarRoute,
+  GabiRoute: GabiRoute,
   GabrielRoute: GabrielRoute,
   IsabeleRoute: IsabeleRoute,
   JoanaRoute: JoanaRoute,
