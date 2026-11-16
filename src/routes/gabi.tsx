@@ -128,6 +128,16 @@ function GabiCampaign() {
         </div>
 
         <h1>Ajude a Gabi</h1>
+        <p className="campaign-id">ID: GABI2026</p>
+        <section className="stats" aria-label="Arrecadação informada pela campanha de origem">
+          <div className="progress-track"><div className="progress-value" style={{width: "6.92%"}} /></div>
+          <div className="raised">R$ 1.521,56 <span>de R$ 22.000,00</span></div>
+          <div className="stats-box">
+            <div><span>Corações Recebidos</span><strong>1.755</strong></div>
+            <div><span>Apoiadores</span><strong>421</strong></div>
+          </div>
+          <small>Dados da <a href="https://juntosesperanca.online/">campanha de origem</a> em 16/11/2026.</small>
+        </section>
         <nav className="tabs" aria-label="Informações da campanha">
           {TABS.map((item) => (
             <button
@@ -144,6 +154,7 @@ function GabiCampaign() {
         {tab === "sobre" ? (
           <article className="story">
             <p>A Gabi enfrenta uma condição neurológica grave: a Síndrome de West. Essa realidade exige cuidados constantes e uma rotina que envolve tratamento, terapias e medicamentos. Enquanto tantas crianças podem simplesmente aproveitar cada descoberta da infância, a Gabi e sua família precisam lidar diariamente com desafios que não podem esperar.</p>
+            <p className="created"><strong>Vaquinha criada em:</strong> 20/09/2026</p>
             <h2>Entenda</h2>
             <p>Por trás de cada consulta, cada sessão de terapia e cada medicamento existe uma família que luta para oferecer à Gabi o cuidado de que ela precisa. São muitas preocupações ao mesmo tempo: acompanhar sua saúde, buscar os recursos necessários e encontrar forças para seguir mesmo quando as dificuldades parecem maiores do que as possibilidades.</p>
             <p>A situação fica ainda mais difícil porque a família passa por necessidades financeiras. Os custos do tratamento e dos cuidados se acumulam, e nem sempre há dinheiro suficiente para garantir tudo no momento certo. Para quem já enfrenta tantas preocupações, ter que escolher quais despesas essenciais conseguir pagar torna cada dia ainda mais pesado.</p>
@@ -159,7 +170,7 @@ function GabiCampaign() {
           </article>
         ) : (
           <section className="reference-tabs-panel" role="tabpanel" aria-label={TABS.find((item) => item.id === tab)?.label}>
-            {tab === "atualizacoes" && <p>A família ainda não publicou atualizações nesta página.</p>}
+            {tab === "atualizacoes" && <p>20/09/2026 — A família da Gabi criou a campanha para ajudar com o tratamento, as terapias e os medicamentos.</p>}
             {tab === "quem" && <p>A lista de apoiadores ainda não está disponível.</p>}
             {tab === "perguntas" && (
               <div className="reference-questions">
