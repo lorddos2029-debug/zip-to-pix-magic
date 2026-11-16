@@ -136,7 +136,6 @@ function GabiCampaign() {
             <div><span>Corações Recebidos</span><strong>1.755</strong></div>
             <div><span>Apoiadores</span><strong>421</strong></div>
           </div>
-          <small>Dados da <a href="https://juntosesperanca.online/">campanha de origem</a> em 16/11/2026.</small>
         </section>
         <nav className="tabs" aria-label="Informações da campanha">
           {TABS.map((item) => (
