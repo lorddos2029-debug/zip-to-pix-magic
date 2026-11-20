@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { WillianCampaign } from "@/components/WillianCampaign";
-import willianHero from "@/assets/uploads/6663.png";
+const willianHero = "/willian/willian-destaque.png";
 
 export const Route = createFileRoute("/willian")({
   head: () => ({
