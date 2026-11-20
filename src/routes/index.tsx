@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { TrackedPixLink } from "@/components/TrackedPixLink";
 import { useState } from "react";
 import logo from "@/assets/uploads/6662.png";
-import willianHero from "@/assets/uploads/6663.png";
+const willianHero = "/willian/willian-destaque.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
