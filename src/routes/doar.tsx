@@ -50,6 +50,7 @@ function DoarPortugalPage() {
   const [extras, setExtras] = useState<string[]>([]);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [supportMessage, setSupportMessage] = useState("");
   const [telefone, setTelefone] = useState("");
   const [erro, setErro] = useState("");
   const [busy, setBusy] = useState(false);
@@ -147,6 +148,7 @@ function DoarPortugalPage() {
       prepared = await apiCall("prepare", {
         donationCents: valorCents, extras, method: metodo,
         name: nome.trim(), email: email.trim(),
+        supportMessage: supportMessage.trim(),
         ...(metodo === "mbway" ? { phoneNumber: telefone.replace(/\D/g, "") } : {}),
       }) as unknown as PreparedOrder;
       if (!prepared) throw new Error("Não foi possível preparar o donativo.");
@@ -316,6 +318,13 @@ function DoarPortugalPage() {
         </div>
 
         {erro && <p role="alert" className="mt-4 rounded-lg bg-[#fff3ec] px-3 py-3 text-left text-sm text-[#9c3c18]">{erro}</p>}
+        <label className="mt-4 block text-left text-sm font-semibold">Mensagem de apoio (opcional)
+          <textarea value={supportMessage} maxLength={1000} rows={3}
+            onChange={(event) => setSupportMessage(event.target.value)}
+            placeholder="Deixe uma mensagem de carinho para a família"
+            className="mt-1 block w-full rounded-xl border border-[#ddd] px-4 py-3 font-normal" />
+          <span className="mt-1 block text-xs font-normal text-[#64748b]">A mensagem fica guardada com o seu donativo.</span>
+        </label>
         <button type="button" onClick={() => void handleAttempt()}
           disabled={restoring || busy || !config?.enabled}
           className="mt-5 w-full rounded-xl bg-[#27ae60] px-5 py-4 text-base font-bold text-white hover:bg-[#219852] disabled:cursor-not-allowed disabled:bg-gray-400">

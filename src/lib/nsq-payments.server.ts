@@ -10,7 +10,7 @@ type Item = { id: string; name: string; quantity: number; priceInCents: number }
 type Order = {
   id: string; accessHash: string; status: Status; amountInCents: number; currency: "EUR";
   method: Method; customer: { name: string; email: string; country: "PT"; phone?: string };
-  phoneNumber?: string; items: Item[]; transactionId?: string;
+  phoneNumber?: string; supportMessage?: string; items: Item[]; transactionId?: string;
   payment?: { entity?: string; reference?: string; expiresAt?: string };
   createdAt: string; updatedAt: string; paidAt?: string; providerInstallId?: string;
 };
@@ -23,6 +23,7 @@ const prepareSchema = z.object({
   method: z.enum(["mbway", "multibanco"]),
   name: z.string().trim().min(3).max(160),
   email: z.string().trim().email().max(200),
+  supportMessage: z.string().trim().max(1000).optional(),
   phoneNumber: z.string().regex(/^9\d{8}$/).optional(),
 }).strict();
 const accessSchema = z.object({ orderId: z.string().regex(/^PT-[a-f0-9-]{36}$/), token: z.string().regex(/^[a-f0-9]{64}$/) }).strict();
@@ -111,6 +112,7 @@ export async function prepareOrder(input: unknown, ip?: string) {
     method: data.method, customer, items, createdAt: now, updatedAt: now,
     providerInstallId: currentProvider().installId };
   if (data.phoneNumber) order.phoneNumber = data.phoneNumber;
+  if (data.supportMessage) order.supportMessage = data.supportMessage;
   if (await redisCommand("SET", key(id), JSON.stringify(order), "EX", TTL, "NX") !== "OK") throw new Error("Não foi possível criar a encomenda.");
   return { orderId: id, token, amountInCents, currency: "EUR" as const };
 }

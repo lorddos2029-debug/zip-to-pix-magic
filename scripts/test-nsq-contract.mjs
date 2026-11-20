@@ -58,7 +58,7 @@ source = source.replace('"./donation-email.server"', JSON.stringify(emailModule)
   .replace('"../vendor/nsqpay.mjs"', JSON.stringify(new URL("../src/vendor/nsqpay.mjs", import.meta.url).href))
   .replace('"zod"', JSON.stringify(import.meta.resolve("zod")));
 const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext } }).outputText;
-const { applyVerifiedWebhook, orderStatus } = await import("data:text/javascript;base64," + Buffer.from(compiled).toString("base64"));
+const { applyVerifiedWebhook, orderStatus, prepareOrder } = await import("data:text/javascript;base64," + Buffer.from(compiled).toString("base64"));
 const raw = JSON.stringify({ event: "payment.success", data: event });
 const headers = { "X-VorkPay-Signature": "sha256=" + createHmac("sha256", secret).update(raw).digest("hex") };
 assert.deepEqual(await applyVerifiedWebhook(raw, new Headers(headers)), { ok: true, duplicate: false });
@@ -182,3 +182,20 @@ await orderStatus({ orderId, token, refreshReference: true });
 assert.deepEqual(lookupCredentials, ["Bearer " + legacyConfig.secretKey, "Bearer " + process.env.NSQPAY_SECRET_KEY]);
 delete process.env.NSQPAY_LEGACY_CONFIG;
 console.log("VorkPay migration passed: account-scoped signatures and original-account lookups.");
+
+process.env.NSQPAY_PAYMENTS_ENABLED = "true";
+const preparedOrders = [];
+globalThis.nsqTestRedis = async (command, ...args) => {
+  assert.equal(command, "SET");
+  preparedOrders.push(JSON.parse(args[1]));
+  return "OK";
+};
+const donationInput = { donationCents: 1100, method: "multibanco", name: "Cliente Teste", email: "test@example.com" };
+await prepareOrder({ ...donationInput, supportMessage: "  Força, Willian!  " });
+assert.equal(preparedOrders[0].supportMessage, "Força, Willian!");
+assert.equal(preparedOrders[0].status, "prepared");
+await prepareOrder(donationInput);
+assert.equal(preparedOrders[1].supportMessage, undefined, "Existing clients can omit the message");
+await assert.rejects(prepareOrder({ ...donationInput, supportMessage: "a".repeat(1001) }));
+assert.equal(preparedOrders.length, 2, "Invalid messages never reach storage");
+console.log("Support messages persist with the order and enforce the length limit.");
