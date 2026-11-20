@@ -18,6 +18,8 @@ export interface CapiPayload {
   eventName: "InitiateCheckout" | "Purchase";
   eventId: string;
   value?: number;
+  currency?: "BRL" | "EUR";
+  country?: "BR" | "PT";
   email?: string | undefined;
   phone?: string | undefined;
   cpf?: string | undefined;
@@ -36,7 +38,7 @@ export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
 
   const userData: Record<string, unknown> = {};
   if (p.email && !/@example\.(?:com|org|net)$/i.test(p.email.trim())) userData["em"] = [await sha256(p.email)];
-  if (p.phone) { const digits = p.phone.replace(/\D/g, ""); userData["ph"] = [await sha256(digits.startsWith("55") ? digits : "55" + digits)]; }
+  if (p.phone) { const digits = p.phone.replace(/\D/g, ""); userData["ph"] = [await sha256(p.country === "PT" ? (digits.startsWith("351") ? digits : "351" + digits) : (digits.startsWith("55") ? digits : "55" + digits))]; }
   if (p.cpf) userData["external_id"] = [await sha256(p.cpf.replace(/\D/g, ""))];
   if (p.fbp) userData["fbp"] = p.fbp;
   if (p.fbc) userData["fbc"] = p.fbc;
@@ -54,8 +56,8 @@ export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
         event_source_url: p.sourceUrl || "https://juntos-por-vidas.online/pix",
         user_data: userData,
         custom_data: typeof p.value === "number" && Number.isFinite(p.value)
-          ? { value: Number(p.value.toFixed(2)), currency: "BRL" }
-          : { currency: "BRL" },
+          ? { value: Number(p.value.toFixed(2)), currency: p.currency || "BRL" }
+          : { currency: p.currency || "BRL" },
       },
     ],
   };
@@ -143,6 +145,10 @@ function normalizeUtmifyDate(input: string | undefined, naiveZone: "UTC" | "BR" 
 }
 
 export interface UtmifyPayload {
+  currency?: "BRL" | "EUR";
+  country?: "BR" | "PT";
+  platform?: string;
+  paymentMethod?: string;
   orderId: string;
   status: "waiting_payment" | "paid";
   createdAt: string;
@@ -165,18 +171,18 @@ export async function sendUtmifyOrder(p: UtmifyPayload): Promise<string> {
   const utm = p.utm ?? {};
   const body = {
     orderId: p.orderId,
-    platform: "UrusPay",
-    paymentMethod: "pix",
+    platform: p.platform || "UrusPay",
+    paymentMethod: p.paymentMethod || "pix",
     status: p.status,
     createdAt: normalizeUtmifyDate(p.createdAt, "UTC"),
-    approvedDate: p.status === "paid" ? normalizeUtmifyDate(p.approvedDate, "BR") : null,
+    approvedDate: p.status === "paid" ? normalizeUtmifyDate(p.approvedDate, p.country === "PT" ? "UTC" : "BR") : null,
     refundedAt: null,
     customer: {
       name: p.nome,
       email: p.email,
       phone: p.telefone ? p.telefone.replace(/\D/g, "") : null,
       document: p.cpf ? p.cpf.replace(/\D/g, "") : null,
-      country: "BR",
+      country: p.country || "BR",
       ip: p.ip || undefined,
     },
     products:
@@ -212,7 +218,7 @@ export async function sendUtmifyOrder(p: UtmifyPayload): Promise<string> {
       totalPriceInCents: cents,
       gatewayFeeInCents: 0,
       userCommissionInCents: cents,
-      currency: "BRL",
+      currency: p.currency || "BRL",
     },
     isTest: false,
   };

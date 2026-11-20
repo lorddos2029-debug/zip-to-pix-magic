@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 const formatEUR = (amount: number) =>
   amount.toLocaleString("pt-PT", { minimumFractionDigits: Number.isInteger(amount) ? 0 : 2, maximumFractionDigits: 2 }) + "€";
-import { getCampaignAttribution } from "@/lib/campaign-attribution";
+import { getSavedFacebookFbc, getCampaignAttribution } from "@/lib/campaign-attribution";
 
 /** Checkout dedicado a Portugal. O SDK VorkPay é executado exclusivamente no servidor. */
 export const Route = createFileRoute("/doar")({
@@ -135,6 +135,12 @@ function DoarPortugalPage() {
     try {
       prepared = await apiCall("prepare", {
         donationCents: valorCents, extras: [], method: metodo,
+        tracking: {
+          utm: getCampaignAttribution(),
+          fbp: document.cookie.split('; ').find(c=>c.startsWith('_fbp='))?.slice(5),
+          fbc: document.cookie.split('; ').find(c=>c.startsWith('_fbc='))?.slice(5) || getSavedFacebookFbc() || undefined,
+          sourceUrl: window.location.href,
+        },
         name: nome.trim(), email: email.trim(),
         supportMessage: supportMessage.trim(),
         ...(metodo === "mbway" ? { phoneNumber: telefone.replace(/\D/g, "") } : {}),

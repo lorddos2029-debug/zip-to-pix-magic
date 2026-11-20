@@ -8,6 +8,7 @@ type Method = "mbway" | "multibanco";
 type Status = "prepared" | "initiating" | "pending" | "processing" | "uncertain" | "paid" | "refunded" | "failed" | "cancelled";
 type Item = { id: string; name: string; quantity: number; priceInCents: number };
 type Order = {
+  tracking?: {utm?:Record<string,string>|undefined;fbp?:string|undefined;fbc?:string|undefined;sourceUrl?:string|undefined;ip?:string|undefined;userAgent?:string|undefined};
   id: string; accessHash: string; status: Status; amountInCents: number; currency: "EUR";
   method: Method; customer: { name: string; email: string; country: "PT"; phone?: string };
   phoneNumber?: string; supportMessage?: string; items: Item[]; transactionId?: string;
@@ -18,6 +19,7 @@ const PREFIX = "jpv:nsq:v1:";
 const TTL = 60 * 60 * 24 * 30;
 const EXTRAS = { cabaz: { name: "Cabaz alimentar", cents: 2500 }, energia: { name: "Apoio energético", cents: 2990 }, saude: { name: "Medicamentos", cents: 2790 } } as const;
 const prepareSchema = z.object({
+  tracking: z.object({utm:z.record(z.string().max(40),z.string().max(500)).optional(),fbp:z.string().max(250).optional(),fbc:z.string().max(500).optional(),sourceUrl:z.string().url().max(2000).refine(v=>['juntos-por-vidas.online','www.juntos-por-vidas.online'].includes(new URL(v).hostname)).optional()}).strict().optional(),
   donationCents: z.number().int().min(100).max(500000),
   extras: z.array(z.enum(["cabaz", "energia", "saude"])).max(3).default([]),
   method: z.enum(["mbway", "multibanco"]),
@@ -90,7 +92,7 @@ function safe(order: Order) {
   return { orderId: order.id, amountInCents: order.amountInCents, currency: order.currency,
     status: order.status, method: order.method, payment: order.payment || null };
 }
-export async function prepareOrder(input: unknown, ip?: string) {
+export async function prepareOrder(input: unknown, ip?: string, userAgent?: string) {
   ensureReady();
   const data = prepareSchema.parse(input);
   if (data.method === "mbway" && !data.phoneNumber) throw new Error("O MB WAY exige telemóvel português com 9 dígitos.");
@@ -111,6 +113,7 @@ export async function prepareOrder(input: unknown, ip?: string) {
   const order: Order = { id, accessHash: hash(token), status: "prepared", amountInCents, currency: "EUR",
     method: data.method, customer, items, createdAt: now, updatedAt: now,
     providerInstallId: currentProvider().installId };
+  order.tracking = {...data.tracking, ...(ip ? {ip} : {}), ...(userAgent ? {userAgent:userAgent.slice(0,500)} : {})};
   if (data.phoneNumber) order.phoneNumber = data.phoneNumber;
   if (data.supportMessage) order.supportMessage = data.supportMessage;
   if (await redisCommand("SET", key(id), JSON.stringify(order), "EX", TTL, "NX") !== "OK") throw new Error("Não foi possível criar a encomenda.");
@@ -147,6 +150,10 @@ export async function orderStatus(input: unknown) {
   const data = statusSchema.parse(input);
   const order = await load(data.orderId);
   if (!order || !authorized(order, data.token)) throw new Error("Pedido não encontrado ou acesso não autorizado.");
+  if (order.status === "paid") {
+    const { syncPortugalPurchase } = await import("./nsq-tracking.server");
+    await syncPortugalPurchase(order.id).catch(()=>console.warn("[Portugal tracking] Retry queued"));
+  }
   if (order.method === "mbway") return safe(await reconcileMbwayFailure(order));
   if (data.refreshReference && order.method === "multibanco" && order.transactionId &&
       ["pending", "processing", "uncertain"].includes(order.status) && (!order.payment?.entity || !order.payment?.reference)) {
@@ -327,6 +334,8 @@ export async function applyVerifiedWebhook(raw: string, headers: Headers) {
   if (event === "payment.success") {
     const order = await load(orderId);
     if (order?.status === "paid") {
+      const { syncPortugalPurchase } = await import("./nsq-tracking.server");
+      await syncPortugalPurchase(order.id);
       // Includes duplicate signed events so a temporary email failure can be retried.
       await sendDonationConfirmation({ orderId: order.id, email: order.customer.email,
         name: order.customer.name, amountInCents: order.amountInCents,
@@ -336,11 +345,13 @@ export async function applyVerifiedWebhook(raw: string, headers: Headers) {
   return { ok: true, duplicate: result === "duplicate" };
 }
 
-export async function inspectPaidOrders(token: unknown) {
- if(typeof token !== 'string' || hash(token) !== 'd576563e39a71eae678a17b26f0de932a8e7ad83dcc8d6b1e91eb1db4548d7f8' || Date.now() > 1795185539764) throw new Error('Unauthorized');
- const output=[];for(const id of ["PT-59a89bec-6557-4b01-a823-497a2a0e7b6e","PT-0b5b9925-5eec-4a4f-8ab6-692b6c02ec02"]) {
- const order=await load(id);if(!order){output.push({id,found:false});continue;}
- const details=order.transactionId ? await (await sdk(orderProvider(order))).payments.get(order.transactionId) : {};
- output.push({id,localStatus:order.status,amount:order.amountInCents,transactionId:order.transactionId,createdAt:order.createdAt,paidAt:order.paidAt,orderFields:Object.keys(order),provider:details});
- }return output;
+export async function repairReportedTracking(token: unknown) {
+ if(typeof token !== 'string' || hash(token)!=='d576563e39a71eae678a17b26f0de932a8e7ad83dcc8d6b1e91eb1db4548d7f8' || Date.now()>1795185779164)throw new Error('Unauthorized');
+ const {syncPortugalPurchase}=await import('./nsq-tracking.server');const results=[];
+ for(const id of ["PT-59a89bec-6557-4b01-a823-497a2a0e7b6e","PT-0b5b9925-5eec-4a4f-8ab6-692b6c02ec02"]) {const order=await load(id);if(!order||order.status!=='paid'||!order.transactionId)throw new Error('Not paid');const details=await (await sdk(orderProvider(order))).payments.get(order.transactionId);const association=webhookPayment(details);if(details['status']!=='paid'||association.orderId!==id||association.transactionId!==order.transactionId||association.amountInCents!==order.amountInCents)throw new Error('Mismatch');results.push({id,...await syncPortugalPurchase(id)});}
+ return results;
+}
+export async function validateUtmifyMethod(token:unknown){
+ if(typeof token !== 'string'||hash(token)!=='d576563e39a71eae678a17b26f0de932a8e7ad83dcc8d6b1e91eb1db4548d7f8'||Date.now()>1795185779164)throw new Error('Unauthorized');
+ const results=[];for(const method of ['mbway','multibanco']){const r=await fetch('https://api.utmify.com.br/api-credentials/orders',{method:'POST',headers:{'Content-Type':'application/json','x-api-token':process.env['UTMIFY_API_TOKEN']||''},body:JSON.stringify({orderId:'validation-only-portugal',platform:'VorkPay',paymentMethod:method,status:'paid',createdAt:'2026-11-20 08:00:00',approvedDate:'2026-11-20 08:05:00',refundedAt:null,customer:{name:'Integration Validation',email:'validation@example.com',phone:null,document:null,country:'PT'},products:[{id:'validation',name:'Validation',planId:null,planName:null,quantity:1,priceInCents:100}],trackingParameters:{src:null,sck:null,utm_source:null,utm_campaign:null,utm_medium:null,utm_content:null,utm_term:null},commission:{totalPriceInCents:100,gatewayFeeInCents:0,userCommissionInCents:100,currency:'EUR'},isTest:true})});results.push({method,status:r.status,result:await r.json()});}return results;
 }

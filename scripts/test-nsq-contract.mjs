@@ -50,9 +50,11 @@ globalThis.nsqTestRedis = async (...args) => {
   if (args[0] === "GET") return JSON.stringify({ id: orderId, status: "paid", amountInCents: 1999, currency: "EUR", method: "multibanco", customer: { name: "Teste", email: "test@example.com" }, updatedAt: "2026-11-11T12:00:00Z" });
   calls.push(args); return storageResult;
 };
+const trackingModule = 'data:text/javascript,' + encodeURIComponent('export const syncPortugalPurchase = async () => ({facebook: "test", utmify: "test"})');
 const emailModule = "data:text/javascript," + encodeURIComponent("export const sendDonationConfirmation = (...args) => globalThis.nsqTestEmail(...args)");
 const redisModule = "data:text/javascript," + encodeURIComponent("export const redisCommand = (...args) => globalThis.nsqTestRedis(...args)");
 let source = await readFile(new URL("../src/lib/nsq-payments.server.ts", import.meta.url), "utf8");
+source = source.replaceAll('"./nsq-tracking.server"', JSON.stringify(trackingModule));
 source = source.replace('"./donation-email.server"', JSON.stringify(emailModule)).replace('"./utmify-queue.server"', JSON.stringify(redisModule))
   .replace('"./nsq-contract"', JSON.stringify(new URL("../src/lib/nsq-contract.ts", import.meta.url).href))
   .replace('"../vendor/nsqpay.mjs"', JSON.stringify(new URL("../src/vendor/nsqpay.mjs", import.meta.url).href))

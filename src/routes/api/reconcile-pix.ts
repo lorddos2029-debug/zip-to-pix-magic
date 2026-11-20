@@ -25,6 +25,8 @@ export const Route = createFileRoute("/api/reconcile-pix")({
           }
           const { listQueuedUtmifyOrders, getQueuedUtmifyOrder, deferQueuedPixOrder, clearExpiredQueuedPixOrder } = await import("../../lib/utmify-queue.server");
           const { reconcilePixOrder } = await import("../../lib/pix-reconcile.server");
+          const { retryPortugalPurchases } = await import("../../lib/nsq-tracking.server");
+          const portugal = await retryPortugalPurchases();
           const orders = await listQueuedUtmifyOrders(40);
           const results = await Promise.allSettled(orders.map(async id => {
             if (!await getQueuedUtmifyOrder(id)) {
@@ -45,7 +47,7 @@ export const Route = createFileRoute("/api/reconcile-pix")({
           results.forEach((r, i) => {
             if (r.status === "rejected") console.error("[Pix cron] Venda " + orders[i] + ":", r.reason instanceof Error ? r.reason.message : "erro");
           });
-          return Response.json({ ok: true, attempted: orders.length, processed, paid, failed: results.length - processed });
+          return Response.json({ ok: true, portugal, attempted: orders.length, processed, paid, failed: results.length - processed });
         } catch (error) {
           console.error("[Pix cron]", error instanceof Error ? error.message : "erro");
           return Response.json({ ok: false, error: "Fila indisponível." }, { status: 502 });
