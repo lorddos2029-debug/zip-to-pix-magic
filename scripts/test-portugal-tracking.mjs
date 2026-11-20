@@ -21,7 +21,7 @@ const redis='data:text/javascript,'+encodeURIComponent('export const redisComman
 let source=await readFile(new URL('../src/lib/nsq-tracking.server.ts',import.meta.url),'utf8');source=source.replace("'./utmify-queue.server'",JSON.stringify(redis)).replace("'./tracking.server'",JSON.stringify(new URL('../src/lib/tracking.server.ts',import.meta.url).href));
 const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText;
 const {syncPortugalPurchase}=await import('data:text/javascript;base64,'+Buffer.from(compiled).toString('base64'));
-requests.length=0;await syncPortugalPurchase(id);assert.equal(requests.length,2);assert.equal(queue.size,0);assert.equal(requests[0].body.data[0].event_id,'purchase_'+id);assert.equal(requests[1].body.trackingParameters.utm_campaign,'real-campaign');
+requests.length=0;await syncPortugalPurchase(id);assert.equal(requests.length,2);assert.equal(queue.size,0);assert.equal(requests[0].body.data[0].event_id,'purchase_'+id);assert.equal(requests[1].body.trackingParameters.utm_campaign,'real-campaign');assert.equal(requests[1].body.paymentMethod,'unknown','UTMify does not support MB WAY; never mislabel as Pix or card');
 await syncPortugalPurchase(id);assert.equal(requests.length,2,'Duplicate webhook must not resend accepted events');
 kv.set(prefix+'order:'+id,JSON.stringify({...order,status:'pending'}));await syncPortugalPurchase(id);assert.equal(requests.length,2,'Pending never sends Purchase');
 kv.set(prefix+'order:'+id,JSON.stringify(order));kv.delete(prefix+'tracking-meta:'+id);kv.delete(prefix+'tracking-utmify:'+id);

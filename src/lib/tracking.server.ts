@@ -236,7 +236,7 @@ export async function sendUtmifyOrder(p: UtmifyPayload): Promise<string> {
       });
       const response = (await res.json().catch(() => null)) as Record<string, unknown> | null;
       const accepted = res.ok && response?.["success"] !== false &&
-        response?.["ok"] !== false && !response?.["error"];
+        response?.["ok"] !== false && response?.["OK"] !== false && response?.["result"] !== "ERROR" && !response?.["error"];
       if (accepted) return "enviado";
 
       // Não exponha dados do comprador em logs de erros de validação.

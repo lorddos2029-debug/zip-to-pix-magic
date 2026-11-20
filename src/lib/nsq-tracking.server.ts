@@ -24,7 +24,7 @@ export async function syncPortugalPurchase(orderId:string) {
    if(facebook==='enviado')await redisCommand('SET',metaKey,'sent','EX',34560000);
   }
   if(utmify==='pending'){
-   utmify=await sendUtmifyOrder({orderId,status:'paid',currency:'EUR',country:'PT',platform:'VorkPay',paymentMethod:order.method,createdAt:order.createdAt,approvedDate:order.paidAt,valor:order.amountInCents/100,nome:order.customer.name,email:order.customer.email,telefone:order.customer.phone||order.phoneNumber,ip:tracking.ip,utm:tracking.utm,itens:order.items.map((i:{id:string;name:string;quantity:number;priceInCents:number})=>({id:i.id,nome:i.name,quantidade:i.quantity,preco_unitario:i.priceInCents/100}))});
+   utmify=await sendUtmifyOrder({orderId,status:'paid',currency:'EUR',country:'PT',platform:'VorkPay',paymentMethod:'unknown',createdAt:order.createdAt,approvedDate:order.paidAt,valor:order.amountInCents/100,nome:order.customer.name,email:order.customer.email,telefone:order.customer.phone||order.phoneNumber,ip:tracking.ip,utm:tracking.utm,itens:order.items.map((i:{id:string;name:string;quantity:number;priceInCents:number})=>({id:i.id,nome:i.name,quantidade:i.quantity,preco_unitario:i.priceInCents/100}))});
    if(utmify==='enviado')await redisCommand('SET',utmKey,'sent','EX',34560000);
   }
   await redisCommand('SET',PREFIX+'tracking-result:'+orderId,JSON.stringify({facebook,utmify,checkedAt:new Date().toISOString()}),'EX',2592000);
