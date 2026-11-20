@@ -19,6 +19,7 @@ import { Route as DaviRouteImport } from './routes/davi'
 import { Route as DefinicoesDeCookiesRouteImport } from './routes/definicoes-de-cookies'
 import { Route as DoarRouteImport } from './routes/doar'
 import { Route as GabiRouteImport } from './routes/gabi'
+import { Route as Gabi2RouteImport } from './routes/gabi2'
 import { Route as GabrielRouteImport } from './routes/gabriel'
 import { Route as IsabeleRouteImport } from './routes/isabele'
 import { Route as JoanaRouteImport } from './routes/joana'
@@ -89,6 +90,11 @@ const DoarRoute = DoarRouteImport.update({
 const GabiRoute = GabiRouteImport.update({
   id: '/gabi',
   path: '/gabi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Gabi2Route = Gabi2RouteImport.update({
+  id: '/gabi2',
+  path: '/gabi2',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GabrielRoute = GabrielRouteImport.update({
@@ -208,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/definicoes-de-cookies': typeof DefinicoesDeCookiesRoute
   '/doar': typeof DoarRoute
   '/gabi': typeof GabiRoute
+  '/gabi2': typeof Gabi2Route
   '/gabriel': typeof GabrielRoute
   '/isabele': typeof IsabeleRoute
   '/joana': typeof JoanaRoute
@@ -241,6 +248,7 @@ export interface FileRoutesByTo {
   '/definicoes-de-cookies': typeof DefinicoesDeCookiesRoute
   '/doar': typeof DoarRoute
   '/gabi': typeof GabiRoute
+  '/gabi2': typeof Gabi2Route
   '/gabriel': typeof GabrielRoute
   '/isabele': typeof IsabeleRoute
   '/joana': typeof JoanaRoute
@@ -275,6 +283,7 @@ export interface FileRoutesById {
   '/definicoes-de-cookies': typeof DefinicoesDeCookiesRoute
   '/doar': typeof DoarRoute
   '/gabi': typeof GabiRoute
+  '/gabi2': typeof Gabi2Route
   '/gabriel': typeof GabrielRoute
   '/isabele': typeof IsabeleRoute
   '/joana': typeof JoanaRoute
@@ -310,6 +319,7 @@ export interface FileRouteTypes {
     | '/definicoes-de-cookies'
     | '/doar'
     | '/gabi'
+    | '/gabi2'
     | '/gabriel'
     | '/isabele'
     | '/joana'
@@ -343,6 +353,7 @@ export interface FileRouteTypes {
     | '/definicoes-de-cookies'
     | '/doar'
     | '/gabi'
+    | '/gabi2'
     | '/gabriel'
     | '/isabele'
     | '/joana'
@@ -376,6 +387,7 @@ export interface FileRouteTypes {
     | '/definicoes-de-cookies'
     | '/doar'
     | '/gabi'
+    | '/gabi2'
     | '/gabriel'
     | '/isabele'
     | '/joana'
@@ -410,6 +422,7 @@ export interface RootRouteChildren {
   DefinicoesDeCookiesRoute: typeof DefinicoesDeCookiesRoute
   DoarRoute: typeof DoarRoute
   GabiRoute: typeof GabiRoute
+  Gabi2Route: typeof Gabi2Route
   GabrielRoute: typeof GabrielRoute
   IsabeleRoute: typeof IsabeleRoute
   JoanaRoute: typeof JoanaRoute
@@ -503,6 +516,13 @@ declare module '@tanstack/react-router' {
       path: '/gabi'
       fullPath: '/gabi'
       preLoaderRoute: typeof GabiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gabi2': {
+      id: '/gabi2'
+      path: '/gabi2'
+      fullPath: '/gabi2'
+      preLoaderRoute: typeof Gabi2RouteImport
       parentRoute: typeof rootRouteImport
     }
     '/gabriel': {
@@ -666,6 +686,7 @@ const rootRouteChildren: RootRouteChildren = {
   DefinicoesDeCookiesRoute: DefinicoesDeCookiesRoute,
   DoarRoute: DoarRoute,
   GabiRoute: GabiRoute,
+  Gabi2Route: Gabi2Route,
   GabrielRoute: GabrielRoute,
   IsabeleRoute: IsabeleRoute,
   JoanaRoute: JoanaRoute,
