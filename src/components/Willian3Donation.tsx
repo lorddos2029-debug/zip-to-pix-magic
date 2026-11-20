@@ -17,16 +17,6 @@ function cookie(name: string) {
       ?.slice(name.length + 1) || ""
   );
 }
-export function validCpf(value: string) {
-  const s = value.replace(/\D/g, "");
-  if (s.length !== 11 || /^(\d)\1+$/.test(s)) return false;
-  return [9, 10].every((n) => {
-    let sum = 0;
-    for (let i = 0; i < n; i++) sum += Number(s[i]) * (n + 1 - i);
-    const digit = (sum * 10) % 11;
-    return Number(s[n]) === (digit === 10 ? 0 : digit);
-  });
-}
 type Saved = { charge: UrusChargeResult; eventId: string };
 export default function Willian3Donation({
   open,
@@ -39,7 +29,7 @@ export default function Willian3Donation({
     busy = useRef(false);
   const [step, setStep] = useState(1),
     [amount, setAmount] = useState("30"),
-    [anonymous, setAnonymous] = useState(false);
+    [coverCosts, setCoverCosts] = useState(false);
   const [pending, setPending] = useState(false),
     [uncertain, setUncertain] = useState(false),
     [error, setError] = useState("");
@@ -53,6 +43,7 @@ export default function Willian3Donation({
     check = useServerFn(checkUrusStatus),
     trackOpen = useServerFn(trackPixPageOpen);
   const value = Number(amount.replace(",", "."));
+  const total = Math.round((value + (coverCosts ? 4.99 : 0)) * 100) / 100;
   useEffect(() => {
     if (!open) return;
     const el = dialog.current;
@@ -125,17 +116,13 @@ export default function Willian3Donation({
     e.preventDefault();
     if (busy.current || uncertain || saved) return;
     const data = new FormData(e.currentTarget),
-      cpf = String(data.get("cpf") || "").replace(/\D/g, ""),
       phone = String(data.get("phone") || "").replace(/\D/g, "");
-    if (!validCpf(cpf)) {
-      setError("Informe um CPF válido.");
-      return;
-    }
-    if (!/^(?:55)?[1-9][0-9]{9,10}$/.test(phone)) {
+
+    if (phone && !/^(?:55)?[1-9][0-9]{9,10}$/.test(phone)) {
       setError("Informe o telefone com DDD.");
       return;
     }
-    if (!Number.isFinite(value) || value < 1 || value > 1000000) {
+    if (!Number.isFinite(value) || value < 1 || total > 1000000) {
       setError("Informe um valor entre R$ 1 e R$ 1.000.000.");
       return;
     }
@@ -147,16 +134,11 @@ export default function Willian3Donation({
       sessionStorage.setItem(key, JSON.stringify({ pending: true }));
       const charge = await create({
         data: {
-          valor: Math.round(value * 100) / 100,
+          valor: total,
           moeda: "BRL",
-          nome: anonymous
-            ? "Doador Anônimo " + id.slice(0, 6)
-            : String(data.get("name") || "").trim(),
-          email: anonymous
-            ? "anonimo-" + id + "@example.com"
-            : String(data.get("email") || "").trim(),
-          cpf,
-          telefone: phone,
+          nome: String(data.get("name") || "").trim() || "Doador Anônimo " + id.slice(0, 6),
+          email: "doacao-" + id + "@example.com",
+          ...(phone ? { telefone: phone } : {}),
           descricao: "Doação — Willian",
           itens: [
             {
@@ -165,6 +147,16 @@ export default function Willian3Donation({
               quantidade: 1,
               preco_unitario: Math.round(value * 100) / 100,
             },
+            ...(coverCosts
+              ? [
+                  {
+                    id: "apoio-custos",
+                    nome: "Apoio aos custos da campanha",
+                    quantidade: 1,
+                    preco_unitario: 4.99,
+                  },
+                ]
+              : []),
           ],
           ...getCampaignAttribution(),
           fbp: cookie("_fbp"),
@@ -208,7 +200,9 @@ export default function Willian3Donation({
       }}
     >
       <header className="w3d-header">
-        <h2 id="w3-donation-title">{saved ? "♡ Sua doação" : "♥ Faça sua Doação"}</h2>
+        <h2 id="w3-donation-title">
+          {saved ? "♡ Sua doação" : step === 2 ? "♥ Falta Pouco!" : "♥ Faça sua Doação"}
+        </h2>
         <button type="button" aria-label="Fechar" disabled={pending} onClick={onClose}>
           ×
         </button>
@@ -262,7 +256,7 @@ export default function Willian3Donation({
               <p role="status">{status || "Aguardando a confirmação do pagamento."}</p>
             </>
           )}
-          <small>Pedido #{saved.charge.venda_id} · Pix processado pela UrusPay</small>
+          <small>Pedido #{saved.charge.venda_id}</small>
           {error && <p role="alert">{error}</p>}
         </div>
       ) : (
@@ -321,60 +315,46 @@ export default function Willian3Donation({
           ) : (
             <form onSubmit={submit}>
               <div className="w3d-body">
-                <h3>Falta pouco!</h3>
                 <p className="w3d-summary">
-                  Total da doação: <strong>{money(value)}</strong>
+                  <span>
+                    <small>TOTAL DA DOAÇÃO</small>
+                    <strong>{money(total)}</strong>
+                  </span>
                   <button type="button" disabled={pending || uncertain} onClick={() => setStep(1)}>
                     Alterar
                   </button>
                 </p>
                 <fieldset disabled={pending || uncertain}>
-                  <label className="w3d-anonymous">
-                    <input
-                      type="checkbox"
-                      checked={anonymous}
-                      onChange={(e) => setAnonymous(e.target.checked)}
-                    />{" "}
-                    Doar anonimamente
-                  </label>
-                  {!anonymous && (
-                    <>
-                      <label>
-                        Seu nome
-                        <input name="name" autoComplete="name" required maxLength={200} />
-                      </label>
-                      <label>
-                        Seu e-mail
-                        <input
-                          name="email"
-                          type="email"
-                          autoComplete="email"
-                          required
-                          maxLength={255}
-                        />
-                      </label>
-                    </>
-                  )}
                   <label>
-                    CPF
+                    Seu nome <small>(Opcional)</small>
                     <input
-                      name="cpf"
-                      inputMode="numeric"
-                      autoComplete="off"
-                      required
-                      maxLength={14}
-                      placeholder="000.000.000-00"
+                      name="name"
+                      autoComplete="name"
+                      maxLength={200}
+                      placeholder="Como podemos te chamar?"
                     />
                   </label>
                   <label>
-                    Telefone com DDD
+                    WhatsApp <small>(Opcional)</small>
                     <input
                       name="phone"
                       type="tel"
                       autoComplete="tel"
-                      required
                       maxLength={20}
-                      placeholder="(11) 99999-9999"
+                      placeholder="(00) 00000-0000"
+                    />
+                  </label>
+                  <label className="w3d-costs">
+                    <span>
+                      🚀 Custos da Campanha
+                      <small>Acrescentar R$ 4,99 para apoiar os custos da campanha.</small>
+                    </span>
+                    <input
+                      type="checkbox"
+                      role="switch"
+                      checked={coverCosts}
+                      onChange={(e) => setCoverCosts(e.target.checked)}
+                      aria-label="Acrescentar R$ 4,99 aos custos da campanha"
                     />
                   </label>
                 </fieldset>
@@ -392,7 +372,6 @@ export default function Willian3Donation({
                 <button className="w3d-cta" disabled={pending || uncertain}>
                   {pending ? "GERANDO SEU PIX…" : "GERAR PIX AGORA →"}
                 </button>
-                <small>Pagamento Pix processado pela UrusPay</small>
               </footer>
             </form>
           )}
@@ -401,3 +380,4 @@ export default function Willian3Donation({
     </dialog>
   );
 }
+

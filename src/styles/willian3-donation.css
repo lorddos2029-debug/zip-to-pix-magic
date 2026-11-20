@@ -1,4 +1,3 @@
-
 .willian3-page .w3-donation {
   padding: 0;
   border: 0;
@@ -296,5 +295,84 @@
 .willian3-page button.btn-sticky-cta {
   cursor: pointer;
   font-family: inherit;
+}
+
+.willian3-page .w3d-summary {
+  background: #143f61;
+  color: white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 22px;
+}
+.willian3-page .w3d-summary span {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.willian3-page .w3d-summary small {
+  color: #bdcfe0;
+  font-weight: 800;
+  font-size: 11px;
+}
+.willian3-page .w3d-summary strong {
+  font-family: Fraunces, Georgia, serif;
+  font-size: 28px;
+  color: #ffc455;
+  line-height: 1.2;
+}
+.willian3-page .w3d-summary button {
+  color: white;
+  font-weight: 700;
+}
+.willian3-page .w3-donation fieldset label {
+  margin: 18px 0;
+  color: #143f61;
+}
+.willian3-page .w3-donation fieldset label small {
+  font-weight: 400;
+  color: #637269;
+}
+.willian3-page .w3-donation fieldset .w3d-costs {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 16px;
+  border: 1px solid #dce8ef;
+  border-radius: 8px;
+  background: #fcfbf7;
+  margin-top: 24px;
+}
+.willian3-page .w3d-costs small {
+  display: block;
+  margin-top: 4px;
+}
+.willian3-page .w3d-costs input {
+  appearance: none;
+  flex-shrink: 0;
+  width: 40px;
+  height: 22px;
+  border-radius: 20px;
+  background: #dce3df;
+  position: relative;
+  cursor: pointer;
+}
+.willian3-page .w3d-costs input:before {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: 2px;
+  left: 2px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px #0002;
+  transition: transform 0.15s;
+}
+.willian3-page .w3d-costs input:checked {
+  background: #397b58;
+}
+.willian3-page .w3d-costs input:checked:before {
+  transform: translateX(18px);
 }
 

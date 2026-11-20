@@ -10,10 +10,6 @@ const mockRequire=(name)=>{
  return require(name);
 };
 vm.runInNewContext(js,{exports:moduleExports,require:mockRequire,console,setTimeout,clearTimeout});
-assert.equal(moduleExports.validCpf('000.000.000-00'),false);
-assert.equal(moduleExports.validCpf('123'),false);
-assert.equal(moduleExports.validCpf('529.982.247-25'),true);
-assert.equal(moduleExports.validCpf('529.982.247-26'),false);
 const html=renderToStaticMarkup(React.createElement(moduleExports.default,{open:false,onClose(){}}));
 assert.match(html,/Faça sua Doação/);
 assert.equal((html.match(/aria-pressed=/g)||[]).length,9);
@@ -22,4 +18,10 @@ assert.match(html,/CONTINUAR/);
 assert.equal(calls,0);
 const route=fs.readFileSync('src/routes/willian3.tsx','utf8');
 assert.equal((route.match(/setDonationOpen\(true\)/g)||[]).length,5);
-console.log('PASS: CPF validation, 9 presets, selected default, server render, 5 CTA connections, no payment request.');
+assert.ok(!source.includes('name="cpf"'));
+assert.ok(!source.includes('name="email"'));
+assert.ok(!source.includes('Pagamento Pix processado pela UrusPay'));
+assert.ok(source.includes('coverCosts ? 4.99 : 0'));
+assert.ok(source.includes('...(phone ? { telefone: phone } : {})'));
+console.log('PASS: optional identity fields, no CPF/email, explicit opt-in costs, default amount and CTA connections.');
+
