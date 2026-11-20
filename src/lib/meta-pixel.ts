@@ -76,3 +76,16 @@ export function trackMetaPurchase(eventId: string, valor: number): boolean {
   );
   return true;
 }
+
+/** Initial PageView is sent by the head bootstrap; internal route changes send one more. */
+let lastPageUrl: string | undefined;
+export function trackMetaPageView(url: string): void {
+  if (typeof window === "undefined") return;
+  const wasInitialized = typeof window.fbq === "function";
+  ensureMetaPixel();
+  if (lastPageUrl === undefined) { lastPageUrl = url; return; }
+  if (lastPageUrl === url) return;
+  lastPageUrl = url;
+  if (wasInitialized) window.fbq?.("track", "PageView");
+}
+

@@ -44,7 +44,7 @@ export async function sendFacebookEvent(p: CapiPayload): Promise<string> {
   if (p.fbc) userData["fbc"] = p.fbc;
   if (p.ip) userData["client_ip_address"] = p.ip;
   if (p.userAgent) userData["client_user_agent"] = p.userAgent;
-  userData["country"] = [await sha256("br")];
+  userData["country"] = [await sha256((p.country || "BR").toLowerCase())];
 
   const body = {
     data: [
@@ -272,3 +272,4 @@ export async function sendUtmifyOrder(p: UtmifyPayload): Promise<string> {
 }
 
 export { utmifyDate };
+

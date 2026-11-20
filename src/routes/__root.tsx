@@ -13,7 +13,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { getCampaignAttribution } from "../lib/campaign-attribution";
-import { ensureMetaPixel } from "../lib/meta-pixel";
+import { trackMetaPageView } from "../lib/meta-pixel";
 
 function NotFoundComponent() {
   return (
@@ -143,7 +143,7 @@ function RootComponent() {
   useEffect(() => {
     // Captura tags UTM de toda landing e das navegações internas do site.
     getCampaignAttribution();
-    ensureMetaPixel();
+    trackMetaPageView(currentUrl);
   }, [currentUrl]);
 
   return (
@@ -153,3 +153,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
