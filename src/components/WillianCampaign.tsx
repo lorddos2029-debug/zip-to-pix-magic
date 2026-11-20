@@ -1,3 +1,4 @@
+import { CampaignFooter } from "./CampaignFooter";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowUpRight, ChevronDown, Copy, Heart, LockKeyhole, Menu, Share2, Star, UserRound, X } from "lucide-react";
 import { getTrackedPixHref } from "@/lib/campaign-attribution";
@@ -131,7 +132,7 @@ export function WillianCampaign({ story }: { story: ReactNode }) {
       </section>
 
       <section id="organizer" className="w-section">
-        <h2>Organizador e beneficiário</h2><div className="w-organizer"><img src={logo} width={66} height={66} alt="Logo Juntos por Vidas" /><div><h3>Juntos por Vidas</h3><p>Organiza esta campanha em nome do Willian e da sua família. Cada donativo destina-se a apoiar os cuidados e as necessidades do dia a dia do Willian, com segurança e dignidade.</p></div></div>
+        <h2>Organizador e beneficiário</h2><div className="w-organizer"><img src={logo} width={66} height={66} alt="Logo Juntos por Vidas" /><div><h3>Juntos por Vidas</h3><p className="w-verification"><span aria-hidden="true">✹</span> Verificado pela Donors Club</p><p>Organiza esta campanha em nome do Willian e da sua família. Cada donativo destina-se a apoiar os cuidados e as necessidades do dia a dia do Willian, com segurança e dignidade.</p></div></div>
       </section>
 
       <section id="support" className="w-section">
@@ -150,7 +151,7 @@ export function WillianCampaign({ story }: { story: ReactNode }) {
       </section>
     </main>
 
-    <footer className="w-footer"><a href="/"><img src={logo} width={80} height={80} alt="Juntos por Vidas" /></a><p>Unindo corações e transformando histórias.</p><nav aria-label="Links de apoio"><a href="#story">A história do Willian</a><a href="#faq">Ajuda com donativos</a><a href="mailto:doacoes@juntos-por-vidas.online">Contacto</a></nav><small>© 2026 Juntos por Vidas.</small></footer>
+    <CampaignFooter />
 
     {sticky && <aside className="w-sticky" aria-label="Contribuir para o Willian"><div className="w-sticky-summary"><ProgressRing /><div><strong>1.427,92 € <span>angariados</span></strong><p>de um objetivo de 13.000 €</p></div></div><a href={donationHref} className="w-button w-donate">Doar</a><button type="button" className="w-button w-share" onClick={() => setShareOpen(true)}>Partilhar</button></aside>}
 

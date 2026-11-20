@@ -10,8 +10,13 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AjudaRouteImport } from './routes/ajuda'
+import { Route as AjudaComDonativosRouteImport } from './routes/ajuda-com-donativos'
 import { Route as AnaRouteImport } from './routes/ana'
+import { Route as CampanhasRouteImport } from './routes/campanhas'
+import { Route as ComoFuncionaRouteImport } from './routes/como-funciona'
 import { Route as DaviRouteImport } from './routes/davi'
+import { Route as DefinicoesDeCookiesRouteImport } from './routes/definicoes-de-cookies'
 import { Route as DoarRouteImport } from './routes/doar'
 import { Route as GabiRouteImport } from './routes/gabi'
 import { Route as GabrielRouteImport } from './routes/gabriel'
@@ -26,6 +31,10 @@ import { Route as PedroRouteImport } from './routes/pedro'
 import { Route as Pedro2RouteImport } from './routes/pedro2'
 import { Route as PietroRouteImport } from './routes/pietro'
 import { Route as PixRouteImport } from './routes/pix'
+import { Route as PoliticaDePrivacidadeRouteImport } from './routes/politica-de-privacidade'
+import { Route as PrivacidadeDosDoadoresRouteImport } from './routes/privacidade-dos-doadores'
+import { Route as SobreRouteImport } from './routes/sobre'
+import { Route as TermosDeUtilizacaoRouteImport } from './routes/termos-de-utilizacao'
 import { Route as WillianRouteImport } from './routes/willian'
 import { Route as ApiNsqPaymentsRouteImport } from './routes/api/nsq-payments'
 import { Route as ApiNsqWebhookRouteImport } from './routes/api/nsq-webhook'
@@ -37,14 +46,39 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AjudaRoute = AjudaRouteImport.update({
+  id: '/ajuda',
+  path: '/ajuda',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AjudaComDonativosRoute = AjudaComDonativosRouteImport.update({
+  id: '/ajuda-com-donativos',
+  path: '/ajuda-com-donativos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnaRoute = AnaRouteImport.update({
   id: '/ana',
   path: '/ana',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CampanhasRoute = CampanhasRouteImport.update({
+  id: '/campanhas',
+  path: '/campanhas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ComoFuncionaRoute = ComoFuncionaRouteImport.update({
+  id: '/como-funciona',
+  path: '/como-funciona',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DaviRoute = DaviRouteImport.update({
   id: '/davi',
   path: '/davi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DefinicoesDeCookiesRoute = DefinicoesDeCookiesRouteImport.update({
+  id: '/definicoes-de-cookies',
+  path: '/definicoes-de-cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DoarRoute = DoarRouteImport.update({
@@ -117,6 +151,26 @@ const PixRoute = PixRouteImport.update({
   path: '/pix',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PoliticaDePrivacidadeRoute = PoliticaDePrivacidadeRouteImport.update({
+  id: '/politica-de-privacidade',
+  path: '/politica-de-privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeDosDoadoresRoute = PrivacidadeDosDoadoresRouteImport.update({
+  id: '/privacidade-dos-doadores',
+  path: '/privacidade-dos-doadores',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SobreRoute = SobreRouteImport.update({
+  id: '/sobre',
+  path: '/sobre',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermosDeUtilizacaoRoute = TermosDeUtilizacaoRouteImport.update({
+  id: '/termos-de-utilizacao',
+  path: '/termos-de-utilizacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WillianRoute = WillianRouteImport.update({
   id: '/willian',
   path: '/willian',
@@ -145,8 +199,13 @@ const ApiReconcilePixRoute = ApiReconcilePixRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ajuda': typeof AjudaRoute
+  '/ajuda-com-donativos': typeof AjudaComDonativosRoute
   '/ana': typeof AnaRoute
+  '/campanhas': typeof CampanhasRoute
+  '/como-funciona': typeof ComoFuncionaRoute
   '/davi': typeof DaviRoute
+  '/definicoes-de-cookies': typeof DefinicoesDeCookiesRoute
   '/doar': typeof DoarRoute
   '/gabi': typeof GabiRoute
   '/gabriel': typeof GabrielRoute
@@ -161,6 +220,10 @@ export interface FileRoutesByFullPath {
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
   '/pix': typeof PixRoute
+  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
+  '/privacidade-dos-doadores': typeof PrivacidadeDosDoadoresRoute
+  '/sobre': typeof SobreRoute
+  '/termos-de-utilizacao': typeof TermosDeUtilizacaoRoute
   '/willian': typeof WillianRoute
   '/api/nsq-payments': typeof ApiNsqPaymentsRoute
   '/api/nsq-webhook': typeof ApiNsqWebhookRoute
@@ -169,8 +232,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ajuda': typeof AjudaRoute
+  '/ajuda-com-donativos': typeof AjudaComDonativosRoute
   '/ana': typeof AnaRoute
+  '/campanhas': typeof CampanhasRoute
+  '/como-funciona': typeof ComoFuncionaRoute
   '/davi': typeof DaviRoute
+  '/definicoes-de-cookies': typeof DefinicoesDeCookiesRoute
   '/doar': typeof DoarRoute
   '/gabi': typeof GabiRoute
   '/gabriel': typeof GabrielRoute
@@ -185,6 +253,10 @@ export interface FileRoutesByTo {
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
   '/pix': typeof PixRoute
+  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
+  '/privacidade-dos-doadores': typeof PrivacidadeDosDoadoresRoute
+  '/sobre': typeof SobreRoute
+  '/termos-de-utilizacao': typeof TermosDeUtilizacaoRoute
   '/willian': typeof WillianRoute
   '/api/nsq-payments': typeof ApiNsqPaymentsRoute
   '/api/nsq-webhook': typeof ApiNsqWebhookRoute
@@ -194,8 +266,13 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ajuda': typeof AjudaRoute
+  '/ajuda-com-donativos': typeof AjudaComDonativosRoute
   '/ana': typeof AnaRoute
+  '/campanhas': typeof CampanhasRoute
+  '/como-funciona': typeof ComoFuncionaRoute
   '/davi': typeof DaviRoute
+  '/definicoes-de-cookies': typeof DefinicoesDeCookiesRoute
   '/doar': typeof DoarRoute
   '/gabi': typeof GabiRoute
   '/gabriel': typeof GabrielRoute
@@ -210,6 +287,10 @@ export interface FileRoutesById {
   '/pedro2': typeof Pedro2Route
   '/pietro': typeof PietroRoute
   '/pix': typeof PixRoute
+  '/politica-de-privacidade': typeof PoliticaDePrivacidadeRoute
+  '/privacidade-dos-doadores': typeof PrivacidadeDosDoadoresRoute
+  '/sobre': typeof SobreRoute
+  '/termos-de-utilizacao': typeof TermosDeUtilizacaoRoute
   '/willian': typeof WillianRoute
   '/api/nsq-payments': typeof ApiNsqPaymentsRoute
   '/api/nsq-webhook': typeof ApiNsqWebhookRoute
@@ -220,8 +301,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ajuda'
+    | '/ajuda-com-donativos'
     | '/ana'
+    | '/campanhas'
+    | '/como-funciona'
     | '/davi'
+    | '/definicoes-de-cookies'
     | '/doar'
     | '/gabi'
     | '/gabriel'
@@ -236,6 +322,10 @@ export interface FileRouteTypes {
     | '/pedro2'
     | '/pietro'
     | '/pix'
+    | '/politica-de-privacidade'
+    | '/privacidade-dos-doadores'
+    | '/sobre'
+    | '/termos-de-utilizacao'
     | '/willian'
     | '/api/nsq-payments'
     | '/api/nsq-webhook'
@@ -244,8 +334,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ajuda'
+    | '/ajuda-com-donativos'
     | '/ana'
+    | '/campanhas'
+    | '/como-funciona'
     | '/davi'
+    | '/definicoes-de-cookies'
     | '/doar'
     | '/gabi'
     | '/gabriel'
@@ -260,6 +355,10 @@ export interface FileRouteTypes {
     | '/pedro2'
     | '/pietro'
     | '/pix'
+    | '/politica-de-privacidade'
+    | '/privacidade-dos-doadores'
+    | '/sobre'
+    | '/termos-de-utilizacao'
     | '/willian'
     | '/api/nsq-payments'
     | '/api/nsq-webhook'
@@ -268,8 +367,13 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/ajuda'
+    | '/ajuda-com-donativos'
     | '/ana'
+    | '/campanhas'
+    | '/como-funciona'
     | '/davi'
+    | '/definicoes-de-cookies'
     | '/doar'
     | '/gabi'
     | '/gabriel'
@@ -284,6 +388,10 @@ export interface FileRouteTypes {
     | '/pedro2'
     | '/pietro'
     | '/pix'
+    | '/politica-de-privacidade'
+    | '/privacidade-dos-doadores'
+    | '/sobre'
+    | '/termos-de-utilizacao'
     | '/willian'
     | '/api/nsq-payments'
     | '/api/nsq-webhook'
@@ -293,8 +401,13 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AjudaRoute: typeof AjudaRoute
+  AjudaComDonativosRoute: typeof AjudaComDonativosRoute
   AnaRoute: typeof AnaRoute
+  CampanhasRoute: typeof CampanhasRoute
+  ComoFuncionaRoute: typeof ComoFuncionaRoute
   DaviRoute: typeof DaviRoute
+  DefinicoesDeCookiesRoute: typeof DefinicoesDeCookiesRoute
   DoarRoute: typeof DoarRoute
   GabiRoute: typeof GabiRoute
   GabrielRoute: typeof GabrielRoute
@@ -309,6 +422,10 @@ export interface RootRouteChildren {
   Pedro2Route: typeof Pedro2Route
   PietroRoute: typeof PietroRoute
   PixRoute: typeof PixRoute
+  PoliticaDePrivacidadeRoute: typeof PoliticaDePrivacidadeRoute
+  PrivacidadeDosDoadoresRoute: typeof PrivacidadeDosDoadoresRoute
+  SobreRoute: typeof SobreRoute
+  TermosDeUtilizacaoRoute: typeof TermosDeUtilizacaoRoute
   WillianRoute: typeof WillianRoute
   ApiNsqPaymentsRoute: typeof ApiNsqPaymentsRoute
   ApiNsqWebhookRoute: typeof ApiNsqWebhookRoute
@@ -325,6 +442,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ajuda': {
+      id: '/ajuda'
+      path: '/ajuda'
+      fullPath: '/ajuda'
+      preLoaderRoute: typeof AjudaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ajuda-com-donativos': {
+      id: '/ajuda-com-donativos'
+      path: '/ajuda-com-donativos'
+      fullPath: '/ajuda-com-donativos'
+      preLoaderRoute: typeof AjudaComDonativosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ana': {
       id: '/ana'
       path: '/ana'
@@ -332,11 +463,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/campanhas': {
+      id: '/campanhas'
+      path: '/campanhas'
+      fullPath: '/campanhas'
+      preLoaderRoute: typeof CampanhasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/como-funciona': {
+      id: '/como-funciona'
+      path: '/como-funciona'
+      fullPath: '/como-funciona'
+      preLoaderRoute: typeof ComoFuncionaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/davi': {
       id: '/davi'
       path: '/davi'
       fullPath: '/davi'
       preLoaderRoute: typeof DaviRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/definicoes-de-cookies': {
+      id: '/definicoes-de-cookies'
+      path: '/definicoes-de-cookies'
+      fullPath: '/definicoes-de-cookies'
+      preLoaderRoute: typeof DefinicoesDeCookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/doar': {
@@ -437,6 +589,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PixRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/politica-de-privacidade': {
+      id: '/politica-de-privacidade'
+      path: '/politica-de-privacidade'
+      fullPath: '/politica-de-privacidade'
+      preLoaderRoute: typeof PoliticaDePrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade-dos-doadores': {
+      id: '/privacidade-dos-doadores'
+      path: '/privacidade-dos-doadores'
+      fullPath: '/privacidade-dos-doadores'
+      preLoaderRoute: typeof PrivacidadeDosDoadoresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sobre': {
+      id: '/sobre'
+      path: '/sobre'
+      fullPath: '/sobre'
+      preLoaderRoute: typeof SobreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/termos-de-utilizacao': {
+      id: '/termos-de-utilizacao'
+      path: '/termos-de-utilizacao'
+      fullPath: '/termos-de-utilizacao'
+      preLoaderRoute: typeof TermosDeUtilizacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/willian': {
       id: '/willian'
       path: '/willian'
@@ -477,8 +657,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AjudaRoute: AjudaRoute,
+  AjudaComDonativosRoute: AjudaComDonativosRoute,
   AnaRoute: AnaRoute,
+  CampanhasRoute: CampanhasRoute,
+  ComoFuncionaRoute: ComoFuncionaRoute,
   DaviRoute: DaviRoute,
+  DefinicoesDeCookiesRoute: DefinicoesDeCookiesRoute,
   DoarRoute: DoarRoute,
   GabiRoute: GabiRoute,
   GabrielRoute: GabrielRoute,
@@ -493,6 +678,10 @@ const rootRouteChildren: RootRouteChildren = {
   Pedro2Route: Pedro2Route,
   PietroRoute: PietroRoute,
   PixRoute: PixRoute,
+  PoliticaDePrivacidadeRoute: PoliticaDePrivacidadeRoute,
+  PrivacidadeDosDoadoresRoute: PrivacidadeDosDoadoresRoute,
+  SobreRoute: SobreRoute,
+  TermosDeUtilizacaoRoute: TermosDeUtilizacaoRoute,
   WillianRoute: WillianRoute,
   ApiNsqPaymentsRoute: ApiNsqPaymentsRoute,
   ApiNsqWebhookRoute: ApiNsqWebhookRoute,
