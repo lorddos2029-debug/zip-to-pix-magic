@@ -132,7 +132,7 @@ export function GabiCampaign({ story }: { story: ReactNode }) {
       </section>
 
       <section id="organizer" className="w-section">
-        <h2>Organizador e beneficiário</h2><div className="w-organizer"><img src={logo} width={66} height={66} alt="Logo Juntos por Vidas" /><div><h3>Juntos por Vidas</h3><p className="w-verification"><span aria-hidden="true">✹</span> Verificado pela Donors Club</p><p>Organiza esta campanha em nome da Gabi e da sua família. Cada donativo destina-se a apoiar os cuidados e as necessidades do dia a dia da Gabi, com segurança e dignidade.</p></div></div>
+        <h2>Organizador e beneficiário</h2><div className="w-organizer"><img src={logo} width={66} height={66} alt="Logo Juntos por Vidas" /><div><h3>Juntos por Vidas</h3><p className="org-role" data-verified-line=""><span className="chip chip-verified" title="Relatório médico e orçamento do tratamento revistos pela nossa equipa em 14/09/2026"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M12 1.5 14.9 3.9l3.7-.5 1.1 3.6 3.2 1.9-1.4 3.5 1.4 3.5-3.2 1.9-1.1 3.6-3.7-.5L12 22.5l-2.9-2.4-3.7.5-1.1-3.6-3.2-1.9L2.5 11.6 1.1 8.1l3.2-1.9 1.1-3.6 3.7.5z" /><path d="m8.5 12 2.3 2.3 4.7-4.7" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg><span>Verificado pela Donors Club</span></span></p><p>Organiza esta campanha em nome da Gabi e da sua família. Cada donativo destina-se a apoiar os cuidados e as necessidades do dia a dia da Gabi, com segurança e dignidade.</p></div></div>
       </section>
 
       <section id="support" className="w-section">
