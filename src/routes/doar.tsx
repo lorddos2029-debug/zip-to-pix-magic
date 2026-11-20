@@ -179,7 +179,7 @@ function DoarPortugalPage() {
         ) : current.status === "uncertain" ? (
           <p role="alert" className="mt-5 rounded-xl bg-orange-50 p-4 text-sm text-orange-900">{current.message || "Estado do pagamento incerto. Não faça um segundo pagamento até confirmar o estado."}</p>
         ) : current.status === "failed" || current.status === "cancelled" ? (
-          <p className="mt-5 text-sm text-red-700">Este pedido não foi concluído. Consulte o suporte antes de repetir o pagamento.</p>
+          <p className="mt-5 text-sm text-red-700">A VorkPay confirmou que este pedido falhou ou foi cancelado. Verifique o número de telemóvel e se o MB WAY está ativo antes de iniciar uma nova tentativa.</p>
         ) : (
           <p className="mt-5 text-sm text-[#666]">Aguardamos a confirmação segura do processador. Ainda não está marcado como pago.</p>
         )}
@@ -218,11 +218,11 @@ function DoarPortugalPage() {
             {referenceNotice && <p role="status" className="mt-2 text-sm text-orange-900">{referenceNotice}</p>}
           </div>
         )}
-        {["paid", "refunded"].includes(current.status) && (
+        {["paid", "refunded", "failed", "cancelled"].includes(current.status) && (
           <button type="button" className="mt-5 rounded-xl border px-4 py-2 text-sm" onClick={() => {
             try { sessionStorage.removeItem(ORDER_SESSION); } catch { /* armazenamento indisponível */ }
             setCurrent(null);
-          }}>Fazer outro donativo</button>
+          }}>{["failed", "cancelled"].includes(current.status) ? "Tentar novamente" : "Fazer outro donativo"}</button>
         )}
         <a href="/" className="mt-6 inline-block rounded-xl border px-4 py-2 text-sm">Voltar ao início</a>
       </section>

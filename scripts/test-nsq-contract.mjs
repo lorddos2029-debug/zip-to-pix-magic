@@ -199,3 +199,38 @@ assert.equal(preparedOrders[1].supportMessage, undefined, "Existing clients can 
 await assert.rejects(prepareOrder({ ...donationInput, supportMessage: "a".repeat(1001) }));
 assert.equal(preparedOrders.length, 2, "Invalid messages never reach storage");
 console.log("Support messages persist with the order and enforce the length limit.");
+
+// MB WAY: reconcile a provider-confirmed failure without reactivating or paying an order.
+let mbReads=0, mbWrites=0, mbStatus='failed', mbWrongAmount=false, mbTimeout=false, mbRace=false, mbLocked=false;
+let mbOrder={...storedOrder,method:'mbway',status:'uncertain',providerInstallId:'inst_local'};
+globalThis.fetch=async (url,options)=>{
+ assert.equal(options.method,'GET','Recovery must never create or activate a charge');
+ assert.match(String(url),/payments\/status/);mbReads++;
+ if(mbTimeout)throw new Error('timeout');
+ return Response.json({externalOrderId:orderId,transactionId:mbOrder.transactionId,amount:mbWrongAmount?20:19.99,currency:'EUR',status:mbStatus});
+};
+globalThis.nsqTestRedis=async(command,...args)=>{
+ if(command==='GET')return JSON.stringify(mbOrder);
+ if(command==='SET')return mbLocked?null:'OK';
+ if(command==='EVAL'){
+  mbWrites++;assert.match(args[0],/o.status ~= 'uncertain'/);assert.match(args[0],/KEEPTTL/);
+  assert.equal(args[3],mbOrder.transactionId);assert.equal(args[4],1999);
+  if(mbRace){mbOrder.status='paid';return 'unchanged';}
+  mbOrder.status=args[5];return 'updated';
+ }
+ throw new Error('Unexpected command '+command);
+};
+const emailsBeforeMb=emailCalls.length;
+assert.equal((await orderStatus({orderId,token})).status,'failed');assert.equal(mbWrites,1);
+await orderStatus({orderId,token});assert.equal(mbReads,1,'Terminal failure is not polled again');
+for(const status of ['pending','processing','paid','unknown']){
+ mbOrder.status='uncertain';mbStatus=status;assert.equal((await orderStatus({orderId,token})).status,'uncertain');
+}
+mbStatus='failed';mbWrongAmount=true;assert.equal((await orderStatus({orderId,token})).status,'uncertain');
+mbWrongAmount=false;mbTimeout=true;assert.equal((await orderStatus({orderId,token})).status,'uncertain');mbTimeout=false;
+mbLocked=true;const readsBeforeLock=mbReads;await orderStatus({orderId,token});assert.equal(mbReads,readsBeforeLock);mbLocked=false;
+mbStatus='cancelled';assert.equal((await orderStatus({orderId,token})).status,'cancelled');
+mbOrder.status='uncertain';mbRace=true;assert.equal((await orderStatus({orderId,token})).status,'paid','Concurrent paid webhook must win');
+assert.equal(emailCalls.length,emailsBeforeMb,'Read-only reconciliation must not send receipts');
+await assert.rejects(orderStatus({orderId,token:'0'.repeat(64)}));
+console.log('MB WAY failed/cancelled recovery passed, including timeout, mismatch, throttling and paid webhook race.');

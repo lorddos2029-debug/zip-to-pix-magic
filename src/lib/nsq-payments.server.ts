@@ -116,10 +116,38 @@ export async function prepareOrder(input: unknown, ip?: string) {
   if (await redisCommand("SET", key(id), JSON.stringify(order), "EX", TTL, "NX") !== "OK") throw new Error("Não foi possível criar a encomenda.");
   return { orderId: id, token, amountInCents, currency: "EUR" as const };
 }
+
+const failureScript = [
+ "local raw=redis.call('GET',KEYS[1])",
+ "if not raw then return 'missing' end",
+ "local o=cjson.decode(raw)",
+ "if o.transactionId ~= ARGV[1] or tonumber(o.amountInCents) ~= tonumber(ARGV[2]) or o.currency ~= 'EUR' then return 'mismatch' end",
+ "if o.status ~= 'uncertain' and o.status ~= 'pending' and o.status ~= 'processing' then return 'unchanged' end",
+ "if ARGV[3] ~= 'failed' and ARGV[3] ~= 'cancelled' then return 'unchanged' end",
+ "o.status=ARGV[3]; o.updatedAt=ARGV[4]",
+ "redis.call('SET',KEYS[1],cjson.encode(o),'KEEPTTL')",
+ "return 'updated'",
+].join('\n');
+async function reconcileMbwayFailure(order: Order): Promise<Order> {
+ if(order.method !== 'mbway' || !order.transactionId || !['uncertain','pending','processing'].includes(order.status)) return order;
+ if(await redisCommand('SET', PREFIX+'status-check:'+order.id, '1', 'EX', 30, 'NX') !== 'OK') return order;
+ try {
+  const details=await (await sdk(orderProvider(order))).payments.get(order.transactionId);
+  const association=webhookPayment(details);
+  if(association.orderId !== order.id || association.transactionId !== order.transactionId || association.amountInCents !== order.amountInCents) throw new Error('STATUS_ASSOCIATION_MISMATCH');
+  if(details['status'] === 'failed' || details['status'] === 'cancelled') {
+   await redisCommand('EVAL',failureScript,1,key(order.id),order.transactionId,order.amountInCents,details['status'],new Date().toISOString());
+  }
+  // A status read never confirms a donation or sends a receipt; only the signed webhook does.
+  return await load(order.id) || order;
+ } catch { console.warn('[VorkPay] Consulta de estado MB WAY indisponível'); return order; }
+}
+
 export async function orderStatus(input: unknown) {
   const data = statusSchema.parse(input);
   const order = await load(data.orderId);
   if (!order || !authorized(order, data.token)) throw new Error("Pedido não encontrado ou acesso não autorizado.");
+  if (order.method === "mbway") return safe(await reconcileMbwayFailure(order));
   if (data.refreshReference && order.method === "multibanco" && order.transactionId &&
       ["pending", "processing", "uncertain"].includes(order.status) && (!order.payment?.entity || !order.payment?.reference)) {
     // Only an explicit request checks the existing transaction. Never activate a method here.
@@ -231,6 +259,10 @@ export async function startPayment(input: unknown) {
     const status = activationStatus(order.method, result.payment, payment);
     const saved = await redisCommand("EVAL", finishScript, 1, key(order.id), status, new Date().toISOString(), transactionId, JSON.stringify(payment), TTL);
     if (saved !== "ok") throw new Error("Foi gerada uma transação mas a referência não ficou guardada. Não repita a cobrança.");
+    if (order.method === "mbway" && status === "uncertain") {
+      const reconciled = await reconcileMbwayFailure({ ...order, status, transactionId, payment });
+      if (["failed", "cancelled", "paid", "refunded"].includes(reconciled.status)) return safe(reconciled);
+    }
     const missingReference = order.method === "multibanco" && (!payment.entity || !payment.reference);
     if (missingReference) console.warn("[VorkPay] Multibanco pendente sem entidade/referência", { orderId: order.id });
     return {
@@ -302,13 +334,4 @@ export async function applyVerifiedWebhook(raw: string, headers: Headers) {
     }
   }
   return { ok: true, duplicate: result === "duplicate" };
-}
-
-export async function inspectReportedOrder(token: unknown) {
- if(typeof token !== 'string' || hash(token) !== '20cb406d56a4f1aab914f46303cae7747d02cf323df4c0283d514bf4429457e5' || Date.now() > 1795154171289) throw new Error('Unauthorized');
- const order=await load('PT-67011842-71df-4624-91a2-b2aff2d61055');
- if(!order) return {found:false};
- const details=order.transactionId ? await (await sdk(orderProvider(order))).payments.get(order.transactionId) : {};
- const sanitize=(v: unknown): unknown => { if(!v || typeof v!=='object')return {};return Object.fromEntries(Object.entries(v).map(([k,x])=>[k,['status','success','code','error','message','method','paymentMethod'].includes(k)&&['string','boolean','number'].includes(typeof x)?x: x&&typeof x==='object'?sanitize(x):'[redacted]'])); };
- return {found:true,method:order.method,status:order.status,transactionId:order.transactionId,details:sanitize(details)};
 }
