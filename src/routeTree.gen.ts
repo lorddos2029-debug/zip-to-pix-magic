@@ -37,6 +37,7 @@ import { Route as PrivacidadeDosDoadoresRouteImport } from './routes/privacidade
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as TermosDeUtilizacaoRouteImport } from './routes/termos-de-utilizacao'
 import { Route as WillianRouteImport } from './routes/willian'
+import { Route as Willian3RouteImport } from './routes/willian3'
 import { Route as ApiNsqPaymentsRouteImport } from './routes/api/nsq-payments'
 import { Route as ApiNsqWebhookRouteImport } from './routes/api/nsq-webhook'
 import { Route as ApiPixWebhookRouteImport } from './routes/api/pix-webhook'
@@ -182,6 +183,11 @@ const WillianRoute = WillianRouteImport.update({
   path: '/willian',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Willian3Route = Willian3RouteImport.update({
+  id: '/willian3',
+  path: '/willian3',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiNsqPaymentsRoute = ApiNsqPaymentsRouteImport.update({
   id: '/api/nsq-payments',
   path: '/api/nsq-payments',
@@ -232,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/sobre': typeof SobreRoute
   '/termos-de-utilizacao': typeof TermosDeUtilizacaoRoute
   '/willian': typeof WillianRoute
+  '/willian3': typeof Willian3Route
   '/api/nsq-payments': typeof ApiNsqPaymentsRoute
   '/api/nsq-webhook': typeof ApiNsqWebhookRoute
   '/api/pix-webhook': typeof ApiPixWebhookRoute
@@ -266,6 +273,7 @@ export interface FileRoutesByTo {
   '/sobre': typeof SobreRoute
   '/termos-de-utilizacao': typeof TermosDeUtilizacaoRoute
   '/willian': typeof WillianRoute
+  '/willian3': typeof Willian3Route
   '/api/nsq-payments': typeof ApiNsqPaymentsRoute
   '/api/nsq-webhook': typeof ApiNsqWebhookRoute
   '/api/pix-webhook': typeof ApiPixWebhookRoute
@@ -301,6 +309,7 @@ export interface FileRoutesById {
   '/sobre': typeof SobreRoute
   '/termos-de-utilizacao': typeof TermosDeUtilizacaoRoute
   '/willian': typeof WillianRoute
+  '/willian3': typeof Willian3Route
   '/api/nsq-payments': typeof ApiNsqPaymentsRoute
   '/api/nsq-webhook': typeof ApiNsqWebhookRoute
   '/api/pix-webhook': typeof ApiPixWebhookRoute
@@ -337,6 +346,7 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/termos-de-utilizacao'
     | '/willian'
+    | '/willian3'
     | '/api/nsq-payments'
     | '/api/nsq-webhook'
     | '/api/pix-webhook'
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/termos-de-utilizacao'
     | '/willian'
+    | '/willian3'
     | '/api/nsq-payments'
     | '/api/nsq-webhook'
     | '/api/pix-webhook'
@@ -405,6 +416,7 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/termos-de-utilizacao'
     | '/willian'
+    | '/willian3'
     | '/api/nsq-payments'
     | '/api/nsq-webhook'
     | '/api/pix-webhook'
@@ -440,6 +452,7 @@ export interface RootRouteChildren {
   SobreRoute: typeof SobreRoute
   TermosDeUtilizacaoRoute: typeof TermosDeUtilizacaoRoute
   WillianRoute: typeof WillianRoute
+  Willian3Route: typeof Willian3Route
   ApiNsqPaymentsRoute: typeof ApiNsqPaymentsRoute
   ApiNsqWebhookRoute: typeof ApiNsqWebhookRoute
   ApiPixWebhookRoute: typeof ApiPixWebhookRoute
@@ -644,6 +657,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WillianRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/willian3': {
+      id: '/willian3'
+      path: '/willian3'
+      fullPath: '/willian3'
+      preLoaderRoute: typeof Willian3RouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/nsq-payments': {
       id: '/api/nsq-payments'
       path: '/api/nsq-payments'
@@ -704,6 +724,7 @@ const rootRouteChildren: RootRouteChildren = {
   SobreRoute: SobreRoute,
   TermosDeUtilizacaoRoute: TermosDeUtilizacaoRoute,
   WillianRoute: WillianRoute,
+  Willian3Route: Willian3Route,
   ApiNsqPaymentsRoute: ApiNsqPaymentsRoute,
   ApiNsqWebhookRoute: ApiNsqWebhookRoute,
   ApiPixWebhookRoute: ApiPixWebhookRoute,
