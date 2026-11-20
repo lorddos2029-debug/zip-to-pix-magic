@@ -1,4 +1,5 @@
-.w3-donation {
+
+.willian3-page .w3-donation {
   padding: 0;
   border: 0;
   border-radius: 20px;
@@ -12,27 +13,27 @@
   font-family: Manrope, Arial, sans-serif;
   box-shadow: 0 24px 80px #143f6155;
 }
-.w3-donation::backdrop {
+.willian3-page .w3-donation::backdrop {
   background: #102d46b8;
   backdrop-filter: blur(3px);
 }
-.w3-donation * {
+.willian3-page .w3-donation * {
   box-sizing: border-box;
 }
-.w3-donation button {
+.willian3-page .w3-donation button {
   cursor: pointer;
   font-family: inherit;
 }
-.w3-donation button:disabled {
+.willian3-page .w3-donation button:disabled {
   opacity: 0.6;
   cursor: wait;
 }
-.w3-donation button:focus-visible,
-.w3-donation input:focus-visible {
+.willian3-page .w3-donation button:focus-visible,
+.willian3-page .w3-donation input:focus-visible {
   outline: 3px solid #e7793e;
   outline-offset: 3px;
 }
-.w3d-header {
+.willian3-page .w3d-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -40,12 +41,12 @@
   color: white;
   padding: 18px 20px;
 }
-.w3d-header h2 {
+.willian3-page .w3d-header h2 {
   font-size: 19px;
   margin: 0;
   font-weight: 800;
 }
-.w3d-header button {
+.willian3-page .w3d-header button {
   border: 0;
   border-radius: 50%;
   width: 30px;
@@ -54,7 +55,7 @@
   color: white;
   font-size: 24px;
 }
-.w3d-steps {
+.willian3-page .w3d-steps {
   display: flex;
   justify-content: space-between;
   padding: 14px 20px;
@@ -64,18 +65,18 @@
   font-weight: 800;
   color: #69766d;
 }
-.w3d-steps .active {
+.willian3-page .w3d-steps .active {
   color: #185580;
 }
-.w3d-body {
+.willian3-page .w3d-body {
   padding: 22px 20px;
 }
-.w3d-values {
+.willian3-page .w3d-values {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 9px;
 }
-.w3d-values button {
+.willian3-page .w3d-values button {
   position: relative;
   border: 2px solid #dfe6e1;
   border-radius: 10px;
@@ -85,11 +86,11 @@
   font-weight: 800;
   color: #122e24;
 }
-.w3d-values button.selected {
+.willian3-page .w3d-values button.selected {
   border-color: #e7793e;
   background: #fff9ef;
 }
-.w3d-values small {
+.willian3-page .w3d-values small {
   position: absolute;
   top: -10px;
   left: 50%;
@@ -101,14 +102,14 @@
   font-size: 8px;
   color: #17372e;
 }
-.w3d-custom {
+.willian3-page .w3d-custom {
   display: block;
   text-align: center;
   font-size: 12px;
   font-weight: 800;
   margin-top: 24px;
 }
-.w3d-custom div {
+.willian3-page .w3d-custom div {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,11 +118,11 @@
   margin-top: 12px;
   padding: 6px;
 }
-.w3d-custom b {
+.willian3-page .w3d-custom b {
   color: #185580;
   font-size: 22px;
 }
-.w3d-custom input {
+.willian3-page .w3d-custom input {
   border: 0;
   width: 65%;
   font-size: 30px;
@@ -130,12 +131,12 @@
   background: white;
   min-width: 0;
 }
-.w3-donation footer {
+.willian3-page .w3-donation footer {
   padding: 20px;
   background: #fcfbf7;
   border-top: 1px solid #dfe6e1;
 }
-.w3d-cta {
+.willian3-page .w3d-cta {
   display: block;
   width: 100%;
   border: 0;
@@ -147,45 +148,45 @@
   font-size: 16px;
   box-shadow: 0 7px 18px #397b5822;
 }
-.w3d-cta:hover {
+.willian3-page .w3d-cta:hover {
   background: #2e6648;
 }
-.w3-donation footer small {
+.willian3-page .w3-donation footer small {
   display: block;
   text-align: center;
   margin-top: 12px;
   font-size: 11px;
 }
-.w3d-body h3 {
+.willian3-page .w3d-body h3 {
   font-size: 23px;
   margin: 0 0 12px;
 }
-.w3d-summary {
+.willian3-page .w3d-summary {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   font-size: 14px;
 }
-.w3d-summary button {
+.willian3-page .w3d-summary button {
   border: 0;
   background: none;
   color: #185580;
   text-decoration: underline;
   margin-left: auto;
 }
-.w3-donation fieldset {
+.willian3-page .w3-donation fieldset {
   border: 0;
   padding: 0;
   margin: 18px 0;
 }
-.w3-donation fieldset label {
+.willian3-page .w3-donation fieldset label {
   display: block;
   font-size: 13px;
   font-weight: 700;
   margin: 12px 0;
 }
-.w3-donation fieldset input:not([type="checkbox"]) {
+.willian3-page .w3-donation fieldset input:not([type="checkbox"]) {
   display: block;
   width: 100%;
   margin-top: 6px;
@@ -196,32 +197,32 @@
   background: white;
   color: #17372e;
 }
-.w3-donation .w3d-anonymous {
+.willian3-page .w3-donation .w3d-anonymous {
   display: flex;
   gap: 8px;
   align-items: center;
 }
-.w3-donation small {
+.willian3-page .w3-donation small {
   font-size: 11px;
   line-height: 1.5;
 }
-.w3-donation [role="alert"] {
+.willian3-page .w3-donation [role="alert"] {
   background: #fff0e4;
   color: #8b330c;
   border-radius: 8px;
   padding: 12px;
   font-size: 13px;
 }
-.w3d-payment {
+.willian3-page .w3d-payment {
   padding: 24px 20px;
   text-align: center;
 }
-.w3d-payment > img {
+.willian3-page .w3d-payment > img {
   display: block;
   margin: 0 auto 14px;
   object-fit: contain;
 }
-.w3d-total {
+.willian3-page .w3d-total {
   display: inline-block;
   border-radius: 20px;
   background: #fff0d8;
@@ -229,32 +230,32 @@
   font-weight: 800;
   color: #185580;
 }
-.w3d-payment h2 {
+.willian3-page .w3d-payment h2 {
   font-family: Fraunces, Georgia, serif;
   font-size: 36px;
   margin: 18px 0 8px;
   color: #185580;
 }
-.w3d-payment p {
+.willian3-page .w3d-payment p {
   font-size: 14px;
   line-height: 1.6;
 }
-.w3d-payment section {
+.willian3-page .w3d-payment section {
   padding: 18px 16px;
   border: 1px solid #e0e7e2;
   border-radius: 12px;
   margin: 18px 0;
   text-align: left;
 }
-.w3d-payment h3 {
+.willian3-page .w3d-payment h3 {
   margin: 0 0 12px;
   font-size: 18px;
   color: #185580;
 }
-.w3d-payment label {
+.willian3-page .w3d-payment label {
   font-size: 12px;
 }
-.w3d-payment textarea {
+.willian3-page .w3d-payment textarea {
   display: block;
   width: 100%;
   resize: none;
@@ -267,24 +268,24 @@
   word-break: break-all;
   margin: 8px 0 14px;
 }
-.w3d-payment ol {
+.willian3-page .w3d-payment ol {
   padding-left: 20px;
   font-size: 14px;
   line-height: 1.7;
 }
-.w3d-payment li + li {
+.willian3-page .w3d-payment li + li {
   margin-top: 10px;
 }
-.w3d-payment .w3d-qr {
+.willian3-page .w3d-payment .w3d-qr {
   text-align: center;
 }
-.w3d-qr svg {
+.willian3-page .w3d-qr svg {
   display: block;
   margin: 18px auto;
   max-width: 100%;
   height: auto;
 }
-.w3d-payment [role="status"] {
+.willian3-page .w3d-payment [role="status"] {
   background: #eff6f1;
   border-radius: 10px;
   padding: 12px;
@@ -296,3 +297,4 @@
   cursor: pointer;
   font-family: inherit;
 }
+
