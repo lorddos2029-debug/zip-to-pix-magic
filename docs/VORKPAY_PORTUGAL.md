@@ -44,3 +44,12 @@ A consulta autenticada da nova conta a uma referência inexistente retornou 404 
 O teste de conectividade do painel envia webhook.test: verifica a entrega HTTPS e assinatura, sem alterar pedidos ou emitir recibos.
 
 Os testes simulados e webhook.test não comprovam liquidação bancária. A confirmação ponta a ponta de uma doação real depende de pagamento autorizado pelo doador. Não executar cobranças reais automaticamente durante testes.
+
+
+## Conversões Portugal — 20/11/2026
+
+O checkout guarda UTMs, fbp/fbc reais, URL de origem e contexto HTTP antes da ativação. O webhook pago aciona Meta Purchase (EUR, indicativo PT, event_id purchase_<orderId>) e UTMify paid (VorkPay, EUR, country PT). A UTMify aceita paymentMethod unknown; MB WAY e Multibanco não pertencem ao enum da API, por isso não são enviados como Pix ou cartão. O método real permanece na encomenda.
+
+Marcadores Redis por destino evitam reenvios de eventos aceites; falhas permanecem em tracking-pending para consulta de estado ou o cron existente. Nenhuma pendência gera Purchase. A recuperação de pedidos antigos não inventa UTMs, clique, IP ou user agent ausentes. Receção pela API não garante atribuição a anúncios.
+
+Testar com npm run test:nsq e node scripts/test-portugal-tracking.mjs. O diagnóstico/replay temporário foi removido após confirmar receção e deduplicação dos dois pedidos reportados.
