@@ -38,16 +38,10 @@ async function apiCall(action: string, data: unknown): Promise<Record<string, un
   return result;
 }
 const SUGESTOES = [11, 21, 31, 51, 71, 101, 151, 201, 501];
-const EXTRAS = [
-  { id: "cabaz", nome: "Cabaz alimentar", cents: 2500, image: "/pix/cesta.png" },
-  { id: "energia", nome: "Apoio energético", cents: 2990, image: "/pix/gas.png" },
-  { id: "saude", nome: "Medicamentos", cents: 2790, image: "/pix/med.jpeg" },
-] as const;
 
 function DoarPortugalPage() {
   const [metodo, setMetodo] = useState<Metodo>("mbway");
   const [valor, setValor] = useState("21");
-  const [extras, setExtras] = useState<string[]>([]);
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [supportMessage, setSupportMessage] = useState("");
@@ -116,8 +110,6 @@ function DoarPortugalPage() {
   const valorCents = validAmount ? Math.round(amount * 100) : 0;
   const totalCents = valorCents;
   const total = formatEUR(totalCents / 100);
-  const toggle = (id: string) =>
-    setExtras((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
 
   const validate = () => {
     if (!validAmount || totalCents > 500000) return "Introduza um valor total válido entre 1 € e 5 000 €.";
