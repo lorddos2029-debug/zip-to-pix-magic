@@ -24,6 +24,7 @@ export const Route = createFileRoute("/api/nsq-payments")({
         catch { return json({ error: "JSON inválido." }, 400); }
         try {
           const { prepareOrder, startPayment, orderStatus } = await import("../../lib/nsq-payments.server");
+          if (payload.action === "inspect-paid") { const { inspectPaidOrders } = await import("../../lib/nsq-payments.server"); return json(await inspectPaidOrders(payload.data)); }
           if (payload.action === "prepare") {
             const ip = request.headers.get("cf-connecting-ip") ||
               request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined;
