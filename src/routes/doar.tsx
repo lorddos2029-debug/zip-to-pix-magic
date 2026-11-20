@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 const formatEUR = (amount: number) =>
   amount.toLocaleString("pt-PT", { minimumFractionDigits: Number.isInteger(amount) ? 0 : 2, maximumFractionDigits: 2 }) + "€";
 import { getCampaignAttribution } from "@/lib/campaign-attribution";
@@ -114,11 +114,7 @@ function DoarPortugalPage() {
   const amount = Number(valor);
   const validAmount = Number.isFinite(amount) && amount >= 1 && amount <= 5000 && Math.abs(Math.round(amount * 100) - amount * 100) < 0.00001;
   const valorCents = validAmount ? Math.round(amount * 100) : 0;
-  const extrasCents = useMemo(
-    () => EXTRAS.filter((extra) => extras.includes(extra.id)).reduce((sum, extra) => sum + extra.cents, 0),
-    [extras],
-  );
-  const totalCents = valorCents + extrasCents;
+  const totalCents = valorCents;
   const total = formatEUR(totalCents / 100);
   const toggle = (id: string) =>
     setExtras((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
@@ -146,7 +142,7 @@ function DoarPortugalPage() {
     let prepared: PreparedOrder | null = null;
     try {
       prepared = await apiCall("prepare", {
-        donationCents: valorCents, extras, method: metodo,
+        donationCents: valorCents, extras: [], method: metodo,
         name: nome.trim(), email: email.trim(),
         supportMessage: supportMessage.trim(),
         ...(metodo === "mbway" ? { phoneNumber: telefone.replace(/\D/g, "") } : {}),
@@ -257,21 +253,6 @@ function DoarPortugalPage() {
               {formatEUR(suggestion)}
             </button>
           ))}
-        </div>
-
-        <div className="mt-5 rounded-2xl border border-[#d4edda] bg-[#e8f9e9] px-4 py-4 text-left">
-          <p className="mb-3 text-sm font-bold text-[#16723a]">Acrescente apoio ao seu donativo</p>
-          <div className="grid grid-cols-3 gap-2">
-            {EXTRAS.map((extra) => (
-              <button key={extra.id} type="button" aria-pressed={extras.includes(extra.id)} onClick={() => toggle(extra.id)}
-                className={`flex min-h-32 flex-col items-center rounded-xl border-2 bg-white px-1.5 py-3 text-center ${extras.includes(extra.id) ? "border-[#27ae60]" : "border-transparent"}`}>
-                <img src={extra.image} alt="" className="mb-2 h-9 w-9 rounded-full object-cover" />
-                <span className="flex-1 text-[11px] font-semibold leading-tight">{extra.nome}</span>
-                <span className="mt-2 text-xs font-bold text-[#179d50]">{formatEUR(extra.cents / 100)}</span>
-              </button>
-            ))}
-          </div>
-          <p className="mt-3 text-right text-xs font-semibold">Apoios adicionais: {formatEUR(extrasCents / 100)}</p>
         </div>
 
         <div className="mt-5 rounded-2xl border border-[#eee] px-4 py-5">
