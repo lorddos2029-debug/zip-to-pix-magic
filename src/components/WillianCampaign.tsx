@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { ArrowUpRight, ChevronDown, Copy, Heart, LockKeyhole, Menu, Share2, Star, UserRound, X } from "lucide-react";
 import { getTrackedPixHref } from "@/lib/campaign-attribution";
-import willianHero from "@/assets/uploads/6663.png";
+const willianHero = "/willian/willian-destaque.png";
 import "@/styles/willian.css";
 
 const logo = "/willian/juntos-por-vidas-logo.png";
@@ -131,7 +131,7 @@ export function WillianCampaign({ story }: { story: ReactNode }) {
       </section>
 
       <section id="organizer" className="w-section">
-        <h2>Organizador e beneficiário</h2><div className="w-organizer"><img src={logo} width={66} height={66} alt="Logo Juntos por Vidas" /><div><h3>Família do Willian</h3><p>Esta campanha apoia o Willian e o seu pai nas necessidades do dia a dia, com cuidado, segurança e dignidade.</p></div></div>
+        <h2>Organizador e beneficiário</h2><div className="w-organizer"><img src={logo} width={66} height={66} alt="Logo Juntos por Vidas" /><div><h3>Juntos por Vidas</h3><p>Organiza esta campanha em nome do Willian e da sua família. Cada donativo destina-se a apoiar os cuidados e as necessidades do dia a dia do Willian, com segurança e dignidade.</p></div></div>
       </section>
 
       <section id="support" className="w-section">
